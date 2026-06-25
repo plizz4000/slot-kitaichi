@@ -47,9 +47,12 @@ h2.sec{font-size:14px;font-weight:bold;color:#fff;background:var(--red);padding:
 .dg-mode{background:#6b46c1;}
 .dg-samai{background:var(--blue);}
 .dg-shisa{background:#2d8659;}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;font-size:12px;}
-.detail-grid .lb{color:var(--gray);font-size:11px;}
+.detail-grid{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:12px;}
+.detail-grid .lb{color:var(--gray);font-size:11px;white-space:nowrap;padding-top:2px;}
 .detail-grid .vl{font-weight:bold;}
+.vl-list{list-style:none;margin:0;padding:0;}
+.vl-list li{padding:1px 0;position:relative;padding-left:12px;}
+.vl-list li::before{content:'▸';position:absolute;left:0;color:#bbb;font-size:10px;}
 .detail-grid .vl.red{color:var(--red);}
 .detail-grid .vl.green{color:var(--green);}
 .detail-grid .vl.orange{color:var(--orange);}
@@ -292,6 +295,7 @@ function renderAll(){
 
 function truncate(s,n){if(!s)return'';return s.length>n?s.slice(0,n)+'…':s;}
 function shortField(s){if(!s)return'-';return s.split('/')[0].replace(/[（(].*/,'').trim();}
+function toList(s){if(!s)return'';const items=s.split(/\s*\/\s*/);if(items.length<=1)return s;return '<ul class="vl-list">'+items.map(x=>'<li>'+x.trim()+'</li>').join('')+'</ul>';}
 
 function buildCards(){
   list.innerHTML='';
@@ -306,23 +310,23 @@ function buildCards(){
     if(m.ev){chips+=`<span class="chip chip-ev">${truncate(shortField(m.ev),20)}</span>`;}
     let detail='';
     let g1='';
-    if(m.aim)g1+=`<span class="lb">狙い目(等価)</span><span class="vl red">${m.aim}</span>`;
-    if(m.aim56)g1+=`<span class="lb">狙い目(5.6枚)</span><span class="vl">${m.aim56}</span>`;
-    if(m.ev)g1+=`<span class="lb">期待値</span><span class="vl red">${m.ev}</span>`;
-    if(m.quit)g1+=`<span class="lb">やめ時</span><span class="vl">${m.quit}</span>`;
+    if(m.aim)g1+=`<span class="lb">狙い目(等価)</span><span class="vl red">${toList(m.aim)}</span>`;
+    if(m.aim56)g1+=`<span class="lb">狙い目(5.6枚)</span><span class="vl">${toList(m.aim56)}</span>`;
+    if(m.ev)g1+=`<span class="lb">期待値</span><span class="vl red">${toList(m.ev)}</span>`;
+    if(m.quit)g1+=`<span class="lb">やめ時</span><span class="vl">${toList(m.quit)}</span>`;
     if(g1)detail+=`<div class="detail-group"><span class="detail-group-title dg-aim">📍 狙い目・やめ時</span><div class="detail-grid">${g1}</div></div>`;
     let g2='';
-    if(m.ceil)g2+=`<span class="lb">天井</span><span class="vl">${m.ceil}</span>`;
-    if(m.bonus)g2+=`<span class="lb">天井恩恵</span><span class="vl">${m.bonus}</span>`;
-    if(m.reset&&m.resetNote)g2+=`<span class="lb">朝一リセット</span><span class="vl green">${m.resetNote}</span>`;
+    if(m.ceil)g2+=`<span class="lb">天井</span><span class="vl">${toList(m.ceil)}</span>`;
+    if(m.bonus)g2+=`<span class="lb">天井恩恵</span><span class="vl">${toList(m.bonus)}</span>`;
+    if(m.reset&&m.resetNote)g2+=`<span class="lb">朝一リセット</span><span class="vl green">${toList(m.resetNote)}</span>`;
     if(g2)detail+=`<div class="detail-group"><span class="detail-group-title dg-ceil">🎰 天井・リセット</span><div class="detail-grid">${g2}</div></div>`;
     let g3='';
-    if(m.zone)g3+=`<span class="lb">ゾーン狙い</span><span class="vl orange">${m.zone}</span>`;
-    if(m.mode)g3+=`<span class="lb">モード狙い</span><span class="vl purple">${m.mode}</span>`;
+    if(m.zone)g3+=`<span class="lb">ゾーン狙い</span><span class="vl orange">${toList(m.zone)}</span>`;
+    if(m.mode)g3+=`<span class="lb">モード狙い</span><span class="vl purple">${toList(m.mode)}</span>`;
     if(g3)detail+=`<div class="detail-group"><span class="detail-group-title dg-mode">🎯 ゾーン・モード</span><div class="detail-grid">${g3}</div></div>`;
-    if(m.samai)detail+=`<div class="detail-group"><span class="detail-group-title dg-samai">💰 差枚狙い</span><div class="samai-box">${m.samai}</div></div>`;
-    if(m.zentu)detail+=`<div class="zentu-box"><span class="lb">🔥全ツッパ</span> <span class="vl">${m.zentu}</span></div>`;
-    if(m.shisa)detail+=`<div class="detail-group"><span class="detail-group-title dg-shisa">💡 示唆</span><div class="shisa-box">${m.shisa}</div></div>`;
+    if(m.samai)detail+=`<div class="detail-group"><span class="detail-group-title dg-samai">💰 差枚狙い</span><div class="samai-box">${toList(m.samai)}</div></div>`;
+    if(m.zentu)detail+=`<div class="zentu-box"><span class="lb">🔥全ツッパ</span> <span class="vl">${toList(m.zentu)}</span></div>`;
+    if(m.shisa)detail+=`<div class="detail-group"><span class="detail-group-title dg-shisa">💡 示唆</span><div class="shisa-box">${toList(m.shisa)}</div></div>`;
     if(m.note)detail+=`<div class="card-note">📝 ${m.note}</div>`;
     card.innerHTML=`<div class="card-head"><span class="card-name">${m.name}${m.sub?'<small>'+m.sub+'</small>':''}</span><span class="badge ${bc}">${m.rank}</span></div><div class="card-summary">${chips}</div><div class="card-detail">${detail}</div>`;
     card.querySelector('.card-head').addEventListener('click',()=>card.classList.toggle('open'));
