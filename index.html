@@ -25,24 +25,43 @@ h2.sec{font-size:14px;font-weight:bold;color:#fff;background:var(--red);padding:
 .badge-s{background:var(--red);}
 .badge-a{background:var(--orange);}
 .badge-b{background:var(--blue);}
-.card{border-bottom:1px solid #eee;padding:10px 14px;}
+.card{border-bottom:1px solid #eee;padding:0;}
 .card.hidden{display:none;}
-.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
-.card-name{font-size:14px;font-weight:bold;}
+.card-head{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none;}
+.card-head:active{background:#f8f8f8;}
+.card-head::after{content:'▶';font-size:10px;color:#bbb;transition:transform .2s;flex-shrink:0;margin-left:8px;}
+.card.open .card-head::after{transform:rotate(90deg);color:var(--red);}
+.card-name{font-size:14px;font-weight:bold;flex:1;}
 .card-name small{font-size:10px;color:var(--gray);font-weight:normal;display:block;}
-.card-body{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;font-size:12px;}
-.card-body .lb{color:var(--gray);font-size:11px;}
-.card-body .vl{font-weight:bold;}
-.card-body .vl.red{color:var(--red);}
-.card-body .vl.green{color:var(--green);}
-.card-note{font-size:10px;color:#888;margin-top:4px;padding-top:4px;border-top:1px solid #f0f0f0;grid-column:1/-1;}
-.card-body .vl.orange{color:var(--orange);}
-.card-body .vl.purple{color:#6b46c1;}
-.card-body .vl.blue{color:var(--blue);}
-.card-body .full{grid-column:1/-1;}
-.zentu-box{grid-column:1/-1;background:#fff5f5;border:1px solid var(--red);border-radius:4px;padding:4px 8px;margin-top:2px;font-size:11px;}
+.card-summary{display:flex;gap:6px;padding:0 14px 8px;flex-wrap:wrap;font-size:11px;}
+.card-summary .chip{padding:2px 8px;border-radius:10px;font-weight:bold;white-space:nowrap;}
+.chip-ceil{background:#f0f0f0;color:#333;}
+.chip-aim{background:var(--red-bg);color:var(--red);}
+.chip-ev{background:#fff5f5;color:var(--red);border:1px solid #fecaca;}
+.card-detail{display:none;padding:0 14px 12px;}
+.card.open .card-detail{display:block;}
+.detail-group{margin-bottom:8px;}
+.detail-group-title{font-size:11px;font-weight:bold;color:#fff;padding:3px 8px;border-radius:3px;margin-bottom:4px;display:inline-block;}
+.dg-aim{background:var(--red);}
+.dg-ceil{background:#555;}
+.dg-mode{background:#6b46c1;}
+.dg-samai{background:var(--blue);}
+.dg-shisa{background:#2d8659;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;font-size:12px;}
+.detail-grid .lb{color:var(--gray);font-size:11px;}
+.detail-grid .vl{font-weight:bold;}
+.detail-grid .vl.red{color:var(--red);}
+.detail-grid .vl.green{color:var(--green);}
+.detail-grid .vl.orange{color:var(--orange);}
+.detail-grid .vl.purple{color:#6b46c1;}
+.detail-grid .vl.blue{color:var(--blue);}
+.detail-grid .full{grid-column:1/-1;}
+.card-note{font-size:10px;color:#888;margin-top:4px;padding-top:4px;border-top:1px solid #f0f0f0;}
+.zentu-box{background:#fff5f5;border:1px solid var(--red);border-radius:4px;padding:4px 8px;margin-top:4px;font-size:11px;}
 .zentu-box .lb{color:var(--red);font-weight:bold;font-size:11px;}
 .zentu-box .vl{color:var(--red);font-weight:bold;}
+.shisa-box{background:#f0fdf4;border:1px solid #86efac;border-radius:4px;padding:4px 8px;margin-top:4px;font-size:10px;color:var(--blue);line-height:1.5;}
+.samai-box{background:#eff6ff;border:1px solid #93c5fd;border-radius:4px;padding:4px 8px;margin-top:4px;font-size:11px;color:var(--blue);font-weight:bold;line-height:1.5;}
 .info-section{padding:12px 14px;}
 .info-box{border:1px solid var(--border);padding:10px 14px;margin-bottom:8px;border-radius:4px;background:#fafafa;}
 .info-box h4{font-size:13px;color:#333;margin-bottom:4px;}
@@ -54,9 +73,33 @@ h2.sec{font-size:14px;font-weight:bold;color:#fff;background:var(--red);padding:
 .howto p{font-size:11px;color:#333;line-height:1.8;}
 .footer{text-align:center;font-size:10px;color:#999;padding:16px 12px;border-top:1px solid var(--border);}
 .no-result{padding:40px 20px;text-align:center;color:var(--gray);font-size:14px;display:none;}
+/* view toggle */
+.view-toggle{display:flex;gap:0;padding:6px 12px;background:#fff;border-bottom:1px solid var(--border);}
+.view-btn{flex:1;padding:6px 0;text-align:center;font-size:12px;font-weight:bold;color:var(--gray);background:#f5f5f5;border:1px solid var(--border);cursor:pointer;transition:.2s;}
+.view-btn:first-child{border-radius:6px 0 0 6px;}
+.view-btn:last-child{border-radius:0 6px 6px 0;}
+.view-btn.active{background:var(--red);color:#fff;border-color:var(--red);}
+/* table view */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;display:none;}
+.table-wrap.show{display:block;}
+.machine-table{width:100%;border-collapse:collapse;font-size:11px;min-width:640px;}
+.machine-table th{background:var(--red);color:#fff;padding:6px 8px;font-weight:bold;white-space:nowrap;position:sticky;top:0;font-size:11px;text-align:left;}
+.machine-table td{padding:5px 8px;border-bottom:1px solid #eee;vertical-align:top;line-height:1.5;}
+.machine-table tr:nth-child(even){background:#fafafa;}
+.machine-table tr:hover{background:#fff5f5;}
+.machine-table tr.hidden{display:none;}
+.machine-table .t-name{font-weight:bold;white-space:nowrap;min-width:100px;}
+.machine-table .t-name small{display:block;font-size:9px;color:var(--gray);font-weight:normal;}
+.machine-table .t-aim{color:var(--red);font-weight:bold;max-width:160px;}
+.machine-table .t-ev{color:var(--red);max-width:140px;}
+.machine-table .t-quit{max-width:140px;font-size:10px;color:#555;}
+.machine-table .t-reset{text-align:center;font-size:13px;}
+.machine-table .t-samai{color:var(--blue);max-width:160px;font-size:10px;}
 @media(max-width:480px){
   .header h1{font-size:17px;}
   .card-body{font-size:11px;}
+  .machine-table{font-size:10px;min-width:580px;}
+  .machine-table th,.machine-table td{padding:4px 5px;}
 }
 </style>
 </head>
@@ -81,7 +124,13 @@ h2.sec{font-size:14px;font-weight:bold;color:#fff;background:var(--red);padding:
   <div class="tab" data-filter="reset">朝一◎</div>
 </div>
 
+<div class="view-toggle">
+  <div class="view-btn active" data-view="card">📋 カード</div>
+  <div class="view-btn" data-view="table">📊 一覧表</div>
+</div>
+
 <div id="cardList"></div>
+<div class="table-wrap" id="tableView"></div>
 <div class="no-result" id="noResult">該当する機種が見つかりません</div>
 
 <!-- ===== 立ち回り ===== -->
@@ -211,13 +260,16 @@ const machines = [
 ];
 
 const list=document.getElementById('cardList');
+const tableWrap=document.getElementById('tableView');
 const search=document.getElementById('searchBox');
 const countEl=document.getElementById('resultCount');
 const noResult=document.getElementById('noResult');
 const tabs=document.querySelectorAll('.tab');
+const viewBtns=document.querySelectorAll('.view-btn');
 let activeTab='all';
+let activeView='card';
 
-function renderCards(){
+function renderAll(){
   const q=search.value.toLowerCase().trim();
   let count=0;
   document.querySelectorAll('.card').forEach(c=>{
@@ -227,9 +279,19 @@ function renderCards(){
     if(matchSearch&&matchTab){c.classList.remove('hidden');count++;}
     else{c.classList.add('hidden');}
   });
+  document.querySelectorAll('.machine-table tr[data-idx]').forEach(r=>{
+    const d=machines[r.dataset.idx];
+    const matchSearch=!q||d.name.toLowerCase().includes(q)||d.sub.toLowerCase().includes(q)||(d.kw&&d.kw.toLowerCase().includes(q));
+    const matchTab=activeTab==='all'||(activeTab==='reset'?d.reset:d.rank===activeTab);
+    if(matchSearch&&matchTab)r.classList.remove('hidden');
+    else r.classList.add('hidden');
+  });
   countEl.textContent=count+'機種 表示中';
   noResult.style.display=count===0?'block':'none';
 }
+
+function truncate(s,n){if(!s)return'';return s.length>n?s.slice(0,n)+'…':s;}
+function shortField(s){if(!s)return'-';return s.split('/')[0].replace(/[（(].*/,'').trim();}
 
 function buildCards(){
   list.innerHTML='';
@@ -238,34 +300,76 @@ function buildCards(){
     card.className='card';
     card.dataset.idx=i;
     const bc=m.rank==='S'?'badge-s':m.rank==='A'?'badge-a':'badge-b';
-    let rows='';
-    if(m.ceil)rows+=`<span class="lb">天井</span><span class="vl">${m.ceil}</span>`;
-    if(m.aim)rows+=`<span class="lb">狙い目(等価)</span><span class="vl red">${m.aim}</span>`;
-    if(m.aim56)rows+=`<span class="lb">狙い目(5.6枚)</span><span class="vl">${m.aim56}</span>`;
-    if(m.bonus)rows+=`<span class="lb">天井恩恵</span><span class="vl">${m.bonus}</span>`;
-    if(m.ev)rows+=`<span class="lb">期待値目安</span><span class="vl red">${m.ev}</span>`;
-    if(m.quit)rows+=`<span class="lb">やめ時</span><span class="vl">${m.quit}</span>`;
-    if(m.zone)rows+=`<span class="lb">ゾーン狙い</span><span class="vl orange">${m.zone}</span>`;
-    if(m.mode)rows+=`<span class="lb">モード狙い</span><span class="vl purple">${m.mode}</span>`;
-    if(m.samai)rows+=`<span class="lb">差枚狙い</span><span class="vl blue">${m.samai}</span>`;
-    if(m.reset&&m.resetNote)rows+=`<span class="lb">朝一リセット</span><span class="vl green">${m.resetNote}</span>`;
-    if(m.zentu)rows+=`<div class="zentu-box"><span class="lb">🔥全ツッパ</span> <span class="vl">${m.zentu}</span></div>`;
-    if(m.shisa)rows+=`<div class="card-note" style="color:var(--blue);">💡示唆: ${m.shisa}</div>`;
-    if(m.note)rows+=`<div class="card-note">${m.note}</div>`;
-    card.innerHTML=`<div class="card-head"><span class="card-name">${m.name}${m.sub?'<small>'+m.sub+'</small>':''}</span><span class="badge ${bc}">${m.rank}</span></div><div class="card-body">${rows}</div>`;
+    let chips='';
+    if(m.ceil){chips+=`<span class="chip chip-ceil">天井:${shortField(m.ceil)}</span>`;}
+    if(m.aim){chips+=`<span class="chip chip-aim">狙:${truncate(shortField(m.aim),18)}</span>`;}
+    if(m.ev){chips+=`<span class="chip chip-ev">${truncate(shortField(m.ev),20)}</span>`;}
+    let detail='';
+    let g1='';
+    if(m.aim)g1+=`<span class="lb">狙い目(等価)</span><span class="vl red">${m.aim}</span>`;
+    if(m.aim56)g1+=`<span class="lb">狙い目(5.6枚)</span><span class="vl">${m.aim56}</span>`;
+    if(m.ev)g1+=`<span class="lb">期待値</span><span class="vl red">${m.ev}</span>`;
+    if(m.quit)g1+=`<span class="lb">やめ時</span><span class="vl">${m.quit}</span>`;
+    if(g1)detail+=`<div class="detail-group"><span class="detail-group-title dg-aim">📍 狙い目・やめ時</span><div class="detail-grid">${g1}</div></div>`;
+    let g2='';
+    if(m.ceil)g2+=`<span class="lb">天井</span><span class="vl">${m.ceil}</span>`;
+    if(m.bonus)g2+=`<span class="lb">天井恩恵</span><span class="vl">${m.bonus}</span>`;
+    if(m.reset&&m.resetNote)g2+=`<span class="lb">朝一リセット</span><span class="vl green">${m.resetNote}</span>`;
+    if(g2)detail+=`<div class="detail-group"><span class="detail-group-title dg-ceil">🎰 天井・リセット</span><div class="detail-grid">${g2}</div></div>`;
+    let g3='';
+    if(m.zone)g3+=`<span class="lb">ゾーン狙い</span><span class="vl orange">${m.zone}</span>`;
+    if(m.mode)g3+=`<span class="lb">モード狙い</span><span class="vl purple">${m.mode}</span>`;
+    if(g3)detail+=`<div class="detail-group"><span class="detail-group-title dg-mode">🎯 ゾーン・モード</span><div class="detail-grid">${g3}</div></div>`;
+    if(m.samai)detail+=`<div class="detail-group"><span class="detail-group-title dg-samai">💰 差枚狙い</span><div class="samai-box">${m.samai}</div></div>`;
+    if(m.zentu)detail+=`<div class="zentu-box"><span class="lb">🔥全ツッパ</span> <span class="vl">${m.zentu}</span></div>`;
+    if(m.shisa)detail+=`<div class="detail-group"><span class="detail-group-title dg-shisa">💡 示唆</span><div class="shisa-box">${m.shisa}</div></div>`;
+    if(m.note)detail+=`<div class="card-note">📝 ${m.note}</div>`;
+    card.innerHTML=`<div class="card-head"><span class="card-name">${m.name}${m.sub?'<small>'+m.sub+'</small>':''}</span><span class="badge ${bc}">${m.rank}</span></div><div class="card-summary">${chips}</div><div class="card-detail">${detail}</div>`;
+    card.querySelector('.card-head').addEventListener('click',()=>card.classList.toggle('open'));
     list.appendChild(card);
   });
 }
 
+function buildTable(){
+  let html='<table class="machine-table"><thead><tr><th>機種名</th><th>級</th><th>天井</th><th>狙い目(等価)</th><th>期待値</th><th>やめ時</th><th>リセ</th><th>差枚狙い</th></tr></thead><tbody>';
+  machines.forEach((m,i)=>{
+    const bc=m.rank==='S'?'badge-s':m.rank==='A'?'badge-a':'badge-b';
+    html+=`<tr data-idx="${i}">`;
+    html+=`<td class="t-name">${m.name}${m.sub?'<small>'+m.sub+'</small>':''}</td>`;
+    html+=`<td><span class="badge ${bc}">${m.rank}</span></td>`;
+    html+=`<td>${m.ceil||'-'}</td>`;
+    html+=`<td class="t-aim">${m.aim||'-'}</td>`;
+    html+=`<td class="t-ev">${m.ev||'-'}</td>`;
+    html+=`<td class="t-quit">${m.quit||'-'}</td>`;
+    html+=`<td class="t-reset">${m.reset?'◎':'×'}</td>`;
+    html+=`<td class="t-samai">${m.samai||'-'}</td>`;
+    html+=`</tr>`;
+  });
+  html+='</tbody></table>';
+  tableWrap.innerHTML=html;
+}
+
+function setView(v){
+  activeView=v;
+  viewBtns.forEach(b=>{b.classList.toggle('active',b.dataset.view===v);});
+  list.style.display=v==='card'?'block':'none';
+  tableWrap.classList.toggle('show',v==='table');
+  document.getElementById('tipsSection').style.display=v==='card'?'block':'none';
+}
+
 buildCards();
-search.addEventListener('input',renderCards);
+buildTable();
+search.addEventListener('input',renderAll);
 tabs.forEach(t=>{
   t.addEventListener('click',()=>{
     tabs.forEach(x=>x.classList.remove('active'));
     t.classList.add('active');
     activeTab=t.dataset.filter;
-    renderCards();
+    renderAll();
   });
+});
+viewBtns.forEach(b=>{
+  b.addEventListener('click',()=>setView(b.dataset.view));
 });
 </script>
 </body>
