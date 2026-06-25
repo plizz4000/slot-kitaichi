@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スロット天井狙い 期待値早見表 2026年6月版</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root { --red:#c53030; --red-bg:#fff5f5; --green:#276749; --green-bg:#f0fff4; --orange:#dd6b20; --blue:#2b6cb0; --gray:#666; --border:#ddd; }
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans JP','Hiragino Sans',sans-serif;background:#f7f7f7;color:#1a1a1a;font-size:14px;line-height:1.6;}
+.wrap{max-width:780px;margin:0 auto;padding:12px;background:#fff;min-height:100vh;}
+
+/* ===== Header ===== */
+.header{text-align:center;padding:16px 8px 12px;border-bottom:4px solid var(--red);}
+.header h1{font-size:22px;font-weight:900;letter-spacing:.05em;}
+.header .sub{font-size:12px;color:var(--gray);margin-top:4px;}
+
+/* ===== How to read ===== */
+.howto{border:2px solid var(--red);background:var(--red-bg);padding:12px 14px;margin:14px 0;border-radius:6px;}
+.howto h2{font-size:14px;color:var(--red);margin-bottom:6px;}
+.howto p{font-size:12px;color:#333;line-height:1.8;}
+.badge{display:inline-block;font-size:10px;font-weight:bold;padding:2px 7px;color:#fff;border-radius:3px;vertical-align:middle;}
+.badge-s{background:var(--red);}
+.badge-a{background:var(--orange);}
+.badge-b{background:var(--blue);}
+
+/* ===== Section headers ===== */
+h2.sec{font-size:15px;font-weight:bold;color:#fff;background:var(--red);padding:8px 14px;margin:20px -12px 0;letter-spacing:.03em;}
+h3.subsec{font-size:13px;font-weight:bold;color:var(--red);background:var(--red-bg);padding:6px 14px;margin:0 -12px;border-left:4px solid var(--red);}
+
+/* ===== Card-style machine list (mobile) ===== */
+.machine-card{border:1px solid var(--border);margin:8px 0;border-radius:6px;overflow:hidden;}
+.machine-card.tier-s{border-left:4px solid var(--red);}
+.machine-card.tier-a{border-left:4px solid var(--orange);}
+.machine-card.tier-b{border-left:4px solid var(--blue);}
+.mc-head{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#fafafa;border-bottom:1px solid #eee;}
+.mc-name{font-size:14px;font-weight:bold;}
+.mc-name .mc-sub{font-size:10px;color:var(--gray);font-weight:normal;display:block;}
+.mc-body{padding:8px 12px;font-size:12px;}
+.mc-row{display:flex;flex-wrap:wrap;gap:4px 0;margin-bottom:4px;}
+.mc-label{width:35%;color:var(--gray);font-size:11px;}
+.mc-val{width:65%;font-weight:bold;}
+.mc-val.red{color:var(--red);}
+.mc-val.green{color:var(--green);}
+.mc-note{font-size:10px;color:#888;padding-top:4px;border-top:1px solid #eee;margin-top:4px;}
+
+/* ===== Desktop table (hidden on mobile, shown on wider) ===== */
+.dt-table{display:none;}
+.dt-table table{width:100%;border-collapse:collapse;}
+.dt-table th{font-size:11px;font-weight:bold;color:#fff;background:#333;padding:6px 8px;text-align:center;border:1px solid #555;}
+.dt-table th:first-child{text-align:left;}
+.dt-table td{padding:5px 8px;font-size:12px;border:1px solid var(--border);text-align:center;}
+.dt-table td:first-child{text-align:left;font-weight:bold;}
+.dt-table tr:nth-child(even) td{background:#f9f9f9;}
+.dt-table tr.hot td{background:var(--red-bg)!important;}
+.dt-table tr.good td{background:var(--green-bg)!important;}
+.dt-table .price{font-size:13px;font-weight:bold;color:var(--red);}
+
+@media(min-width:640px){
+  .machine-card-list{display:none;}
+  .dt-table{display:block;}
+}
+@media(max-width:639px){
+  h2.sec{margin:16px -12px 0;font-size:14px;padding:7px 12px;}
+  .wrap{padding:8px;}
+}
+
+/* ===== Reset table (always table) ===== */
+.reset-tbl{width:100%;border-collapse:collapse;margin:4px 0;}
+.reset-tbl th{font-size:10px;font-weight:bold;color:#fff;background:#333;padding:5px 6px;text-align:center;border:1px solid #555;}
+.reset-tbl th:first-child{text-align:left;}
+.reset-tbl td{padding:4px 6px;font-size:11px;border:1px solid var(--border);text-align:center;}
+.reset-tbl td:first-child{text-align:left;font-weight:bold;}
+.reset-tbl tr.hot td{background:var(--red-bg)!important;}
+.reset-tbl tr.good td{background:var(--green-bg)!important;}
+
+/* ===== Info boxes ===== */
+.info-box{border:1px solid var(--border);padding:10px 14px;margin-top:10px;background:#fafafa;border-radius:4px;}
+.info-box h4{font-size:13px;color:#333;margin-bottom:4px;}
+.info-box p{font-size:12px;color:#555;line-height:1.8;}
+.tip-box{font-size:12px;color:#555;padding:10px 14px;background:#fffbeb;border:1px solid #e6d88a;margin-top:12px;border-radius:4px;line-height:1.8;}
+.tip-box strong{color:#333;}
+
+/* ===== Footer ===== */
+.footer{text-align:center;font-size:10px;color:#999;margin-top:20px;padding:12px;border-top:1px solid var(--border);}
+.small{font-size:9px;color:#888;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ==================== HEADER ==================== -->
+<div class="header">
+  <h1>スロット天井狙い 期待値早見表</h1>
+  <div class="sub">2026年6月版 ｜ 時給3,000円 &amp; 機械割103%以上基準<br>情報源: ななプレス / DMMぱちタウン / すろぱちくえすと / フリック7 / エナイキ</div>
+</div>
+
+<!-- ==================== HOW TO READ ==================== -->
+<div class="howto">
+  <h2>この表の読み方</h2>
+  <p>
+    <strong>狙い目G</strong> = この回転数から打てば時給3,000円以上が見込める<br>
+    <strong>等価</strong> = 等価交換 ｜ <strong>5.6枚</strong> = 5.6枚交換(現金投資)の場合<br>
+    <span class="badge badge-s">S</span> 期待値◎＋拾いやすい &nbsp;
+    <span class="badge badge-a">A</span> 期待値◎ &nbsp;
+    <span class="badge badge-b">B</span> 条件付きで優秀
+  </p>
+</div>
+
+<!-- ==================== MAIN LIST ==================== -->
+<h2 class="sec">天井狙い 機種別データ（全15機種）</h2>
+
+<!-- ===== MOBILE: Card layout ===== -->
+<div class="machine-card-list">
+
+<!-- 1. 攻殻機動隊 AT -->
+<div class="machine-card tier-s">
+  <div class="mc-head"><span class="mc-name">攻殻機動隊 SAC_2045<span class="mc-sub">AT間天井</span></span><span class="badge badge-s">S</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">999G（リセット時 699G）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">450G〜</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">600G〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">AT当選</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">+3,000円〜（950Gで+8,500円）</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">CZ間天井(550G)もあり → 300G〜で+1,500円。リセット時は0Gから+。有利区間ランプで判別</div>
+  </div>
+</div>
+
+<!-- 2. 東京グール -->
+<div class="machine-card tier-s">
+  <div class="mc-head"><span class="mc-name">東京グール<span class="mc-sub">AT間天井 / CZ間天井</span></span><span class="badge badge-s">S</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">AT天井</span><span class="mc-val">1,200G（実G数・メニュー確認）</span></div>
+    <div class="mc-row"><span class="mc-label">CZ天井</span><span class="mc-val">600G（擬似G数・画面表示）</span></div>
+    <div class="mc-row"><span class="mc-label">AT狙い目(等価)</span><span class="mc-val red">650G〜</span></div>
+    <div class="mc-row"><span class="mc-label">CZ狙い目(等価)</span><span class="mc-val red">300G〜</span></div>
+    <div class="mc-row"><span class="mc-label">5.6枚</span><span class="mc-val">AT:700G〜 / CZ:350G〜</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">CZ500Gで+945円 / AT天井で+3,000円〜</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">注意: 擬似G数と実G数が別。メニューで実G数を必ず確認。リセット時はCZ天井200Gに短縮 → 0G〜で+</div>
+  </div>
+</div>
+
+<!-- 3. カバネリ2 -->
+<div class="machine-card tier-s">
+  <div class="mc-head"><span class="mc-name">甲鉄城のカバネリ2<span class="mc-sub">海門決戦</span></span><span class="badge badge-s">S</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">996G / 6周期（短縮 596G / 4周期）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">400G〜</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">450G〜（現金550G〜）</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">エピソードボーナス → ST濃厚</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">+3,000円〜</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">ST終了後 即やめ</span></div>
+    <div class="mc-note">短縮条件: 設定変更 / ST突破 / 影のST終了。桜背景=エピボ4周期以内。リセット時 0G〜で+</div>
+  </div>
+</div>
+
+<!-- 4. 範馬刃牙 -->
+<div class="machine-card tier-s">
+  <div class="mc-head"><span class="mc-name">範馬刃牙<span class="mc-sub">G数天井 ＋ スルー天井</span></span><span class="badge badge-s">S</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">G数天井</span><span class="mc-val">700G+α（リセット時 200G+α）</span></div>
+    <div class="mc-row"><span class="mc-label">スルー天井</span><span class="mc-val">7回目ボーナスでAT濃厚</span></div>
+    <div class="mc-row"><span class="mc-label">G数狙い目(等価)</span><span class="mc-val red">400G〜（1,000円超）</span></div>
+    <div class="mc-row"><span class="mc-label">スルー狙い目</span><span class="mc-val red">5スルー〜（+3,000円〜）</span></div>
+    <div class="mc-row"><span class="mc-label">5.6枚</span><span class="mc-val">G数:450G〜 / スルー:5スルー〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">ボーナス＋地上最強の親子喧嘩濃厚</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">リセット時は160G〜。100Gゾーン(85G〜)と200Gゾーン(160G〜)も狙える。偶数スルー回が強め</div>
+  </div>
+</div>
+
+<!-- 5. 北斗の拳 -->
+<div class="machine-card tier-a">
+  <div class="mc-head"><span class="mc-name">北斗の拳<span class="mc-sub">無想転生バトル</span></span><span class="badge badge-a">A</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">1,268G+α（リセット時 800G）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">600G〜</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">700G〜（現金）</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">BB確定＋北斗揃い期待度UP</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">700Gで+1,000円超 / 1000Gで+4,000円〜</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">BB/AT後 即やめ</span></div>
+    <div class="mc-note">300G/777G/800Gで天井短縮抽選あり。人気機種で空き台が少ないのが難点。リセット時200G〜</div>
+  </div>
+</div>
+
+<!-- 6. ミリオンゴッド -->
+<div class="machine-card tier-a">
+  <div class="mc-head"><span class="mc-name">ミリオンゴッド<span class="mc-sub">神々の軌跡</span></span><span class="badge badge-a">A</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">GG間 1,480G+α</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">550G〜（1,000円超）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">750G〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">GG(ゴッドゲーム)＋ループストック</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">800Gで+3,000円〜 / 1200Gで+5,000円〜</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">GG後 36G引き戻し否定でやめ</span></div>
+    <div class="mc-note">リセット時は等価0G〜で微+。天国・超天国示唆あれば続行。天井深いが恩恵が強い</div>
+  </div>
+</div>
+
+<!-- 7. リゼロ2 -->
+<div class="machine-card tier-a">
+  <div class="mc-head"><span class="mc-name">Re:ゼロ Season2<span class="mc-sub">ポイント天井</span></span><span class="badge badge-a">A</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">1,400pt（平均約930G）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">550pt〜（約365G）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">600pt〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">殲滅RUSH突入</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">リセット100Gで+2,000円</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">100pt毎にAT抽選。偶数百pt(200/400/600...)はAT期待度約25%でゾーン狙いも有効。リセット時 天井400/600/800/1000ptに短縮</div>
+  </div>
+</div>
+
+<!-- 8. ゴールデンカムイ -->
+<div class="machine-card tier-a">
+  <div class="mc-head"><span class="mc-name">ゴールデンカムイ<span class="mc-sub">ピュウ☆天井 ＋ スルー天井</span></span><span class="badge badge-a">A</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">1,800ピュウ☆（≒720G）/ リセ1,600ピュウ</span></div>
+    <div class="mc-row"><span class="mc-label">スルー天井</span><span class="mc-val">ボーナス7スルーでAT濃厚</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">900〜1,000ピュウ☆</span></div>
+    <div class="mc-row"><span class="mc-label">スルー狙い</span><span class="mc-val red">5スルー〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">ボーナス当選</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ（200ピュウゾーンまで追うのもあり）</span></div>
+    <div class="mc-note">天井効率指数ランキング6位(フリック7)。機械割97.9%〜113.3%。7スルー後はどこからでも+</div>
+  </div>
+</div>
+
+<!-- 9. 虚構推理 -->
+<div class="machine-card tier-a">
+  <div class="mc-head"><span class="mc-name">虚構推理<span class="mc-sub">2026年5月導入</span></span><span class="badge badge-a">A</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">1,000G（リセット時 700G / 300G抽選あり）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">500G〜（500Gで+1,197円）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">600G〜（600Gで+2,231円）</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">ボーナス＋雪女ストック1個以上</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">600Gで+2,200円 / 800Gで+4,000円〜</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">虚構連モード→CZ失敗後（引き戻し15-20%待ち）</span></div>
+    <div class="mc-note">新台で空き台見つけやすい。リセット時250G〜。天井300G当選時は大チャンス</div>
+  </div>
+</div>
+
+<!-- 10. エウレカセブン4 -->
+<div class="machine-card tier-a">
+  <div class="mc-head"><span class="mc-name">エウレカセブン4<span class="mc-sub">HI-EVOLUTION</span></span><span class="badge badge-a">A</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">999G+α / 1,550WAVE（リセ 950WAVE）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">650WAVE〜</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">700WAVE〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">AT当選</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">時給約+2,000円</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">天井効率指数ランキング4位(フリック7)。冷遇時(前AT1000枚以下)は1000WAVE〜、優遇時は400WAVE〜。リセット時150G〜</div>
+  </div>
+</div>
+
+<!-- 11. 炎炎ノ消防隊2 -->
+<div class="machine-card tier-b">
+  <div class="mc-head"><span class="mc-name">炎炎ノ消防隊2<span class="mc-sub">3つの天井</span></span><span class="badge badge-b">B</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">ボーナス間天井</span><span class="mc-val">850G（リセット時 650G）</span></div>
+    <div class="mc-row"><span class="mc-label">炎炎ループ天井</span><span class="mc-val">2,000G（リセット時 1,500G）</span></div>
+    <div class="mc-row"><span class="mc-label">スルー天井</span><span class="mc-val">伝導者の罠5スルー→次回SPボーナス</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">500G〜</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">600G〜</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">リセット時350G〜。朝一88Gゾーンは天国移行35%で0G打ち可。スルー天井との複合狙いが強い</div>
+  </div>
+</div>
+
+<!-- 12. 化物語 -->
+<div class="machine-card tier-b">
+  <div class="mc-head"><span class="mc-name">化物語<span class="mc-sub">リセット狙いが美味しい</span></span><span class="badge badge-b">B</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">800G（リセット時 大幅短縮）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">500G〜</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">600G〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">AT当選</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">リセ250Gで+1,000円超</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">リセット時は等価250G〜/5.6枚350G〜で+1,000円超。通常時よりリセット狙いが圧倒的に有利</div>
+  </div>
+</div>
+
+<!-- 13. 秘宝伝 -->
+<div class="machine-card tier-b">
+  <div class="mc-head"><span class="mc-name">秘宝伝<span class="mc-sub">リセット狙い専用</span></span><span class="badge badge-b">B</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">REG後G数天井あり（リセットで短縮）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">350G〜（リセット時 250G〜）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">400G〜（リセット時 300G〜）</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">リセ350Gで+1,000円超</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">ボーナス後 即やめ</span></div>
+    <div class="mc-note">朝一リセット時が最も有効。通常時は天井が深く効率が落ちる</div>
+  </div>
+</div>
+
+<!-- 14. ゴジラVSエヴァ -->
+<div class="machine-card tier-b">
+  <div class="mc-head"><span class="mc-name">ゴジラVSエヴァンゲリオン<span class="mc-sub">G数天井 ＋ スルー天井</span></span><span class="badge badge-b">B</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">1,000G / 8スルー</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">800G〜 / 7スルー〜</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">850G〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">AT当選</span></div>
+    <div class="mc-row"><span class="mc-label">期待値目安</span><span class="mc-val red">+2,500円〜</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">狙い目が深めで拾いにくい。スルー天井との複合で狙えるとベスト</div>
+  </div>
+</div>
+
+<!-- 15. 北斗の拳 転生の章2 -->
+<div class="machine-card tier-b">
+  <div class="mc-head"><span class="mc-name">北斗の拳 転生の章2<span class="mc-sub">あべし天井</span></span><span class="badge badge-b">B</span></div>
+  <div class="mc-body">
+    <div class="mc-row"><span class="mc-label">天井</span><span class="mc-val">あべし数で管理（G数ではない）</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(等価)</span><span class="mc-val red">780あべし〜</span></div>
+    <div class="mc-row"><span class="mc-label">狙い目(5.6枚)</span><span class="mc-val">840あべし〜</span></div>
+    <div class="mc-row"><span class="mc-label">天井恩恵</span><span class="mc-val">AT当選</span></div>
+    <div class="mc-row"><span class="mc-label">やめ時</span><span class="mc-val">AT後 即やめ</span></div>
+    <div class="mc-note">あべし数は液晶で確認可。G数と1:1ではないので注意</div>
+  </div>
+</div>
+
+</div><!-- /machine-card-list -->
+
+<!-- ===== DESKTOP: Table layout ===== -->
+<div class="dt-table">
+<table>
+<tr>
+  <th style="min-width:120px;">機種</th>
+  <th>天井</th>
+  <th>狙い目G<br><span style="font-weight:normal">(等価)</span></th>
+  <th>狙い目G<br><span style="font-weight:normal">(5.6枚)</span></th>
+  <th>天井恩恵</th>
+  <th>期待値目安</th>
+  <th>ランク</th>
+</tr>
+<tr class="hot">
+  <td>攻殻機動隊<br><span class="small">AT間天井</span></td>
+  <td>999G<br><span class="small">リセ699G</span></td>
+  <td><span class="price">450G〜</span></td>
+  <td>600G〜</td>
+  <td>AT当選</td>
+  <td><span class="price">+3,000〜</span></td>
+  <td><span class="badge badge-s">S</span></td>
+</tr>
+<tr class="hot">
+  <td>攻殻機動隊<br><span class="small">CZ間天井</span></td>
+  <td>550G<br><span class="small">リセ350G</span></td>
+  <td><span class="price">300G〜</span></td>
+  <td>350G〜</td>
+  <td>CZ当選</td>
+  <td><span class="price">+1,500〜</span></td>
+  <td><span class="badge badge-a">A</span></td>
+</tr>
+<tr class="hot">
+  <td>東京グール<br><span class="small">AT間天井</span></td>
+  <td>1,200G<br><span class="small">実G数</span></td>
+  <td><span class="price">650G〜</span></td>
+  <td>700G〜</td>
+  <td>AT当選</td>
+  <td><span class="price">+3,000〜</span></td>
+  <td><span class="badge badge-s">S</span></td>
+</tr>
+<tr class="hot">
+  <td>東京グール<br><span class="small">CZ間天井</span></td>
+  <td>600G<br><span class="small">擬似G数</span></td>
+  <td><span class="price">300G〜</span></td>
+  <td>350G〜</td>
+  <td>CZ当選</td>
+  <td><span class="price">+945円(500G)</span></td>
+  <td><span class="badge badge-a">A</span></td>
+</tr>
+<tr class="hot">
+  <td>カバネリ2<br><span class="small">海門決戦</span></td>
+  <td>996G<br><span class="small">短縮596G</span></td>
+  <td><span class="price">400G〜</span></td>
+  <td>550G〜</td>
+  <td>エピボ→ST</td>
+  <td><span class="price">+3,000〜</span></td>
+  <td><span class="badge badge-s">S</span></td>
+</tr>
+<tr class="hot">
+  <td>範馬刃牙<br><span class="small">G数天井</span></td>
+  <td>700G<br><span class="small">リセ200G</span></td>
+  <td><span class="price">400G〜</span></td>
+  <td>450G〜</td>
+  <td>ボーナス+親子喧嘩</td>
+  <td><span class="price">+1,000円超</span></td>
+  <td><span class="badge badge-s">S</span></td>
+</tr>
+<tr class="hot">
+  <td>範馬刃牙<br><span class="small">スルー天井</span></td>
+  <td>7スルー</td>
+  <td><span class="price">5スルー〜</span></td>
+  <td>5スルー〜</td>
+  <td>AT濃厚</td>
+  <td><span class="price">+3,000〜</span></td>
+  <td><span class="badge badge-s">S</span></td>
+</tr>
+<tr class="good">
+  <td>北斗の拳</td>
+  <td>1,268G<br><span class="small">リセ800G</span></td>
+  <td><span class="price">600G〜</span></td>
+  <td>700G〜</td>
+  <td>BB+北斗揃い期待UP</td>
+  <td><span class="price">+1,000円超(700G)</span></td>
+  <td><span class="badge badge-a">A</span></td>
+</tr>
+<tr class="good">
+  <td>ミリオンゴッド<br><span class="small">神々の軌跡</span></td>
+  <td>1,480G</td>
+  <td><span class="price">550G〜</span></td>
+  <td>750G〜</td>
+  <td>GG+ループストック</td>
+  <td><span class="price">+3,000〜(800G)</span></td>
+  <td><span class="badge badge-a">A</span></td>
+</tr>
+<tr class="good">
+  <td>Re:ゼロ S2<br><span class="small">ポイント天井</span></td>
+  <td>1,400pt<br><span class="small">≒930G</span></td>
+  <td><span class="price">550pt〜</span></td>
+  <td>600pt〜</td>
+  <td>殲滅RUSH</td>
+  <td><span class="price">リセ100Gで+2,000</span></td>
+  <td><span class="badge badge-a">A</span></td>
+</tr>
+<tr class="good">
+  <td>ゴールデンカムイ</td>
+  <td>1,800ピュウ<br><span class="small">≒720G</span></td>
+  <td><span class="price">900ピュウ〜</span></td>
+  <td>1,000ピュウ〜</td>
+  <td>ボーナス当選</td>
+  <td><span class="price">7スルーで全+</span></td>
+  <td><span class="badge badge-a">A</span></td>
+</tr>
+<tr class="good">
+  <td>虚構推理<br><span class="small">新台 2026/5</span></td>
+  <td>1,000G<br><span class="small">リセ700G</span></td>
+  <td><span class="price">500G〜</span></td>
+  <td>600G〜</td>
+  <td>ボーナス+雪女ストック</td>
+  <td><span class="price">+1,197(500G)</span></td>
+  <td><span class="badge badge-a">A</span></td>
+</tr>
+<tr class="good">
+  <td>エウレカ4<br><span class="small">HI-EVOLUTION</span></td>
+  <td>1,550WAVE<br><span class="small">リセ950W</span></td>
+  <td><span class="price">650W〜</span></td>
+  <td>700W〜</td>
+  <td>AT当選</td>
+  <td><span class="price">時給+2,000</span></td>
+  <td><span class="badge badge-a">A</span></td>
+</tr>
+<tr>
+  <td>炎炎2<br><span class="small">3天井搭載</span></td>
+  <td>850G<br><span class="small">リセ650G</span></td>
+  <td><span class="price">500G〜</span></td>
+  <td>600G〜</td>
+  <td>ボーナス当選</td>
+  <td><span class="price">朝一88G +</span></td>
+  <td><span class="badge badge-b">B</span></td>
+</tr>
+<tr>
+  <td>化物語<br><span class="small">リセット狙い</span></td>
+  <td>800G</td>
+  <td><span class="price">500G〜</span></td>
+  <td>600G〜</td>
+  <td>AT当選</td>
+  <td><span class="price">リセ250Gで+1,000超</span></td>
+  <td><span class="badge badge-b">B</span></td>
+</tr>
+</table>
+</div>
+
+<!-- ==================== RESET TABLE ==================== -->
+<h2 class="sec">朝一(リセット)狙い — 0Gから期待値プラス</h2>
+
+<table class="reset-tbl">
+<tr><th>機種</th><th>リセット天井</th><th>等価狙い目</th><th>5.6枚狙い目</th><th>判別方法</th></tr>
+<tr class="hot">
+  <td><strong>攻殻機動隊</strong></td>
+  <td>699G / CZ 350G</td>
+  <td style="color:var(--green);font-weight:bold;">0G〜</td>
+  <td>150G〜</td>
+  <td>有利区間ランプ</td>
+</tr>
+<tr class="hot">
+  <td><strong>東京グール</strong></td>
+  <td>CZ 200G</td>
+  <td style="color:var(--green);font-weight:bold;">0G〜</td>
+  <td>20G〜</td>
+  <td>有利区間ランプ</td>
+</tr>
+<tr class="hot">
+  <td><strong>カバネリ2</strong></td>
+  <td>596G / 4周期</td>
+  <td style="color:var(--green);font-weight:bold;">0G〜</td>
+  <td>50G〜</td>
+  <td>ガックンチェック</td>
+</tr>
+<tr class="hot">
+  <td><strong>範馬刃牙</strong></td>
+  <td>200G（99%ボーナス）</td>
+  <td style="color:var(--green);font-weight:bold;">100G〜</td>
+  <td>160G〜</td>
+  <td>ガックンチェック</td>
+</tr>
+<tr class="hot">
+  <td><strong>リゼロ2</strong></td>
+  <td>400/600/800/1000pt</td>
+  <td style="color:var(--green);font-weight:bold;">100G〜(+2,000円)</td>
+  <td>150G〜</td>
+  <td>液晶pt確認</td>
+</tr>
+<tr class="good">
+  <td><strong>北斗の拳</strong></td>
+  <td>800G</td>
+  <td>200G〜</td>
+  <td>350G〜</td>
+  <td>ガックンチェック</td>
+</tr>
+<tr class="good">
+  <td><strong>虚構推理</strong></td>
+  <td>700G（300G抽選あり）</td>
+  <td>250G〜</td>
+  <td>350G〜</td>
+  <td>画面演出</td>
+</tr>
+<tr class="good">
+  <td><strong>ミリオンゴッド</strong></td>
+  <td>天井短縮</td>
+  <td style="color:var(--green);font-weight:bold;">0G〜(微+)</td>
+  <td>250G〜</td>
+  <td>—</td>
+</tr>
+<tr class="good">
+  <td><strong>炎炎2</strong></td>
+  <td>650G + 88Gゾーン強化</td>
+  <td>350G〜</td>
+  <td>400G〜</td>
+  <td>画面演出</td>
+</tr>
+</table>
+<p style="font-size:10px;color:#888;padding:4px 8px;background:#f9f9f9;border:1px solid #eee;border-top:none;">
+リセット判別ができないホールでは据え置きリスクあり。前日閉店時の出目確認 or ガックンチェックが必須
+</p>
+
+<!-- ==================== HOURLY RATE ==================== -->
+<h2 class="sec">時給換算の目安</h2>
+
+<div class="info-box">
+  <h4>計算の前提</h4>
+  <p>
+    <strong>1時間の回転数:</strong> 約800G（等価・ストップ押し）<br>
+    <strong>コイン単価:</strong> 等価=20円/枚 ｜ 5.6枚=約17.9円/枚<br>
+    <strong>IN枚数:</strong> 約4,800枚/h = 96,000円/h投入ベース
+  </p>
+</div>
+
+<div class="info-box">
+  <h4>機械割と時給の関係（等価・20円スロット）</h4>
+  <p>
+    機械割100% = ±0円（トントン）<br>
+    <strong>機械割103% = 時給 約+2,900円</strong><br>
+    機械割105% = 時給 約+4,800円<br>
+    機械割110% = 時給 約+9,600円<br>
+    <span class="small">※ 96,000円/h × 超過分で計算</span>
+  </p>
+</div>
+
+<div class="info-box">
+  <h4>月収シミュレーション（天井狙い専業の場合）</h4>
+  <p>
+    <strong>控えめ:</strong> 月20日 × 3時間 × 時給2,000円 = <strong>月12万円</strong><br>
+    <strong>標準:</strong> 月20日 × 4時間 × 時給3,000円 = <strong>月24万円</strong><br>
+    <strong>上振れ:</strong> 月25日 × 5時間 × 時給3,500円 = <strong>月43.8万円</strong><br>
+    <span class="small">※ 稼働時間=打てる台を見つけた時間のみ。移動・台探しは含まない</span>
+  </p>
+</div>
+
+<!-- ==================== TACTICS ==================== -->
+<h2 class="sec">実践の立ち回りポイント</h2>
+
+<div class="tip-box">
+  <strong>【基本5か条】</strong><br>
+  ① <strong>狙い目Gを厳守</strong> — 表の回転数以上の台だけ打つ。「あと少し」で座らない<br>
+  ② <strong>やめ時を守る</strong> — AT/ボーナス後は即やめが基本。引き戻しゾーンだけ回す<br>
+  ③ <strong>リセット判別</strong> — 朝一は据え置きかリセットかの判別が命。判別できないなら打たない<br>
+  ④ <strong>ホール選び</strong> — 客層が甘い(ハマり台放置が多い)ホールを開拓する<br>
+  ⑤ <strong>時間管理</strong> — 閉店2時間前からは天井が遠い台を避ける(取りきれないリスク)
+</div>
+
+<div class="tip-box">
+  <strong>【閉店時間から逆算】</strong><br>
+  天井までの残りG数 → 到達にかかる時間:<br>
+  ・残り500G → 約37分 ｜ 残り800G → 約60分 ｜ 残り1000G → 約75分<br>
+  AT消化含めて <strong>閉店90分前</strong> が天井狙いのデッドライン
+</div>
+
+<div class="tip-box">
+  <strong>【収支管理の鉄則】</strong><br>
+  ・1日+10,000円の期待値でも負ける日はある（分散は大きい）<br>
+  ・<strong>月単位で振り返る</strong>。1日の勝ち負けに一喜一憂しない<br>
+  ・収支表をつけて「狙い目ラインを守れたか」を検証する<br>
+  ・負けた日に狙い目を下げない。期待値を信じて打ち続ける
+</div>
+
+<div class="tip-box">
+  <strong>【よくあるミス】</strong><br>
+  ・擬似G数と実G数を混同（東京グール・リゼロ等はメニューで要確認）<br>
+  ・スルー回数を数え間違える（データカウンター vs 実際のスルー回数）<br>
+  ・リセット判別せずに朝一の据え置き台に座る<br>
+  ・天井間近で時間切れ → 閉店取りきれず大損
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="footer">
+  <strong>情報源:</strong> ななプレス / DMMぱちタウン / すろぱちくえすと / フリック7 / エナイキ / ちょんぼりすた<br>
+  期待値は設定1・理論値ベース。モード・有利区間・差枚数で変動します。<br>
+  2026年6月25日作成。解析更新・新台導入で数値が変わる場合があります。
+</div>
+
+</div><!-- /wrap -->
+</body>
+</html>
