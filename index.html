@@ -53,6 +53,13 @@ h2.sec{font-size:14px;font-weight:bold;color:#fff;background:var(--red);padding:
 .vl-list{list-style:none;margin:0;padding:0;}
 .vl-list li{padding:1px 0;position:relative;padding-left:12px;}
 .vl-list li::before{content:'▸';position:absolute;left:0;color:#bbb;font-size:10px;}
+/* mini EV table */
+.ev-table{width:100%;border-collapse:collapse;font-size:11px;margin-top:4px;}
+.ev-table caption{text-align:left;font-size:10px;color:var(--gray);font-weight:bold;margin-bottom:2px;}
+.ev-table th{background:#f5f5f5;padding:3px 6px;font-size:10px;color:#555;text-align:center;border:1px solid #e5e5e5;}
+.ev-table td{padding:3px 6px;text-align:center;border:1px solid #e5e5e5;font-weight:bold;}
+.ev-table td.plus{color:var(--red);}
+.ev-table td.minus{color:var(--blue);}
 .detail-grid .vl.red{color:var(--red);}
 .detail-grid .vl.green{color:var(--green);}
 .detail-grid .vl.orange{color:var(--orange);}
@@ -296,6 +303,33 @@ function renderAll(){
 function truncate(s,n){if(!s)return'';return s.length>n?s.slice(0,n)+'…':s;}
 function shortField(s){if(!s)return'-';return s.split('/')[0].replace(/[（(].*/,'').trim();}
 function toList(s){if(!s)return'';const items=s.split(/\s*\/\s*/);if(items.length<=1)return s;return '<ul class="vl-list">'+items.map(x=>'<li>'+x.trim()+'</li>').join('')+'</ul>';}
+function parseEvToTable(s){
+  if(!s)return'';
+  const sections=s.split(/\s*\/\s*(?=[^\d+\-])/);
+  let html='';
+  sections.forEach(sec=>{
+    sec=sec.trim();if(!sec)return;
+    let label='';const lm=sec.match(/^(.+?)[:：]\s*/);
+    if(lm){label=lm[1];sec=sec.slice(lm[0].length);}
+    const entries=sec.split(/\s*\/\s*/);
+    const rows=[];
+    entries.forEach(e=>{
+      const m=e.match(/(\d+G?)\s*([+\-−]\s*[\d,]+円?)/);
+      if(m)rows.push({g:m[1].replace(/G$/,'')+'G',v:m[2].replace(/\s/g,'').replace('−','-')});
+    });
+    if(rows.length>=2){
+      html+=`<table class="ev-table">${label?'<caption>'+label+'</caption>':''}`;
+      html+='<tr>'+rows.map(r=>'<th>'+r.g+'</th>').join('')+'</tr>';
+      html+='<tr>'+rows.map(r=>{const cls=r.v.includes('-')?'minus':'plus';return '<td class="'+cls+'">'+r.v+'</td>';}).join('')+'</tr>';
+      html+='</table>';
+    }else if(rows.length===1){
+      html+=`<div style="font-size:11px;font-weight:bold;color:var(--red);margin:2px 0">${label?label+'：':''}${rows[0].g} ${rows[0].v}</div>`;
+    }else{
+      html+=`<div style="font-size:11px;margin:2px 0">${label?label+'：':''}${sec}</div>`;
+    }
+  });
+  return html||toList(s);
+}
 
 function buildCards(){
   list.innerHTML='';
@@ -312,7 +346,7 @@ function buildCards(){
     let g1='';
     if(m.aim)g1+=`<span class="lb">狙い目(等価)</span><span class="vl red">${toList(m.aim)}</span>`;
     if(m.aim56)g1+=`<span class="lb">狙い目(5.6枚)</span><span class="vl">${toList(m.aim56)}</span>`;
-    if(m.ev)g1+=`<span class="lb">期待値</span><span class="vl red">${toList(m.ev)}</span>`;
+    if(m.ev)g1+=`<span class="lb">期待値</span><span class="vl red full">${parseEvToTable(m.ev)}</span>`;
     if(m.quit)g1+=`<span class="lb">やめ時</span><span class="vl">${toList(m.quit)}</span>`;
     if(g1)detail+=`<div class="detail-group"><span class="detail-group-title dg-aim">📍 狙い目・やめ時</span><div class="detail-grid">${g1}</div></div>`;
     let g2='';
