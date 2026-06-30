@@ -880,7 +880,7 @@
       <div class="brand-logo"></div>
       <div>
         <div class="brand-title">SCRAP COMMAND</div>
-        <div class="brand-sub">OPS · HQ · v4.21</div>
+        <div class="brand-sub">OPS · KASHIWA · v4.21</div>
       </div>
     </div>
     <div class="topbar-company">株式会社SKR</div>
@@ -1112,26 +1112,26 @@
   //    手動更新の場合は newsData を直接編集してください
   var NEWS_SOURCE_URL = ''; // 例: 'https://your-api.com/scrap-news.json'
   var newsData = [
-    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'09:42', title:'一銅 ¥---/kg 続伸 — 中国向け輸出需要が下支え、首都圏買取競合激化', loc:'KANTO' },
+    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'09:42', title:'一銅 ¥1,280/kg 続伸 — 中国向け輸出需要が下支え、首都圏買取競合激化', loc:'KANTO' },
     { tag:'CRIT', src:'REUTERS',      cat:['RSS','REUTERS'], time:'09:38', title:'中国、銅スクラップ輸入規制を一部緩和へ — 来月から段階適用、日本産需要増の見通し', loc:'BEIJING' },
-    { tag:'MKT',  src:'LME LIVE',     cat:['RSS','LME'],     time:'09:35', title:'LME銅 3M $---/t — 在庫減少で前日比 ---%、テクニカルサポート接近', loc:'LONDON' },
+    { tag:'MKT',  src:'LME LIVE',     cat:['RSS','LME'],     time:'09:35', title:'LME銅 3M $9,847/t — 在庫減少で前日比 -1.2%、テクニカルサポート接近', loc:'LONDON' },
     { tag:'SNS',  src:'X / 業界',     cat:['SNS'],           time:'09:31', title:'関東圏ミックスメタル相場、今週2回目の買取単価改定 — 二号銅・真鍮に上昇圧力', loc:'KANTO' },
     { tag:'POL',  src:'環境省',       cat:['TV'],            time:'09:24', title:'改正バーゼル法施行に伴う再生資源輸出書類要件を明示 — スクラップ業界に対応呼びかけ', loc:'TOKYO' },
-    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'09:20', title:'ヤードA 本日の搬入予定 32件 — アルミ缶大口持ち込み案件あり、計量準備完了', loc:'YARD_A' },
-    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'09:15', title:'鉄スクラップ HMS ¥---/t 弱含み — 国内電炉メーカー買値据え置き、輸出オファー減', loc:'TOKYO' },
+    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'09:20', title:'柏ヤード 本日の搬入予定 32件 — アルミ缶大口持ち込み案件あり、計量準備完了', loc:'KASHIWA' },
+    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'09:15', title:'鉄スクラップ HMS ¥52,000/t 弱含み — 国内電炉メーカー買値据え置き、輸出オファー減', loc:'TOKYO' },
     { tag:'MKT',  src:'SHFE',         cat:['RSS'],           time:'09:08', title:'上海銅先物 +0.4% 反発 — アジア時間でドル安支援、亜鉛・ニッケルも堅調', loc:'SHANGHAI' },
     { tag:'SNS',  src:'X / 海外',     cat:['SNS'],           time:'09:02', title:'米国 ISRI 家電CRT回収プロトコル改訂 — 日本からの輸出スクラップにも波及か', loc:'WASHINGTON' },
     { tag:'POL',  src:'日経',         cat:['RSS','NIKKEI'],  time:'08:48', title:'経産省 戦略物資リストに「使用済み磁石」追加検討 — レアアース回収ルート整備へ', loc:'TOKYO' },
-    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'08:40', title:'ヤードB 第3コンテナ搬出完了 — 被覆銅線 2.8t、明日の入荷枠に余裕', loc:'YARD_B' },
-    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'08:32', title:'ステンレス304 ¥---/kg 底堅い — 新規スクラップ発生少なく需給逼迫継続', loc:'KANTO' },
+    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'08:40', title:'松戸ヤード 第3コンテナ搬出完了 — 被覆銅線 2.8t、明日の入荷枠に余裕', loc:'MATSUDO' },
+    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'08:32', title:'ステンレス304 ¥288/kg 底堅い — 新規スクラップ発生少なく需給逼迫継続', loc:'KANTO' },
     { tag:'SNS',  src:'X / 国内',     cat:['SNS'],           time:'08:25', title:'「アルミUBC北関東で再び品薄」集荷業者ポスト — 飲料メーカー増産で缶需要拡大', loc:'GUNMA' },
     { tag:'POL',  src:'EU REPORT',    cat:['RSS'],           time:'08:18', title:'欧州委 CBAM第2段階のスクラップ取扱協議 — Q4草案、日本に与える影響は限定的', loc:'BRUSSELS' },
     { tag:'MKT',  src:'REUTERS',      cat:['RSS','REUTERS'], time:'08:10', title:'チリ銅鉱山ストで産出一時停止 — 供給懸念再燃もLME在庫はなお潤沢', loc:'SANTIAGO' },
-    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'08:05', title:'真鍮 ¥---/kg 小幅安 — 市中在庫だぶつき感、需要家の買い控え継続', loc:'KANTO' },
-    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'07:55', title:'拠点C 本日午後より重機メンテナンス — 搬入は午前中推奨、ご協力お願いします', loc:'DEPOT_C' },
+    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'08:05', title:'真鍮 ¥720/kg 小幅安 — 市中在庫だぶつき感、需要家の買い控え継続', loc:'KANTO' },
+    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'07:55', title:'船橋集積所 本日午後より重機メンテナンス — 搬入は午前中推奨、ご協力お願いします', loc:'FUNABASHI' },
     { tag:'POL',  src:'日経',         cat:['RSS','NIKKEI'],  time:'07:48', title:'国内大手商社 東南アジア向け鉄スクラップ輸出拡大方針 — 国内電炉との奪い合い懸念', loc:'TOKYO' },
     { tag:'MKT',  src:'LME LIVE',     cat:['RSS','LME'],     time:'07:40', title:'LME亜鉛在庫 3週連続減 — ダイカスト向け需要堅調、テクニカル買い継続', loc:'LONDON' },
-    { tag:'SNS',  src:'X / 業界',     cat:['SNS'],           time:'07:32', title:'「電線スクラップ単価 東京近郊で急騰」集荷現場の生声 — ケーブル ¥---/kg 強気', loc:'TOKYO' }
+    { tag:'SNS',  src:'X / 業界',     cat:['SNS'],           time:'07:32', title:'「電線スクラップ単価 東京近郊で急騰」集荷現場の生声 — ケーブル ¥580/kg 強気', loc:'TOKYO' }
   ];
   // 外部APIからのデータ取得（設定された場合のみ実行）
   function fetchNewsData() {
@@ -1190,16 +1190,16 @@
 
   /* ============ DATA ============ */
   var vehicles = [
-    { id:'KSW-01', lat:35.683, lng:139.769, status:'run',   loc:'拠点B → ヤードA', load:'82%' },
-    { id:'KSW-02', lat:35.679, lng:139.765, status:'run',   loc:'幹線道路 南下',   load:'45%' },
-    { id:'KSW-03', lat:35.681, lng:139.767, status:'idle',  loc:'本社待機',         load:'0%'  },
-    { id:'KSW-04', lat:35.677, lng:139.771, status:'run',   loc:'拠点C',           load:'97%' },
-    { id:'KSW-05', lat:35.685, lng:139.763, status:'run',   loc:'高速道 北上',     load:'12%' },
-    { id:'KSW-06', lat:35.675, lng:139.773, status:'idle',  loc:'ヤードA',         load:'0%'  },
-    { id:'KSW-07', lat:35.687, lng:139.761, status:'alert', loc:'環状道 渋滞',     load:'78%' },
-    { id:'KSW-08', lat:35.689, lng:139.759, status:'run',   loc:'中継拠点D',       load:'63%' },
-    { id:'KSW-09', lat:35.673, lng:139.775, status:'off',   loc:'整備中',           load:'—'   },
-    { id:'KSW-10', lat:35.691, lng:139.757, status:'run',   loc:'拠点E 集荷',      load:'30%' }
+    { id:'KSW-01', lat:35.870, lng:139.95, status:'run',   loc:'柏 → 松戸',    load:'82%' },
+    { id:'KSW-02', lat:35.810, lng:139.93, status:'run',   loc:'国道6号 南下', load:'45%' },
+    { id:'KSW-03', lat:35.862, lng:139.97, status:'idle',  loc:'本社待機',     load:'0%'  },
+    { id:'KSW-04', lat:35.720, lng:139.99, status:'run',   loc:'船橋集積所',   load:'97%' },
+    { id:'KSW-05', lat:36.020, lng:140.05, status:'run',   loc:'常磐道 北上',  load:'12%' },
+    { id:'KSW-06', lat:35.787, lng:139.90, status:'idle',  loc:'松戸ヤード',   load:'0%'  },
+    { id:'KSW-07', lat:35.92,  lng:140.15, status:'alert', loc:'圏央道 渋滞',  load:'78%' },
+    { id:'KSW-08', lat:36.083, lng:140.11, status:'run',   loc:'つくば中継',   load:'63%' },
+    { id:'KSW-09', lat:35.640, lng:140.02, status:'off',   loc:'整備中',       load:'—'   },
+    { id:'KSW-10', lat:35.95,  lng:139.85, status:'run',   loc:'流山 集荷',    load:'30%' }
   ];
 
   /* ============ MAP (DISABLED) ============ */
@@ -1216,17 +1216,17 @@
       return;
     }
 
-    var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([35.681, 139.767], 10);
+    var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([35.860, 139.97], 10);
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       subdomains: 'abcd', maxZoom: 19
     }).addTo(map);
     L.control.zoom({ position: 'topright' }).addTo(map);
 
     var yards = [
-      { name:'本社・ヤードA', lat:35.681, lng:139.767 },
-      { name:'ヤードB',       lat:35.675, lng:139.773 },
-      { name:'拠点C',         lat:35.677, lng:139.771 },
-      { name:'中継拠点D',     lat:35.689, lng:139.759 }
+      { name:'本社・柏ヤード', lat:35.862, lng:139.97 },
+      { name:'松戸ヤード',     lat:35.787, lng:139.90 },
+      { name:'船橋集積所',     lat:35.694, lng:139.98 },
+      { name:'つくば中継',     lat:36.083, lng:140.11 }
     ];
     yards.forEach(function(y){
       var icon = L.divIcon({
@@ -1276,12 +1276,12 @@
   //    例: Android IP Webcam → 'http://192.168.1.xx:8080/video'
   //    URLが空欄の場合はモック表示になります
   var CAMERA_CONFIG = [
-    { id:'CAM-01', loc:'ヤードA 入口',   url:'', kpi:'入庫 4t/h' },
-    { id:'CAM-02', loc:'ヤードA 計量',   url:'', kpi:'稼働率 87%' },
-    { id:'CAM-03', loc:'ヤードB 圧縮機', url:'', kpi:'プレス 23/h' },
-    { id:'CAM-04', loc:'ヤードB 仕分線', url:'', kpi:'OK' },
-    { id:'CAM-05', loc:'拠点C 搬出口',   url:'', kpi:'積込中' },
-    { id:'CAM-06', loc:'拠点D 中継',     url:'', kpi:'監視' }
+    { id:'CAM-01', loc:'柏ヤード 入口', url:'', kpi:'入庫 4t/h' },
+    { id:'CAM-02', loc:'柏ヤード 計量', url:'', kpi:'稼働率 87%' },
+    { id:'CAM-03', loc:'松戸 圧縮機',   url:'', kpi:'プレス 23/h' },
+    { id:'CAM-04', loc:'松戸 仕分線',   url:'', kpi:'OK' },
+    { id:'CAM-05', loc:'船橋 搬出口',   url:'', kpi:'積込中' },
+    { id:'CAM-06', loc:'つくば 中継',   url:'', kpi:'監視' }
   ];
 
   safe('cams', function(){
@@ -1322,29 +1322,29 @@
 
   /* ============ PRICES (Scrap metals prioritized) ============ */
   var pricesScrap = [
-    { sym:'一銅',    name:'一号銅線 (99.9%)',    unit:'JPY/kg', value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'二号銅',  name:'二号銅 (96%)',        unit:'JPY/kg', value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'Cu LME', name:'銅 (LME 3M)',         unit:'USD/t',  value:0,  chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'真鍮',   name:'真鍮 / 黄銅スクラップ',  unit:'JPY/kg', value:0,   chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'Al缶',   name:'アルミUBC缶',          unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'Al地金', name:'アルミ地金',           unit:'USD/t',  value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'Alサッシ',name:'アルミサッシ',         unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'Zn',     name:'亜鉛ダイカスト',       unit:'USD/t',  value:0,  chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'Ni',     name:'ニッケル',             unit:'USD/t',  value:0, chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'SUS304', name:'ステンレス 304',       unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'SUS310', name:'ステンレス 310S',      unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'Fe-HMS', name:'鉄スクラップ HMS',     unit:'JPY/t',  value:0, chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'重鉄',   name:'重鉄 (6mm以上)',        unit:'JPY/t',  value:0, chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'軽鉄',   name:'軽鉄 (6mm未満)',        unit:'JPY/t',  value:0, chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'Pb',     name:'鉛 / バッテリー',       unit:'USD/t',  value:0,  chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'モーター',name:'電動機スクラップ',      unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
-    { sym:'ケーブル',name:'被覆銅線',             unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' }
+    { sym:'一銅',    name:'一号銅線 (99.9%)',    unit:'JPY/kg', value:1280,  chg:0.2,  hist:[1275,1278,1276,1280,1278,1282,1280,1280], weight:'heavy' },
+    { sym:'二号銅',  name:'二号銅 (96%)',        unit:'JPY/kg', value:1150,  chg:0.4,  hist:[1140,1145,1142,1148,1146,1150,1148,1150], weight:'heavy' },
+    { sym:'Cu LME', name:'銅 (LME 3M)',         unit:'USD/t',  value:9847,  chg:-1.2, hist:[9920,9905,9880,9870,9860,9855,9850,9847], weight:'heavy' },
+    { sym:'真鍮',   name:'真鍮 / 黄銅スクラップ',  unit:'JPY/kg', value:720,   chg:-0.3, hist:[725,723,722,720,721,718,720,720], weight:'heavy' },
+    { sym:'Al缶',   name:'アルミUBC缶',          unit:'JPY/kg', value:185,   chg:1.1,  hist:[180,182,181,183,184,185,184,185], weight:'heavy' },
+    { sym:'Al地金', name:'アルミ地金',           unit:'USD/t',  value:2412,  chg:0.3,  hist:[2400,2405,2398,2402,2408,2410,2411,2412], weight:'heavy' },
+    { sym:'Alサッシ',name:'アルミサッシ',         unit:'JPY/kg', value:230,   chg:0.0,  hist:[232,230,231,230,230,229,230,230], weight:'heavy' },
+    { sym:'Zn',     name:'亜鉛ダイカスト',       unit:'USD/t',  value:2987,  chg:-0.5, hist:[3010,3005,3000,2995,2992,2990,2988,2987], weight:'heavy' },
+    { sym:'Ni',     name:'ニッケル',             unit:'USD/t',  value:16240, chg:1.8,  hist:[15950,16000,16100,16150,16180,16200,16220,16240], weight:'heavy' },
+    { sym:'SUS304', name:'ステンレス 304',       unit:'JPY/kg', value:288,   chg:0.5,  hist:[285,286,286,287,287,288,288,288], weight:'heavy' },
+    { sym:'SUS310', name:'ステンレス 310S',      unit:'JPY/kg', value:340,   chg:0.3,  hist:[338,339,337,340,339,341,340,340], weight:'heavy' },
+    { sym:'Fe-HMS', name:'鉄スクラップ HMS',     unit:'JPY/t',  value:52000, chg:-0.8, hist:[52500,52300,52200,52100,52000,52000,51900,52000], weight:'heavy' },
+    { sym:'重鉄',   name:'重鉄 (6mm以上)',        unit:'JPY/t',  value:48000, chg:0.0,  hist:[48200,48000,48100,47900,48000,47800,48000,48000], weight:'heavy' },
+    { sym:'軽鉄',   name:'軽鉄 (6mm未満)',        unit:'JPY/t',  value:35000, chg:-0.5, hist:[35500,35300,35200,35100,35000,35000,34900,35000], weight:'heavy' },
+    { sym:'Pb',     name:'鉛 / バッテリー',       unit:'USD/t',  value:2058,  chg:-0.2, hist:[2065,2062,2060,2059,2058,2058,2058,2058], weight:'heavy' },
+    { sym:'モーター',name:'電動機スクラップ',      unit:'JPY/kg', value:320,   chg:0.6,  hist:[315,318,316,319,320,321,319,320], weight:'heavy' },
+    { sym:'ケーブル',name:'被覆銅線',             unit:'JPY/kg', value:580,   chg:0.9,  hist:[570,572,575,578,576,580,578,580], weight:'heavy' }
   ];
   var pricesPrecious = [
-    { sym:'Au',     name:'金 SPOT',          unit:'USD/oz', value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0] },
-    { sym:'Ag',     name:'銀',               unit:'USD/oz', value:0, chg:0,  hist:[0,0,0,0,0,0,0,0] },
-    { sym:'Pt',     name:'プラチナ',         unit:'USD/oz', value:0,   chg:0, hist:[0,0,0,0,0,0,0,0] },
-    { sym:'Pd',     name:'パラジウム',       unit:'USD/oz', value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0] }
+    { sym:'Au',     name:'金 SPOT',          unit:'USD/oz', value:2684,  chg:0.7,  hist:[2660,2665,2670,2675,2678,2680,2682,2684] },
+    { sym:'Ag',     name:'銀',               unit:'USD/oz', value:31.42, chg:0.4,  hist:[31.2,31.25,31.3,31.32,31.35,31.38,31.4,31.42] },
+    { sym:'Pt',     name:'プラチナ',         unit:'USD/oz', value:978,   chg:-0.6, hist:[985,983,981,980,979,978,978,978] },
+    { sym:'Pd',     name:'パラジウム',       unit:'USD/oz', value:1184,  chg:2.1,  hist:[1150,1160,1168,1172,1176,1180,1182,1184] }
   ];
 
   var PRICE_SOURCE_URL = ''; // 例: 'https://your-api.com/scrap-prices.json'
@@ -1480,7 +1480,7 @@
   safe('alerts', function(){
     var alerts = [
       { lvl:'crit', time:'09:42', msg:'KSW-07 圏央道で予期せぬ停止 — ドライバー応答待ち' },
-      { lvl:'warn', time:'09:35', msg:'ヤードB 第3コンテナ重量センサー異常 (+18%)' },
+      { lvl:'warn', time:'09:35', msg:'松戸ヤード 第3コンテナ重量センサー異常 (+18%)' },
       { lvl:'crit', time:'09:21', msg:'CAM-04 映像信号断続 — 自動再接続試行中' },
       { lvl:'warn', time:'09:14', msg:'銅相場 5分足で -0.8% 急落 — 閾値通知' },
       { lvl:'info', time:'09:02', msg:'本日の搬入予定 32件 / 完了 11件' },
@@ -1499,22 +1499,22 @@
   /* ============ TICKER ============ */
   safe('ticker', function(){
     var tickerItems = [
-      { dir:'up',   t:'一銅 ¥---/kg' },
-      { dir:'up',   t:'二号銅 ¥---/kg' },
-      { dir:'down', t:'真鍮 ¥---/kg' },
-      { dir:'up',   t:'Al缶 ¥---/kg' },
-      { dir:'up',   t:'Alサッシ ¥---/kg' },
-      { dir:'up',   t:'SUS304 ¥---/kg' },
-      { dir:'up',   t:'SUS310S ¥---/kg' },
-      { dir:'down', t:'Fe-HMS ¥---/t' },
-      { dir:'up',   t:'重鉄 ¥---/t' },
-      { dir:'down', t:'軽鉄 ¥---/t' },
-      { dir:'up',   t:'モーター ¥---/kg' },
-      { dir:'up',   t:'ケーブル ¥---/kg' },
-      { dir:'down', t:'LME Cu $---/t' },
-      { dir:'up',   t:'LME Al $---/t' },
-      { dir:'down', t:'LME Zn $---/t' },
-      { dir:'up',   t:'USD/JPY --- ' }
+      { dir:'up',   t:'一銅 ¥1,280/kg +0.2%' },
+      { dir:'up',   t:'二号銅 ¥1,150/kg +0.4%' },
+      { dir:'down', t:'真鍮 ¥720/kg -0.3%' },
+      { dir:'up',   t:'Al缶 ¥185/kg +1.1%' },
+      { dir:'up',   t:'Alサッシ ¥230/kg ±0.0%' },
+      { dir:'up',   t:'SUS304 ¥288/kg +0.5%' },
+      { dir:'up',   t:'SUS310S ¥340/kg +0.3%' },
+      { dir:'down', t:'Fe-HMS ¥52,000/t -0.8%' },
+      { dir:'up',   t:'重鉄 ¥48,000/t ±0.0%' },
+      { dir:'down', t:'軽鉄 ¥35,000/t -0.5%' },
+      { dir:'up',   t:'モーター ¥320/kg +0.6%' },
+      { dir:'up',   t:'ケーブル ¥580/kg +0.9%' },
+      { dir:'down', t:'LME Cu $9,847/t -1.2%' },
+      { dir:'up',   t:'LME Al $2,412/t +0.3%' },
+      { dir:'down', t:'LME Zn $2,987/t -0.5%' },
+      { dir:'up',   t:'USD/JPY 154.82 +0.31' }
     ];
     document.getElementById('tickerContent').innerHTML = tickerItems.concat(tickerItems).map(function(i){
       return '<div class="ticker-item '+i.dir+'">'+escapeHtml(i.t)+'</div>';

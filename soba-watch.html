@@ -120,23 +120,23 @@ const DEFAULT = {
   contact: '000-0000-0000',
   company: '株式会社S.K.R',
   metals: [
-    {key:'cu',    nm:'銅建値（JX金属）',        un:'円/kg', val:0,  prev:0},
-    {key:'lme',   nm:'LME銅',                  un:'$/t',  val:0, prev:''},
-    {key:'fe',    nm:'鉄スクラップ（関東輸出）', un:'円/t', val:0, prev:0},
-    {key:'al',    nm:'アルミ（LME 3M）',        un:'$/t',  val:0,  prev:0},
-    {key:'compcu',nm:'競合 並銅（参考）',        un:'円/kg', val:0,  prev:''},
+    {key:'cu',    nm:'銅建値（JX金属）',        un:'円/kg', val:2250,  prev:2260},
+    {key:'lme',   nm:'LME銅',                  un:'$/t',  val:13932, prev:''},
+    {key:'fe',    nm:'鉄スクラップ（関東輸出）', un:'円/t', val:54506, prev:54602},
+    {key:'al',    nm:'アルミ（LME 3M）',        un:'$/t',  val:3666,  prev:3666},
+    {key:'compcu',nm:'競合 並銅（参考）',        un:'円/kg', val:2100,  prev:''},
   ],
   prices: [
     {item:'銅（ピカ線）', price:'',  note:'要確認'},
-    {item:'並銅',         price:'',  note:'競合価格を確認'},
+    {item:'並銅',         price:'',  note:'競合¥2,100超を狙う'},
     {item:'真鍮',         price:'',  note:''},
     {item:'アルミ',       price:'',  note:''},
     {item:'ステンレス',   price:'',  note:''},
     {item:'雑線',         price:'',  note:''},
     {item:'鉄',           price:'',  note:'高値掴み注意'},
   ],
-  stance: '銅は高値圏キープだが上値重い。鉄は反落の初動。買取単価は据え置き〜小幅調整が無難、鉄の新規高値掴みは慎重に。集荷トークは「今なお高値圏＝売り時」で押せる。',
-  sources: 'JX金属 銅建値 / 日経(関東鉄スクラップ入札) / 業界各社 / ScrapMonster・IndexBox(LME・COMEX)',
+  stance: '銅は高値圏キープだが上値重い。鉄は11ヶ月ぶり反落の初動。買取単価は据え置き〜小幅調整が無難、鉄の新規高値掴みは慎重に。集荷トークは「今なお高値圏＝売り時」で押せる。',
+  sources: 'JX金属 銅建値 / 日経(関東鉄スクラップ入札) / 大畑商事 / ScrapMonster・IndexBox(LME・COMEX)',
 };
 
 let D = load();
@@ -180,7 +180,7 @@ function renderPrices(){
   D.prices.forEach((p,i)=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`<td><input value="${esc(p.item)}" data-i="${i}" data-f="item"></td>
-      <td><input value="${esc(p.price)}" data-i="${i}" data-f="price" placeholder="例: ¥---/kg"></td>
+      <td><input value="${esc(p.price)}" data-i="${i}" data-f="price" placeholder="例: ¥2,150/kg"></td>
       <td><input value="${esc(p.note)}" data-i="${i}" data-f="note"></td>`;
     tb.appendChild(tr);
   });
