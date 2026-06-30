@@ -515,7 +515,9 @@ rateBtns.forEach(b=>{
       '<button class="go" id="cgGo">時給順に並べる</button>'+
     '</div>'+
     '<div id="calcList"></div>'+
-    '<div id="calcNote">※等価/5.6枚は上のトグル連動。期待値は早見表のシオン式ポイントを補間した目安＝理論値。優遇/差枚/モードで変動。狙い目Gを下回る台は時給が低く出ます。実戦テクは各台メモ欄に保存(端末内)。</div>';
+    '<div id="calcNote">※期待値=設定1理論値の目安(シオン式ポイント補間)。実戦は優遇/差枚/モードで変動。等価/5.6枚は上トグル連動。<br>'+
+    '⚠️<b>カウンタ表示G≠実G</b>：データカウンタは「3枚遊技=1G表示」。2枚遊技モードを持つ機種は表示Gが実Gより少なく出る(例: 表示780G≒実799G天井)。天井手前は実Gで確認を。<br>'+
+    'ソース信頼度：一次(なな徹/スロベース/FLICK7)＞二次まとめ。YouTube自動字幕は数値が崩れる=そのまま使わない。実戦テクは各台メモ欄に保存(端末内)。</div>';
   if(sw&&sw.parentNode) sw.parentNode.insertBefore(p, sw.nextSibling);
 
   function render(){
