@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>画像比較ビューア</title>
+<style>
+  :root{
+    --bg:#0e0f13; --panel:#171922; --panel2:#1f2230; --line:#2a2e3e;
+    --txt:#e6e8ef; --muted:#9aa0b4; --accent:#4f8cff; --accent2:#2d6cff;
+    --good:#3ecf8e; --ok:#f5c451; --bad:#ff6b6b; --fav:#ff5d8f;
+    --radius:12px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:"Segoe UI","Hiragino Kaku Gothic ProN","Noto Sans CJK JP","Yu Gothic",Meiryo,system-ui,sans-serif;
+    font-size:14px; line-height:1.5;
+  }
+  header{
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:12px 18px; border-bottom:1px solid var(--line); background:var(--panel);
+    position:sticky; top:0; z-index:50;
+  }
+  header h1{font-size:16px; margin:0; font-weight:600; letter-spacing:.3px;}
+  header h1 .dot{color:var(--accent);}
+  .sp{flex:1;}
+  button, .btn, label.btn{
+    background:var(--panel2); color:var(--txt); border:1px solid var(--line);
+    border-radius:8px; padding:7px 12px; cursor:pointer; font-size:13px;
+    transition:.12s; user-select:none; white-space:nowrap;
+  }
+  button:hover, .btn:hover, label.btn:hover{border-color:var(--accent); background:#262a3a;}
+  button.primary{background:var(--accent2); border-color:var(--accent2); color:#fff;}
+  button.primary:hover{background:var(--accent);}
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  .seg{display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden;}
+  .seg button{border:none; border-radius:0; border-right:1px solid var(--line);}
+  .seg button:last-child{border-right:none;}
+  .seg button.active{background:var(--accent2); color:#fff;}
+  select, input[type=text]{
+    background:var(--panel2); color:var(--txt); border:1px solid var(--line);
+    border-radius:8px; padding:6px 9px; font-size:13px; font-family:inherit;
+  }
+  .muted{color:var(--muted);}
+  main{padding:16px 18px 60px;}
+
+  /* drop zone */
+  #drop{
+    border:2px dashed var(--line); border-radius:var(--radius);
+    padding:40px 20px; text-align:center; color:var(--muted);
+    margin-bottom:18px; transition:.15s; background:var(--panel);
+  }
+  #drop.drag{border-color:var(--accent); background:#1a2030; color:var(--txt);}
+  #drop .big{font-size:15px; color:var(--txt); margin-bottom:6px;}
+
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .toolbar .grp{display:flex; gap:6px; align-items:center;}
+  .count{font-size:13px; color:var(--muted);}
+
+  /* grid */
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px;
+  }
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden; position:relative; transition:.12s;
+  }
+  .card.sel{border-color:var(--accent); box-shadow:0 0 0 2px rgba(79,140,255,.35);}
+  .card .thumb{
+    width:100%; aspect-ratio:1/1; background:#0a0b0f center/contain no-repeat;
+    cursor:pointer; display:block;
+  }
+  .card .fav-badge{
+    position:absolute; top:7px; right:8px; font-size:16px; color:var(--fav);
+    text-shadow:0 1px 3px #000; pointer-events:none;
+  }
+  .card .selnum{
+    position:absolute; top:6px; left:8px; background:var(--accent2); color:#fff;
+    font-size:12px; min-width:20px; height:20px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center; padding:0 5px;
+  }
+  .card .meta{padding:8px 9px 10px;}
+  .card .name{font-size:11px; color:var(--muted); word-break:break-all; margin-bottom:6px; line-height:1.3; max-height:2.6em; overflow:hidden;}
+  .rate{display:flex; gap:5px; align-items:center;}
+  .rate button{padding:3px 8px; font-size:13px; line-height:1;}
+  .rate button.r-good.on{background:var(--good); border-color:var(--good); color:#06281a;}
+  .rate button.r-ok.on{background:var(--ok); border-color:var(--ok); color:#3a2c00;}
+  .rate button.r-bad.on{background:var(--bad); border-color:var(--bad); color:#3a0a0a;}
+  .rate button.r-fav.on{background:var(--fav); border-color:var(--fav); color:#3a0019;}
+  .card textarea{
+    width:100%; margin-top:7px; background:var(--panel2); color:var(--txt);
+    border:1px solid var(--line); border-radius:6px; padding:5px 7px;
+    font-size:11px; font-family:inherit; resize:vertical; min-height:30px;
+  }
+
+  /* compare view */
+  #compareView{display:none;}
+  .cmp-bar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:14px;}
+  .side-wrap{display:flex; gap:14px; align-items:stretch; flex-wrap:wrap;}
+  .side-col{flex:1 1 300px; min-width:280px; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:10px;}
+  .side-col img{width:100%; max-height:62vh; object-fit:contain; background:#0a0b0f; border-radius:8px; display:block;}
+  .side-col .cap{font-size:12px; color:var(--muted); margin-top:8px; word-break:break-all;}
+
+  /* slider */
+  #sliderBox{position:relative; max-width:900px; margin:0 auto; user-select:none; touch-action:none;}
+  #sliderBox .layer{position:relative; width:100%; background:#0a0b0f; border-radius:var(--radius); overflow:hidden;}
+  #sliderBox img{display:block; width:100%; object-fit:contain; max-height:68vh;}
+  #sliderBox .top{position:absolute; inset:0; overflow:hidden;}
+  #sliderBox .top img{position:absolute; top:0; left:0; height:100%; width:auto;}
+  #sliderBox .base img{visibility:hidden;}
+  #sliderBox .handle{
+    position:absolute; top:0; bottom:0; width:3px; background:var(--accent);
+    left:50%; transform:translateX(-50%); cursor:ew-resize; z-index:5;
+  }
+  #sliderBox .handle::after{
+    content:"↔"; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:var(--accent); color:#fff; width:30px; height:30px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  .slider-labels{display:flex; justify-content:space-between; max-width:900px; margin:8px auto 0; font-size:12px; color:var(--muted);}
+
+  /* parallel scroll */
+  #parallel{display:flex; gap:14px; overflow-x:auto; padding-bottom:14px;}
+  #parallel .pcol{flex:0 0 auto; width:300px; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:10px;}
+  #parallel .pcol img{width:100%; max-height:60vh; object-fit:contain; background:#0a0b0f; border-radius:8px;}
+  #parallel .pcol .cap{font-size:11px; color:var(--muted); margin-top:6px; word-break:break-all;}
+
+  .empty{text-align:center; color:var(--muted); padding:40px;}
+  .hint{font-size:12px; color:var(--muted);}
+
+  /* lightbox */
+  #lightbox{position:fixed; inset:0; background:rgba(0,0,0,.92); z-index:200; display:none; align-items:center; justify-content:center; flex-direction:column;}
+  #lightbox img{max-width:94vw; max-height:88vh; object-fit:contain;}
+  #lightbox .lbcap{color:var(--muted); margin-top:10px; font-size:13px;}
+  #lightbox .close{position:absolute; top:18px; right:24px; font-size:26px; cursor:pointer; color:#fff;}
+  kbd{background:#000; border:1px solid var(--line); border-radius:4px; padding:1px 6px; font-size:11px;}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="dot">◆</span> 画像比較ビューア <span class="muted" style="font-size:11px;">v1 ローカル完結</span></h1>
+  <div class="sp"></div>
+  <div class="seg" id="viewSeg">
+    <button data-view="grid" class="active">一覧</button>
+    <button data-view="side">横並び</button>
+    <button data-view="slider">スライダー</button>
+    <button data-view="parallel">並列スクロール</button>
+  </div>
+  <label class="btn">📂 ファイル選択<input type="file" id="fileInput" accept="image/*" multiple hidden></label>
+  <label class="btn">🗂 フォルダ<input type="file" id="dirInput" webkitdirectory directory multiple hidden></label>
+</header>
+
+<main>
+  <div id="drop">
+    <div class="big">ここに画像をドラッグ&ドロップ</div>
+    <div>または右上の「ファイル選択 / フォルダ」から読み込み（アップロードされません・完全ローカル）</div>
+  </div>
+
+  <!-- GRID -->
+  <div id="gridView">
+    <div class="toolbar">
+      <div class="count" id="countLbl">0 枚</div>
+      <div class="grp">
+        <span class="muted">絞り込み</span>
+        <select id="filterSel">
+          <option value="all">すべて</option>
+          <option value="fav">★お気に入り</option>
+          <option value="good">◎</option>
+          <option value="ok">○</option>
+          <option value="bad">✕</option>
+          <option value="none">未評価</option>
+        </select>
+      </div>
+      <div class="grp">
+        <span class="muted">並び替え</span>
+        <select id="sortSel">
+          <option value="added">読込順</option>
+          <option value="rating">評価が高い順</option>
+          <option value="name">名前順</option>
+          <option value="fav">お気に入り優先</option>
+        </select>
+      </div>
+      <div class="sp" style="flex:1"></div>
+      <button id="btnCompareSel">選択した2枚を比較</button>
+      <button id="btnExportFav">★ダウンロード一覧</button>
+      <button id="btnExportJson">JSON書出</button>
+      <button id="btnExportCsv">CSV書出</button>
+      <button id="btnClear">全消去</button>
+    </div>
+    <div class="hint" style="margin-bottom:10px;">
+      画像クリック=拡大 / 番号付き=比較スロット選択（最大2枚、横並び・スライダーで使用）。評価 ◎○✕ ★ とメモは自動保存（localStorage・ファイル名キー）。
+    </div>
+    <div id="grid" class="grid"></div>
+    <div id="gridEmpty" class="empty">まだ画像がありません。上のエリアに画像をドロップしてください。</div>
+  </div>
+
+  <!-- COMPARE (side / slider / parallel) -->
+  <div id="compareView">
+    <div class="cmp-bar">
+      <button id="btnBackGrid">← 一覧へ戻る</button>
+      <span class="muted">比較スロット（一覧の番号バッジで選択 / ここで切替も可）</span>
+      <select id="slotA"></select>
+      <span class="muted">↔</span>
+      <select id="slotB"></select>
+      <button id="btnSwap">A↔B 入替</button>
+    </div>
+
+    <div id="sideView" class="side-wrap"></div>
+
+    <div id="sliderViewWrap" style="display:none;">
+      <div id="sliderBox">
+        <div class="layer base"><img id="slBase"></div>
+        <div class="layer top" id="slTopWrap"><img id="slTop"></div>
+        <div class="handle" id="slHandle"></div>
+      </div>
+      <div class="slider-labels"><span id="slLblA">A</span><span id="slLblB">B</span></div>
+      <div class="hint" style="text-align:center;margin-top:8px;">中央のハンドルを左右にドラッグ。左=A / 右=B が見えます。</div>
+    </div>
+
+    <div id="parallel" style="display:none;"></div>
+  </div>
+</main>
+
+<div id="lightbox">
+  <span class="close" id="lbClose">✕</span>
+  <img id="lbImg">
+  <div class="lbcap" id="lbCap"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var LS_KEY = "imgcompare.meta.v1";
+  // meta keyed by filename: {rating:"good|ok|bad|", fav:bool, note:""}
+  var meta = loadMeta();
+  var images = []; // {id,name,url,added}
+  var selSlots = []; // up to 2 ids for compare
+  var addCounter = 0;
+  var currentView = "grid";
+
+  function loadMeta(){
+    try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; }
+    catch(e){ return {}; }
+  }
+  function saveMeta(){
+    try { localStorage.setItem(LS_KEY, JSON.stringify(meta)); } catch(e){}
+  }
+  function metaFor(name){
+    if(!meta[name]) meta[name] = {rating:"", fav:false, note:""};
+    return meta[name];
+  }
+
+  function $(id){ return document.getElementById(id); }
+
+  /* ---------- loading images ---------- */
+  function addFiles(fileList){
+    var arr = Array.prototype.slice.call(fileList);
+    arr = arr.filter(function(f){ return f.type && f.type.indexOf("image/")===0; });
+    arr.sort(function(a,b){ return a.name.localeCompare(b.name); });
+    arr.forEach(function(f){
+      var url = URL.createObjectURL(f);
+      images.push({ id:"img"+(addCounter), name:f.name, url:url, added:addCounter });
+      addCounter++;
+    });
+    renderGrid();
+    refreshSlots();
+  }
+
+  $("fileInput").addEventListener("change", function(e){ addFiles(e.target.files); e.target.value=""; });
+  $("dirInput").addEventListener("change", function(e){ addFiles(e.target.files); e.target.value=""; });
+
+  var drop = $("drop");
+  ["dragenter","dragover"].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add("drag"); });
+    document.body.addEventListener(ev, function(e){ e.preventDefault(); });
+  });
+  ["dragleave","drop"].forEach(function(ev){
+    drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove("drag"); });
+  });
+  drop.addEventListener("drop", function(e){
+    e.preventDefault(); drop.classList.remove("drag");
+    if(e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+  });
+  // allow drop anywhere
+  document.body.addEventListener("drop", function(e){
+    e.preventDefault();
+    if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+  });
+
+  /* ---------- grid render ---------- */
+  function ratingRank(r){ return r==="good"?3 : r==="ok"?2 : r==="bad"?1 : 0; }
+
+  function filteredSorted(){
+    var f = $("filterSel").value;
+    var s = $("sortSel").value;
+    var list = images.filter(function(im){
+      var m = metaFor(im.name);
+      if(f==="all") return true;
+      if(f==="fav") return m.fav;
+      if(f==="none") return !m.rating;
+      return m.rating===f;
+    });
+    list = list.slice();
+    if(s==="name") list.sort(function(a,b){ return a.name.localeCompare(b.name); });
+    else if(s==="rating") list.sort(function(a,b){ return ratingRank(metaFor(b.name).rating)-ratingRank(metaFor(a.name).rating); });
+    else if(s==="fav") list.sort(function(a,b){ return (metaFor(b.name).fav?1:0)-(metaFor(a.name).fav?1:0); });
+    else list.sort(function(a,b){ return a.added-b.added; });
+    return list;
+  }
+
+  function renderGrid(){
+    var grid = $("grid");
+    var list = filteredSorted();
+    $("countLbl").textContent = images.length + " 枚" + (list.length!==images.length ? "（表示 "+list.length+"）" : "");
+    $("gridEmpty").style.display = images.length ? "none" : "block";
+    grid.innerHTML = "";
+    list.forEach(function(im){
+      var m = metaFor(im.name);
+      var card = document.createElement("div");
+      card.className = "card" + (selSlots.indexOf(im.id)>=0 ? " sel":"");
+
+      var slotIdx = selSlots.indexOf(im.id);
+      if(slotIdx>=0){
+        var sn = document.createElement("div");
+        sn.className="selnum"; sn.textContent = slotIdx===0?"A":"B";
+        card.appendChild(sn);
+      }
+      if(m.fav){
+        var fb = document.createElement("div"); fb.className="fav-badge"; fb.textContent="★"; card.appendChild(fb);
+      }
+
+      var thumb = document.createElement("div");
+      thumb.className="thumb"; thumb.style.backgroundImage="url('"+im.url+"')";
+      thumb.title="クリックで拡大 / Shift+クリックで比較スロット";
+      thumb.addEventListener("click", function(ev){
+        if(ev.shiftKey){ toggleSlot(im.id); }
+        else openLightbox(im);
+      });
+      card.appendChild(thumb);
+
+      var metaBox = document.createElement("div"); metaBox.className="meta";
+      var nm = document.createElement("div"); nm.className="name"; nm.textContent=im.name; nm.title=im.name;
+      metaBox.appendChild(nm);
+
+      var rate = document.createElement("div"); rate.className="rate";
+      rate.appendChild(rbtn("◎","good",m,im,"r-good"));
+      rate.appendChild(rbtn("○","ok",m,im,"r-ok"));
+      rate.appendChild(rbtn("✕","bad",m,im,"r-bad"));
+      var favB = document.createElement("button");
+      favB.className="r-fav"+(m.fav?" on":""); favB.textContent="★"; favB.title="お気に入り";
+      favB.addEventListener("click", function(){ m.fav=!m.fav; saveMeta(); renderGrid(); });
+      rate.appendChild(favB);
+      var slotB = document.createElement("button");
+      slotB.textContent = slotIdx>=0 ? (slotIdx===0?"A":"B") : "比較";
+      slotB.title="比較スロットに追加/解除";
+      slotB.style.marginLeft="auto";
+      slotB.addEventListener("click", function(){ toggleSlot(im.id); });
+      rate.appendChild(slotB);
+      metaBox.appendChild(rate);
+
+      var ta = document.createElement("textarea");
+      ta.placeholder="メモ（プロンプト等）"; ta.value=m.note||"";
+      ta.addEventListener("input", function(){ m.note=ta.value; saveMeta(); });
+      metaBox.appendChild(ta);
+
+      card.appendChild(metaBox);
+      grid.appendChild(card);
+    });
+  }
+
+  function rbtn(label, val, m, im, cls){
+    var b = document.createElement("button");
+    b.className = cls + (m.rating===val?" on":"");
+    b.textContent=label;
+    b.addEventListener("click", function(){
+      m.rating = (m.rating===val)?"":val; saveMeta(); renderGrid();
+    });
+    return b;
+  }
+
+  function toggleSlot(id){
+    var i = selSlots.indexOf(id);
+    if(i>=0){ selSlots.splice(i,1); }
+    else {
+      if(selSlots.length>=2) selSlots.shift();
+      selSlots.push(id);
+    }
+    renderGrid(); refreshSlots(); renderCompare();
+  }
+
+  $("filterSel").addEventListener("change", renderGrid);
+  $("sortSel").addEventListener("change", renderGrid);
+
+  /* ---------- lightbox ---------- */
+  function openLightbox(im){
+    $("lbImg").src = im.url;
+    $("lbCap").textContent = im.name;
+    $("lightbox").style.display="flex";
+  }
+  $("lbClose").addEventListener("click", function(){ $("lightbox").style.display="none"; });
+  $("lightbox").addEventListener("click", function(e){ if(e.target.id==="lightbox") $("lightbox").style.display="none"; });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") $("lightbox").style.display="none"; });
+
+  /* ---------- view switching ---------- */
+  $("viewSeg").addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    setView(b.getAttribute("data-view"));
+  });
+  function setView(v){
+    currentView=v;
+    var segs = $("viewSeg").querySelectorAll("button");
+    segs.forEach(function(s){ s.classList.toggle("active", s.getAttribute("data-view")===v); });
+    $("gridView").style.display = v==="grid"?"block":"none";
+    $("compareView").style.display = v==="grid"?"none":"block";
+    $("sideView").style.display = v==="side"?"flex":"none";
+    $("sliderViewWrap").style.display = v==="slider"?"block":"none";
+    $("parallel").style.display = v==="parallel"?"flex":"none";
+    if(v!=="grid"){ refreshSlots(); renderCompare(); }
+  }
+  $("btnBackGrid").addEventListener("click", function(){ setView("grid"); });
+  $("btnCompareSel").addEventListener("click", function(){
+    if(selSlots.length<2){ alert("比較する2枚を選んでください（カードの「比較」ボタン or Shift+クリック）"); return; }
+    setView("side");
+  });
+
+  /* ---------- compare slot selectors ---------- */
+  function refreshSlots(){
+    [["slotA",0],["slotB",1]].forEach(function(pair){
+      var sel = $(pair[0]); var idx=pair[1];
+      sel.innerHTML = "";
+      var none = document.createElement("option"); none.value=""; none.textContent="（未選択）"; sel.appendChild(none);
+      images.forEach(function(im){
+        var o = document.createElement("option"); o.value=im.id; o.textContent=im.name; sel.appendChild(o);
+      });
+      sel.value = selSlots[idx] || "";
+    });
+  }
+  $("slotA").addEventListener("change", function(){ setSlot(0,this.value); });
+  $("slotB").addEventListener("change", function(){ setSlot(1,this.value); });
+  function setSlot(idx,id){
+    if(!id){ if(selSlots[idx]!==undefined) selSlots.splice(idx,1); }
+    else { selSlots[idx]=id; }
+    renderGrid(); renderCompare();
+  }
+  $("btnSwap").addEventListener("click", function(){
+    if(selSlots.length===2){ selSlots.reverse(); refreshSlots(); renderGrid(); renderCompare(); }
+  });
+
+  function imgById(id){ for(var i=0;i<images.length;i++) if(images[i].id===id) return images[i]; return null; }
+
+  /* ---------- render compare views ---------- */
+  function renderCompare(){
+    if(currentView==="side") renderSide();
+    else if(currentView==="slider") renderSlider();
+    else if(currentView==="parallel") renderParallel();
+  }
+
+  function renderSide(){
+    var wrap = $("sideView"); wrap.innerHTML="";
+    var picks = selSlots.length ? selSlots : images.slice(0,2).map(function(im){return im.id;});
+    if(!picks.length){ wrap.innerHTML='<div class="empty">比較する画像を選んでください。</div>'; return; }
+    picks.slice(0,2).forEach(function(id,i){
+      var im = imgById(id); if(!im) return;
+      var col = document.createElement("div"); col.className="side-col";
+      var img = document.createElement("img"); img.src=im.url;
+      img.style.cursor="zoom-in"; img.addEventListener("click", function(){ openLightbox(im); });
+      col.appendChild(img);
+      var cap = document.createElement("div"); cap.className="cap"; cap.textContent=(i===0?"A: ":"B: ")+im.name;
+      col.appendChild(cap);
+      wrap.appendChild(col);
+    });
+  }
+
+  function renderParallel(){
+    var p = $("parallel"); p.innerHTML="";
+    var list = selSlots.length ? selSlots.map(imgById).filter(Boolean) : images;
+    if(!list.length){ p.innerHTML='<div class="empty">画像がありません。</div>'; return; }
+    list.forEach(function(im){
+      var col = document.createElement("div"); col.className="pcol";
+      var img = document.createElement("img"); img.src=im.url; img.style.cursor="zoom-in";
+      img.addEventListener("click", function(){ openLightbox(im); });
+      col.appendChild(img);
+      var cap = document.createElement("div"); cap.className="cap"; cap.textContent=im.name;
+      col.appendChild(cap);
+      p.appendChild(col);
+    });
+  }
+
+  /* ---------- before/after slider ---------- */
+  var sliderPct = 50;
+  function renderSlider(){
+    var picks = selSlots.length>=2 ? selSlots : images.slice(0,2).map(function(im){return im.id;});
+    var a = imgById(picks[0]); var b = imgById(picks[1]);
+    var box = $("sliderBox");
+    if(!a || !b){
+      box.style.display="none";
+      if(!$("sliderNote")){
+        var n=document.createElement("div"); n.id="sliderNote"; n.className="empty";
+        n.textContent="スライダー比較には2枚必要です。一覧で2枚選んでください。";
+        box.parentNode.insertBefore(n, box);
+      }
+      return;
+    }
+    if($("sliderNote")) $("sliderNote").remove();
+    box.style.display="block";
+    $("slBase").src = b.url;   // base = B (right side)
+    $("slTop").src = a.url;    // top  = A (left side, clipped)
+    $("slLblA").textContent = "A: "+a.name;
+    $("slLblB").textContent = "B: "+b.name;
+    applySlider();
+  }
+  function applySlider(){
+    var box=$("sliderBox");
+    var w = box.clientWidth;
+    $("slTopWrap").style.width = sliderPct + "%";
+    $("slTop").style.width = w + "px";
+    $("slHandle").style.left = sliderPct + "%";
+  }
+  (function setupSliderDrag(){
+    var box=$("sliderBox"); var dragging=false;
+    function move(clientX){
+      var r = box.getBoundingClientRect();
+      var x = clientX - r.left;
+      sliderPct = Math.max(0, Math.min(100, (x/r.width)*100));
+      applySlider();
+    }
+    $("slHandle").addEventListener("mousedown", function(e){ dragging=true; e.preventDefault(); });
+    box.addEventListener("mousedown", function(e){ dragging=true; move(e.clientX); });
+    window.addEventListener("mousemove", function(e){ if(dragging) move(e.clientX); });
+    window.addEventListener("mouseup", function(){ dragging=false; });
+    box.addEventListener("touchstart", function(e){ dragging=true; move(e.touches[0].clientX); });
+    window.addEventListener("touchmove", function(e){ if(dragging){ move(e.touches[0].clientX); } }, {passive:true});
+    window.addEventListener("touchend", function(){ dragging=false; });
+    window.addEventListener("resize", function(){ if(currentView==="slider") applySlider(); });
+  })();
+
+  /* ---------- exports ---------- */
+  function rowsForExport(){
+    return images.map(function(im){
+      var m = metaFor(im.name);
+      return { name:im.name, rating:m.rating||"", fav:!!m.fav, note:m.note||"" };
+    });
+  }
+  function download(filename, text, type){
+    var blob = new Blob([text], {type:type||"text/plain;charset=utf-8"});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a"); a.href=url; a.download=filename; a.click();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  $("btnExportJson").addEventListener("click", function(){
+    download("image-ratings.json", JSON.stringify(rowsForExport(), null, 2), "application/json");
+  });
+  $("btnExportCsv").addEventListener("click", function(){
+    var rows = rowsForExport();
+    var head = "name,rating,fav,note";
+    var body = rows.map(function(r){
+      function q(s){ return '"'+String(s).replace(/"/g,'""')+'"'; }
+      return [q(r.name), q(r.rating), r.fav?"1":"0", q(r.note)].join(",");
+    }).join("\r\n");
+    download("image-ratings.csv", "﻿"+head+"\r\n"+body, "text/csv;charset=utf-8");
+  });
+  $("btnExportFav").addEventListener("click", function(){
+    var favs = images.filter(function(im){ return metaFor(im.name).fav; });
+    if(!favs.length){ alert("お気に入り(★)が付いた画像がありません。"); return; }
+    // open a printable list window with thumbnails + download links
+    var html = '<html><head><meta charset="utf-8"><title>お気に入り一覧</title>'+
+      '<style>body{background:#0e0f13;color:#e6e8ef;font-family:sans-serif;padding:20px;}'+
+      '.g{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}'+
+      '.c{background:#171922;border:1px solid #2a2e3e;border-radius:10px;padding:10px;}'+
+      'img{width:100%;border-radius:6px;}a{color:#4f8cff;font-size:12px;word-break:break-all;}</style></head><body>'+
+      '<h2>★ お気に入り '+favs.length+'枚</h2><p style="color:#9aa0b4">各画像を右クリック→「名前を付けて保存」、またはリンクから保存できます。</p><div class="g">'+
+      favs.map(function(im){
+        return '<div class="c"><a href="'+im.url+'" download="'+im.name+'"><img src="'+im.url+'"></a><div><a href="'+im.url+'" download="'+im.name+'">'+im.name+'</a></div></div>';
+      }).join("")+'</div></body></html>';
+    var w = window.open("", "_blank");
+    if(w){ w.document.write(html); w.document.close(); }
+    else { alert("ポップアップがブロックされました。許可してください。"); }
+  });
+
+  $("btnClear").addEventListener("click", function(){
+    if(!images.length) return;
+    if(!confirm("読み込んだ画像をすべて消去しますか？（評価・メモのデータは残ります）")) return;
+    images.forEach(function(im){ URL.revokeObjectURL(im.url); });
+    images=[]; selSlots=[]; renderGrid(); refreshSlots();
+  });
+
+  // init
+  setView("grid");
+  renderGrid();
+  refreshSlots();
+})();
+</script>
+</body>
+</html>

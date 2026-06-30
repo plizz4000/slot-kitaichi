@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKR 粗利シミュレーター</title>
+<style>
+  :root{
+    --bg:#0d1117;--panel:#161b22;--panel2:#1c2230;--line:#2b313c;
+    --ink:#e6edf3;--sub:#9aa7b4;--gn:#3fb950;--rd:#f85149;--yl:#d29922;--ac:#58a6ff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Cascadia Code",Consolas,"Yu Gothic UI",Meiryo,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;padding:18px 14px 70px}
+  .wrap{max-width:920px;margin:0 auto}
+  h1{font-size:19px;margin:0 0 2px;letter-spacing:.03em}
+  .sub{color:var(--sub);font-size:12px;margin:0 0 16px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 14px}
+  .panel h2{font-size:13px;margin:0 0 12px;color:var(--ac);letter-spacing:.05em;text-transform:uppercase}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+  label{font-size:11px;color:var(--sub);display:block;margin:0 0 4px}
+  input,select{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:8px 9px;font:inherit;font-size:13px;width:100%}
+  input:focus,select:focus{outline:none;border-color:var(--ac)}
+  input[type=number]{text-align:right}
+  .chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink);margin:0}
+  .chk input{width:auto}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  td,th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}
+  th{color:var(--sub);font-size:11px;font-weight:500;text-align:left}
+  td.l,th.l{text-align:left}
+  /* result */
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .kpi .lab{font-size:11px;color:var(--sub);margin-bottom:6px}
+  .kpi .num{font-size:20px;font-weight:800}
+  .big{font-size:24px}
+  .gn{color:var(--gn)} .rd{color:var(--rd)} .yl{color:var(--yl)}
+  button{background:var(--ac);color:#06101f;border:0;border-radius:8px;padding:9px 16px;
+    font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+  textarea{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:8px;
+    padding:10px;font:inherit;font-size:13px;width:100%;line-height:1.6;resize:vertical}
+  .hint{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.6}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  details{margin-top:8px}
+  summary{cursor:pointer;color:var(--ac);font-size:12px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--gn);color:#06101f;padding:9px 18px;border-radius:999px;font-weight:700;font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .typebtn{padding:11px 20px;font-size:15px;font-weight:700;border:2px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--sub);cursor:pointer}
+  .typebtn:hover{border-color:var(--ac);color:var(--ink)}
+  .typebtn.active{background:var(--ac);color:#06101f;border-color:var(--ac)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🏗 SKR 粗利シミュレーター</h1>
+  <p class="sub">現場条件を入れると「顧客提示見積」「自社原価」「粗利・粗利率」が即出ます。出先の即答・受注速度UP用。保存は自動（この端末）。</p>
+
+  <!-- 案件種別 -->
+  <div class="panel">
+    <h2>案件種別</h2>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="typebtn active" data-type="kaitai" onclick="switchType('kaitai')">🏗 解体</button>
+      <button class="typebtn" data-type="bassai" onclick="switchType('bassai')">🌲 伐採</button>
+      <button class="typebtn" data-type="zanchi" onclick="switchType('zanchi')">📦 残置物片付け</button>
+    </div>
+  </div>
+
+  <!-- ===== 解体セクション ===== -->
+  <div id="sec_kaitai">
+  <div class="panel">
+    <h2>① 物件・規模</h2>
+    <div class="grid">
+      <div>
+        <label>構造</label>
+        <select id="struct">
+          <option value="wood">木造</option>
+          <option value="steel">鉄骨造（S）</option>
+          <option value="rc">鉄筋コンクリート（RC）</option>
+        </select>
+      </div>
+      <div>
+        <label>延床面積（坪）</label>
+        <input type="number" id="tsubo" value="30" min="0">
+      </div>
+      <div>
+        <label>階数</label>
+        <input type="number" id="floors" value="2" min="1">
+      </div>
+    </div>
+    <details>
+      <summary>坪単価を調整（構造別・税抜/坪）</summary>
+      <div class="grid" style="margin-top:10px">
+        <div><label>木造 ¥/坪</label><input type="number" id="up_wood" value="38000"></div>
+        <div><label>鉄骨 ¥/坪</label><input type="number" id="up_steel" value="50000"></div>
+        <div><label>RC ¥/坪</label><input type="number" id="up_rc" value="65000"></div>
+      </div>
+    </details>
+  </div>
+
+  <div class="panel">
+    <h2>② 立地・条件割増</h2>
+    <div class="grid">
+      <label class="chk"><input type="checkbox" id="c_norig"> 重機進入NG（手壊し +25%）</label>
+      <label class="chk"><input type="checkbox" id="c_narrow"> 前面道路狭小（+10%）</label>
+      <label class="chk"><input type="checkbox" id="c_close"> 隣接近接・要養生（+10%）</label>
+      <label class="chk"><input type="checkbox" id="c_asb"> アスベスト有（除去別途）</label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>③ 付帯費用（税抜・円）</h2>
+    <div class="grid">
+      <div><label>残置物撤去</label><input type="number" id="f_zanchi" value="0"></div>
+      <div><label>樹木・外構撤去</label><input type="number" id="f_gaikou" value="0"></div>
+      <div><label>アスベスト調査・除去</label><input type="number" id="f_asb" value="0"></div>
+      <div><label>整地・その他</label><input type="number" id="f_other" value="0"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>④ 自社原価の前提（粗利計算用）</h2>
+    <div class="grid">
+      <div><label>原価率（解体本体に対する直接原価%）</label><input type="number" id="cost_rate" value="62"></div>
+      <div><label>付帯の原価率（%）</label><input type="number" id="cost_rate_f" value="70"></div>
+      <div><label>諸経費・現場管理を見積に上乗せ（%）</label><input type="number" id="overhead" value="10"></div>
+    </div>
+    <div class="hint">※原価率は感覚値の初期値。実績が出たら自社の数字に直してください（粗利精度が上がります）。</div>
+  </div>
+  </div><!-- /sec_kaitai -->
+
+  <!-- ===== 伐採セクション ===== -->
+  <div id="sec_bassai" style="display:none">
+  <div class="panel">
+    <h2>① 伐採条件</h2>
+    <div class="grid">
+      <div>
+        <label>本数</label>
+        <input type="number" id="b_count" value="3" min="1">
+      </div>
+      <div>
+        <label>高さ（平均）</label>
+        <select id="b_height">
+          <option value="low">低木（〜3m）</option>
+          <option value="mid" selected>中木（3〜7m）</option>
+          <option value="high">高木（7〜15m）</option>
+          <option value="xhigh">大木（15m超）</option>
+        </select>
+      </div>
+      <div>
+        <label>幹の太さ（平均）</label>
+        <select id="b_trunk">
+          <option value="thin">細い（〜20cm）</option>
+          <option value="mid" selected>普通（20〜40cm）</option>
+          <option value="thick">太い（40cm超）</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <label class="chk"><input type="checkbox" id="b_crane"> クレーン・高所作業車 必要</label>
+      <label class="chk"><input type="checkbox" id="b_power"> 電線・建物近接（要注意伐採）</label>
+      <label class="chk"><input type="checkbox" id="b_stump"> 抜根あり</label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>② 処分・運搬</h2>
+    <div class="grid">
+      <div>
+        <label>処分方法</label>
+        <select id="b_disposal">
+          <option value="haul">搬出・処分場（標準）</option>
+          <option value="chip">現場チップ化</option>
+          <option value="leave">枝葉は施主処分（幹のみ搬出）</option>
+        </select>
+      </div>
+      <div>
+        <label>トラック台数（目安）</label>
+        <input type="number" id="b_trucks" value="1" min="0">
+      </div>
+      <div>
+        <label>運搬距離</label>
+        <select id="b_dist">
+          <option value="near">近距離（〜20km）</option>
+          <option value="mid" selected>中距離（20〜50km）</option>
+          <option value="far">遠距離（50km超）</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>③ 原価の前提</h2>
+    <div class="grid">
+      <div><label>原価率（%）</label><input type="number" id="b_cost_rate" value="55"></div>
+      <div><label>諸経費・現場管理（%）</label><input type="number" id="b_overhead" value="10"></div>
+    </div>
+    <div class="hint">※伐採は解体より粗利が取りやすい傾向。初期値55%は目安。</div>
+  </div>
+  </div><!-- /sec_bassai -->
+
+  <!-- ===== 残置物片付けセクション ===== -->
+  <div id="sec_zanchi" style="display:none">
+  <div class="panel">
+    <h2>① 現場条件</h2>
+    <div class="grid">
+      <div>
+        <label>間取り・広さ</label>
+        <select id="z_size">
+          <option value="1r">1R〜1K</option>
+          <option value="2dk">2DK〜2LDK</option>
+          <option value="3ldk" selected>3LDK〜4LDK</option>
+          <option value="house">一戸建て丸ごと</option>
+          <option value="warehouse">倉庫・物置</option>
+        </select>
+      </div>
+      <div>
+        <label>物量</label>
+        <select id="z_volume">
+          <option value="light">少なめ（スカスカ）</option>
+          <option value="normal" selected>普通（生活用品一式）</option>
+          <option value="heavy">多め（ゴミ屋敷寄り）</option>
+          <option value="extreme">大量（足の踏み場なし）</option>
+        </select>
+      </div>
+      <div>
+        <label>階数（搬出階）</label>
+        <input type="number" id="z_floor" value="1" min="1">
+      </div>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <label class="chk"><input type="checkbox" id="z_elev"> エレベーターあり</label>
+      <label class="chk"><input type="checkbox" id="z_narrow"> 搬出経路が狭い</label>
+      <label class="chk"><input type="checkbox" id="z_sort"> 分別・貴重品確認が必要</label>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>② トラック・処分</h2>
+    <div class="grid">
+      <div>
+        <label>トラック台数（2t車換算）</label>
+        <input type="number" id="z_trucks" value="2" min="1">
+      </div>
+      <div>
+        <label>1台あたり処分費（円）</label>
+        <input type="number" id="z_disposal_cost" value="25000">
+      </div>
+      <div>
+        <label>人工（人×日）</label>
+        <input type="number" id="z_mandays" value="2" min="1">
+      </div>
+      <div>
+        <label>1人工単価（円）</label>
+        <input type="number" id="z_manday_cost" value="18000">
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>③ 原価の前提</h2>
+    <div class="grid">
+      <div><label>原価率（%）</label><input type="number" id="z_cost_rate" value="60"></div>
+      <div><label>諸経費（%）</label><input type="number" id="z_overhead" value="10"></div>
+    </div>
+    <div class="hint">※残置物片付けは処分費が大きい。リユース品の買取で原価圧縮が可能。</div>
+  </div>
+  </div><!-- /sec_zanchi -->
+
+  <!-- 金属回収 -->
+  <div class="panel" id="sec_metal">
+    <h2>⑤ 発生金属の回収益（SKRの強み）</h2>
+    <table id="metalTbl">
+      <thead><tr><th class="l">金属</th><th>想定回収(kg)</th><th>買取単価(¥/kg)</th><th>回収額</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="hint">単価は soba-watch（相場ウォッチ）の数字に合わせて更新。木造は鉄少なめ、鉄骨/RCは鉄が多く出ます。</div>
+    <label class="chk" style="margin-top:10px"><input type="checkbox" id="apply_metal"> 回収益を顧客見積から値引き（差別化：実質コスト減を提示）</label>
+  </div>
+
+  <!-- 結果 -->
+  <div class="panel">
+    <h2>⑥ 結果</h2>
+    <div class="kpis">
+      <div class="kpi"><div class="lab">顧客提示見積（税抜）</div><div class="num big" id="r_quote">¥0</div></div>
+      <div class="kpi"><div class="lab">粗利</div><div class="num big gn" id="r_profit">¥0</div></div>
+      <div class="kpi"><div class="lab">粗利率</div><div class="num big" id="r_margin">0%</div></div>
+    </div>
+    <details style="margin-top:12px"><summary>内訳を表示</summary>
+      <table style="margin-top:8px"><tbody id="breakdown"></tbody></table>
+    </details>
+    <div class="row" style="margin-top:14px">
+      <button onclick="genQuote()">見積サマリーを生成</button>
+      <button class="ghost" onclick="copyQuote()">📋 コピー</button>
+    </div>
+    <textarea id="quoteText" rows="9" style="margin-top:10px" placeholder="「見積サマリーを生成」で顧客提示用の文面を作成"></textarea>
+  </div>
+
+  <div class="row">
+    <button class="ghost" onclick="resetAll()">初期値に戻す</button>
+    <span class="hint" style="margin:0">概算用。最終見積は現地確認後に確定。</span>
+  </div>
+</div>
+<div class="toast" id="toast">コピーしました</div>
+
+<script>
+const LS='skr.mitsumori.v2';
+const yen=n=>'¥'+Math.round(n).toLocaleString('ja-JP');
+const NUM=id=>{const el=document.getElementById(id);return el?parseFloat(el.value)||0:0;};
+const CHK=id=>{const el=document.getElementById(id);return el?el.checked:false;};
+const VAL=id=>{const el=document.getElementById(id);return el?el.value:'';};
+
+let currentType='kaitai';
+
+function switchType(type){
+  currentType=type;
+  ['kaitai','bassai','zanchi'].forEach(t=>{
+    document.getElementById('sec_'+t).style.display=t===type?'':'none';
+    document.querySelector(`.typebtn[data-type="${t}"]`).classList.toggle('active',t===type);
+  });
+  document.getElementById('sec_metal').style.display=(type==='zanchi')?'none':'';
+  try{localStorage.setItem(LS+'.type',type);}catch(e){}
+  calc();
+}
+
+const DEFAULT_METALS=[
+  {nm:'鉄スクラップ', kg:0, price:54.5},
+  {nm:'銅(雑線含む)', kg:0, price:1000},
+  {nm:'アルミ',       kg:0, price:250},
+  {nm:'ステン',       kg:0, price:200},
+];
+const FE_PER_TSUBO={wood:20, steel:120, rc:90};
+
+// 伐採の単価目安（1本あたり・税抜）
+const BASSAI_UNIT={
+  low:  {thin:3000, mid:5000,  thick:8000},
+  mid:  {thin:8000, mid:15000, thick:25000},
+  high: {thin:20000,mid:35000, thick:55000},
+  xhigh:{thin:40000,mid:70000, thick:100000},
+};
+const STUMP_UNIT={thin:3000, mid:8000, thick:15000};
+const BASSAI_TRUCK={near:15000, mid:25000, far:40000};
+
+// 残置物の基本料金目安（税抜）
+const ZANCHI_BASE={'1r':30000,'2dk':60000,'3ldk':100000,house:150000,warehouse:80000};
+const ZANCHI_VOL_MULT={light:0.7, normal:1.0, heavy:1.5, extreme:2.2};
+
+let metals=loadMetals();
+function loadMetals(){
+  try{const s=JSON.parse(localStorage.getItem(LS+'.metals'));if(s)return s;}catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_METALS));
+}
+
+function saveState(){
+  const st={};
+  document.querySelectorAll('#sec_kaitai input, #sec_kaitai select, #sec_bassai input, #sec_bassai select, #sec_zanchi input, #sec_zanchi select, #apply_metal').forEach(el=>{
+    if(!el.id)return;
+    st[el.id]=el.type==='checkbox'?el.checked:el.value;
+  });
+  try{localStorage.setItem(LS,JSON.stringify(st));localStorage.setItem(LS+'.metals',JSON.stringify(metals));}catch(e){}
+}
+
+function restore(){
+  try{const st=JSON.parse(localStorage.getItem(LS));if(st)Object.keys(st).forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    if(el.type==='checkbox')el.checked=st[id];else el.value=st[id];
+  });}catch(e){}
+  try{const t=localStorage.getItem(LS+'.type');if(t)switchType(t);}catch(e){}
+}
+
+function renderMetals(){
+  const tb=document.querySelector('#metalTbl tbody');tb.innerHTML='';
+  metals.forEach((m,i)=>{
+    const amt=m.kg*m.price;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td class="l">${m.nm}</td>
+      <td><input type="number" value="${m.kg}" data-i="${i}" data-f="kg" style="max-width:110px"></td>
+      <td><input type="number" value="${m.price}" data-i="${i}" data-f="price" style="max-width:110px"></td>
+      <td>${yen(amt)}</td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{
+    const{i,f}=e.target.dataset;metals[i][f]=parseFloat(e.target.value)||0;calc();
+  }));
+}
+
+function suggestFe(){
+  const fe=metals.find(m=>m.nm.indexOf('鉄')===0);
+  if(fe && fe.kg===0){ fe.kg=Math.round(FE_PER_TSUBO[VAL('struct')]*NUM('tsubo')); }
+}
+
+function calcKaitai(){
+  const up={wood:NUM('up_wood'),steel:NUM('up_steel'),rc:NUM('up_rc')}[VAL('struct')];
+  const base=up*NUM('tsubo');
+  let mult=1;
+  if(CHK('c_norig'))mult+=0.25;
+  if(CHK('c_narrow'))mult+=0.10;
+  if(CHK('c_close'))mult+=0.10;
+  const bodyAfterMult=base*mult;
+  const overhead=bodyAfterMult*NUM('overhead')/100;
+  const bodyQuote=bodyAfterMult+overhead;
+  const fukutai=NUM('f_zanchi')+NUM('f_gaikou')+NUM('f_asb')+NUM('f_other');
+  const metalRev=metals.reduce((s,m)=>s+m.kg*m.price,0);
+  const applyMetal=CHK('apply_metal');
+  let quote=bodyQuote+fukutai;
+  if(applyMetal) quote=Math.max(0, quote-metalRev);
+  const bodyCost=bodyAfterMult*NUM('cost_rate')/100;
+  const fukutaiCost=fukutai*NUM('cost_rate_f')/100;
+  const totalCost=bodyCost+fukutaiCost;
+  const metalProfit = applyMetal ? 0 : metalRev;
+  const profit = quote + metalProfit - totalCost;
+  const denom = quote + metalProfit;
+  const margin = denom>0 ? profit/denom*100 : 0;
+
+  const bd=document.getElementById('breakdown');
+  bd.innerHTML=`
+    <tr><td class="l">解体本体（${yen(up)}/坪 ×${NUM('tsubo')}坪 ×割増${mult.toFixed(2)}）</td><td>${yen(bodyAfterMult)}</td></tr>
+    <tr><td class="l">諸経費・現場管理（+${NUM('overhead')}%）</td><td>${yen(overhead)}</td></tr>
+    <tr><td class="l">付帯費用</td><td>${yen(fukutai)}</td></tr>
+    <tr><td class="l">金属回収益${applyMetal?'（→見積から値引き）':'（別収益）'}</td><td>${yen(metalRev)}</td></tr>
+    <tr><td class="l">自社総原価</td><td>${yen(totalCost)}</td></tr>`;
+
+  window.__sim={type:'kaitai',quote,profit,margin,fukutai,metalRev,applyMetal,bodyAfterMult,struct:VAL('struct'),tsubo:NUM('tsubo')};
+  return {quote,profit,margin};
+}
+
+function calcBassai(){
+  const h=VAL('b_height'), tr=VAL('b_trunk'), cnt=NUM('b_count');
+  const unitPrice=BASSAI_UNIT[h]?.[tr]||15000;
+  let bassaiCost=unitPrice*cnt;
+  if(CHK('b_crane')) bassaiCost*=1.5;
+  if(CHK('b_power')) bassaiCost*=1.3;
+  const stumpCost=CHK('b_stump')?(STUMP_UNIT[tr]||8000)*cnt:0;
+  const truckCost=(BASSAI_TRUCK[VAL('b_dist')]||25000)*NUM('b_trucks');
+  const dispMult=VAL('b_disposal')==='chip'?0.6:VAL('b_disposal')==='leave'?0.4:1.0;
+  const disposalCost=truckCost*dispMult;
+  const subtotal=bassaiCost+stumpCost+disposalCost;
+  const overhead=subtotal*NUM('b_overhead')/100;
+  const quote=subtotal+overhead;
+  const metalRev=metals.reduce((s,m)=>s+m.kg*m.price,0);
+  const applyMetal=CHK('apply_metal');
+  let finalQuote=quote;
+  if(applyMetal) finalQuote=Math.max(0,finalQuote-metalRev);
+  const totalCost=subtotal*NUM('b_cost_rate')/100;
+  const metalProfit=applyMetal?0:metalRev;
+  const profit=finalQuote+metalProfit-totalCost;
+  const denom=finalQuote+metalProfit;
+  const margin=denom>0?profit/denom*100:0;
+
+  const hJP={low:'低木',mid:'中木',high:'高木',xhigh:'大木'}[h];
+  const bd=document.getElementById('breakdown');
+  bd.innerHTML=`
+    <tr><td class="l">伐採（${hJP}×${cnt}本 @${yen(unitPrice)}）</td><td>${yen(bassaiCost)}</td></tr>
+    ${stumpCost?`<tr><td class="l">抜根（${cnt}本）</td><td>${yen(stumpCost)}</td></tr>`:''}
+    <tr><td class="l">搬出・処分</td><td>${yen(disposalCost)}</td></tr>
+    <tr><td class="l">諸経費（+${NUM('b_overhead')}%）</td><td>${yen(overhead)}</td></tr>
+    ${metalRev?`<tr><td class="l">金属回収益${applyMetal?'（→値引き）':'（別収益）'}</td><td>${yen(metalRev)}</td></tr>`:''}
+    <tr><td class="l">自社総原価</td><td>${yen(totalCost)}</td></tr>`;
+
+  window.__sim={type:'bassai',quote:finalQuote,profit,margin,count:cnt,height:hJP,stump:CHK('b_stump')};
+  return {quote:finalQuote,profit,margin};
+}
+
+function calcZanchi(){
+  const basePrice=ZANCHI_BASE[VAL('z_size')]||100000;
+  const volMult=ZANCHI_VOL_MULT[VAL('z_volume')]||1.0;
+  let baseCost=basePrice*volMult;
+  const floorAdj=NUM('z_floor')>1&&!CHK('z_elev')?(NUM('z_floor')-1)*0.15:0;
+  if(CHK('z_narrow')) baseCost*=1.15;
+  if(CHK('z_sort')) baseCost*=1.2;
+  baseCost*=(1+floorAdj);
+  const truckDisposal=NUM('z_trucks')*NUM('z_disposal_cost');
+  const labor=NUM('z_mandays')*NUM('z_manday_cost');
+  const subtotal=baseCost+truckDisposal+labor;
+  const overhead=subtotal*NUM('z_overhead')/100;
+  const quote=subtotal+overhead;
+  const totalCost=subtotal*NUM('z_cost_rate')/100;
+  const profit=quote-totalCost;
+  const margin=quote>0?profit/quote*100:0;
+
+  const sizeJP={'1r':'1R〜1K','2dk':'2DK〜2LDK','3ldk':'3LDK〜4LDK',house:'一戸建て',warehouse:'倉庫'}[VAL('z_size')];
+  const bd=document.getElementById('breakdown');
+  bd.innerHTML=`
+    <tr><td class="l">基本料金（${sizeJP}×物量${ZANCHI_VOL_MULT[VAL('z_volume')]}倍）</td><td>${yen(baseCost)}</td></tr>
+    <tr><td class="l">処分費（${NUM('z_trucks')}台×${yen(NUM('z_disposal_cost'))}）</td><td>${yen(truckDisposal)}</td></tr>
+    <tr><td class="l">人件費（${NUM('z_mandays')}人工×${yen(NUM('z_manday_cost'))}）</td><td>${yen(labor)}</td></tr>
+    <tr><td class="l">諸経費（+${NUM('z_overhead')}%）</td><td>${yen(overhead)}</td></tr>
+    <tr><td class="l">自社総原価</td><td>${yen(totalCost)}</td></tr>`;
+
+  window.__sim={type:'zanchi',quote,profit,margin,size:sizeJP,trucks:NUM('z_trucks'),mandays:NUM('z_mandays')};
+  return {quote,profit,margin};
+}
+
+function calc(){
+  let r;
+  if(currentType==='kaitai') r=calcKaitai();
+  else if(currentType==='bassai') r=calcBassai();
+  else r=calcZanchi();
+
+  document.getElementById('r_quote').textContent=yen(r.quote);
+  const pe=document.getElementById('r_profit');pe.textContent=yen(r.profit);
+  pe.className='num big '+(r.profit>=0?'gn':'rd');
+  const me=document.getElementById('r_margin');me.textContent=r.margin.toFixed(1)+'%';
+  me.className='num big '+(r.margin>=20?'gn':r.margin>=10?'yl':'rd');
+  saveState();
+}
+
+function structJP(s){return{wood:'木造',steel:'鉄骨造',rc:'RC造'}[s];}
+function genQuote(){
+  if(!window.__sim)calc();
+  const x=window.__sim;
+  let t='';
+  if(x.type==='kaitai'){
+    t=`【解体工事 概算御見積】株式会社S.K.R\n\n`+
+    `■物件：${structJP(x.struct)} 延床 約${x.tsubo}坪\n`+
+    `■概算金額（税抜）：${yen(x.quote)}\n`+
+    (x.applyMetal?`　└ 解体で発生する金属(鉄・銅等)を当社で買取り、${yen(x.metalRev)}分を解体費に充当した実質額です。\n`:`　└ 別途、当社の金属買取で解体費の圧縮もご提案可能です。\n`)+
+    `\n■当社の強み：解体〜金属買取まで自社ワンストップ。中間マージン無しでコストを抑えます。\n`+
+    `■本見積は概算です。現地調査のうえ正式見積を無料でお出しします。\n\n`+
+    `株式会社S.K.R／TEL 000-0000-0000\n`+
+    `※消費税別。残置物・アスベスト等の有無で変動します。`;
+  } else if(x.type==='bassai'){
+    t=`【伐採工事 概算御見積】株式会社S.K.R\n\n`+
+    `■内容：${x.height} ${x.count}本${x.stump?' ＋抜根':''}\n`+
+    `■概算金額（税抜）：${yen(x.quote)}\n\n`+
+    `■当社の強み：伐採〜搬出〜金属買取まで自社対応。チェーンソー・重機完備。\n`+
+    `■本見積は概算です。現地調査のうえ正式見積を無料でお出しします。\n\n`+
+    `株式会社S.K.R／TEL 000-0000-0000\n`+
+    `※消費税別。樹種・立地条件で変動します。`;
+  } else {
+    t=`【残置物片付け 概算御見積】株式会社S.K.R\n\n`+
+    `■内容：${x.size}（${x.trucks}台・${x.mandays}人工）\n`+
+    `■概算金額（税抜）：${yen(x.quote)}\n\n`+
+    `■当社の強み：片付け〜不用品買取〜解体まで自社ワンストップ。まとめてお得です。\n`+
+    `■本見積は概算です。現地確認のうえ正式見積を無料でお出しします。\n\n`+
+    `株式会社S.K.R／TEL 000-0000-0000\n`+
+    `※消費税別。物量・搬出条件で変動します。`;
+  }
+  document.getElementById('quoteText').value=t;
+}
+
+function copyQuote(){
+  if(!document.getElementById('quoteText').value)genQuote();
+  const t=document.getElementById('quoteText').value;
+  navigator.clipboard.writeText(t).then(()=>toast()).catch(()=>{
+    const a=document.getElementById('quoteText');a.select();document.execCommand('copy');toast();
+  });
+}
+function toast(){const t=document.getElementById('toast');t.classList.add('on');setTimeout(()=>t.classList.remove('on'),1300);}
+
+function resetAll(){
+  if(!confirm('初期値に戻します。よろしいですか？'))return;
+  localStorage.removeItem(LS);localStorage.removeItem(LS+'.metals');localStorage.removeItem(LS+'.type');location.reload();
+}
+
+// init
+restore();
+metals=loadMetals();
+suggestFe();
+renderMetals();
+document.querySelectorAll('input,select').forEach(el=>el.addEventListener('input',calc));
+document.getElementById('struct').addEventListener('change',()=>{
+  const fe=metals.find(m=>m.nm.indexOf('鉄')===0);
+  fe.kg=Math.round(FE_PER_TSUBO[VAL('struct')]*NUM('tsubo')); renderMetals(); calc();
+});
+calc();
+</script>
+</body>
+</html>

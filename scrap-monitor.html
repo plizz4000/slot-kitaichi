@@ -1,0 +1,1590 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCRAP COMMAND CENTER // 統合監視システム</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Bebas+Neue&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #07090b;
+    color: #d6dde5;
+    font-family: 'JetBrains Mono', 'Noto Sans JP', monospace;
+    font-size: 12px;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection { background: #ffb020; color: #000; }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(0deg,
+      rgba(255,255,255,0.012) 0px, rgba(255,255,255,0.012) 1px,
+      transparent 1px, transparent 3px);
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .panel {
+    background: #0d1116;
+    border: 1px solid #1f2933;
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel::before {
+    content: ''; position: absolute; top: -1px; left: -1px;
+    width: 10px; height: 10px;
+    border-top: 1px solid #ffb020; border-left: 1px solid #ffb020;
+    z-index: 5; pointer-events: none;
+  }
+  .panel::after {
+    content: ''; position: absolute; bottom: -1px; right: -1px;
+    width: 10px; height: 10px;
+    border-bottom: 1px solid #ffb020; border-right: 1px solid #ffb020;
+    z-index: 5; pointer-events: none;
+  }
+  .panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 10px;
+    background: #131820;
+    border-bottom: 1px solid #1f2933;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: #ffb020;
+    flex-shrink: 0;
+  }
+  .panel-header .id { color: #6b7886; font-weight: 400; }
+  .panel-body { flex: 1; overflow: auto; min-height: 0; scrollbar-width: thin; scrollbar-color: #2d3a48 #131820; }
+
+  /* ============ DESKTOP LAYOUT ============ */
+  .stage {
+    display: grid;
+    grid-template-columns: 280px 1fr 1fr 320px;
+    grid-template-rows: 38px 1fr 38px;
+    gap: 6px;
+    padding: 6px;
+    height: 100vh;
+    width: 100vw;
+  }
+  .topbar { grid-column: 1 / -1; grid-row: 1; }
+  .col-news { grid-column: 1; grid-row: 2; }
+  .col-map { display: none; }
+  .col-cams { grid-column: 2; grid-row: 2; }
+  .col-prices { grid-column: 3; grid-row: 2; }
+  .col-side { grid-column: 4; grid-row: 2; display: grid; grid-template-rows: 0.5fr 1fr 0.6fr; gap: 6px; }
+  .col-side > .panel { display: flex; flex-direction: column; }
+  .ticker { grid-column: 1 / -1; grid-row: 3; }
+
+  /* Tab switch: expand cameras full width */
+  .stage.tab-cams .col-cams { grid-column: 2 / 4; }
+  .stage.tab-cams .col-prices { display: none; }
+  /* Tab switch: expand prices full width */
+  .stage.tab-prices .col-prices { grid-column: 2 / 4; }
+  .stage.tab-prices .col-cams { display: none; }
+
+  .panel-tabs { display: flex; gap: 2px; margin-left: 8px; }
+  .panel-tab {
+    font-family: inherit; font-size: 9px; font-weight: 700;
+    letter-spacing: 0.1em; padding: 2px 8px;
+    border: 1px solid #1f2933; background: #0a0e14;
+    color: #6b7886; cursor: pointer; text-transform: uppercase;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .panel-tab:hover { color: #d6dde5; border-color: #6b7886; }
+  .panel-tab.active { background: #ffb020; color: #000; border-color: #ffb020; }
+
+  /* Maximize button per panel */
+  .panel-max {
+    font-family: inherit; font-size: 14px; line-height: 1;
+    width: 22px; height: 22px; padding: 0;
+    border: 1px solid #1f2933; background: #0a0e14;
+    color: #6b7886; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    margin-left: 6px; flex-shrink: 0;
+    transition: color 0.12s, border-color 0.12s, background 0.12s;
+  }
+  .panel-max:hover { color: #ffb020; border-color: #ffb020; background: #131820; }
+  /* Maximized panel: float above everything */
+  .panel.maximized {
+    position: fixed !important; z-index: 500;
+    top: 6px; left: 6px; right: 6px; bottom: 44px;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .panel.maximized .panel-max { color: #ffb020; border-color: #ffb020; background: #1f2933; }
+  /* Backdrop */
+  .max-backdrop {
+    position: fixed; inset: 0; z-index: 499;
+    background: rgba(0,0,0,0.6);
+    display: none;
+  }
+  .max-backdrop.on { display: block; }
+
+  /* Smooth column transitions */
+  .col-cams, .col-prices {
+    transition: grid-column 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  }
+  .stage.tab-prices .col-cams,
+  .stage.tab-cams .col-prices {
+    opacity: 0; pointer-events: none;
+  }
+  .stage.tab-cams .col-cams,
+  .stage.tab-prices .col-prices {
+    opacity: 1;
+  }
+  /* Keep cam-grid and price rows visible during transition */
+  .col-cams, .col-prices { will-change: grid-column, opacity; }
+
+  /* ============ MOBILE LAYOUT ============ */
+  @media (max-width: 900px) {
+    html, body { height: auto; overflow-x: hidden; overflow-y: auto; font-size: 15px; }
+    .stage {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto;
+      height: auto;
+      min-height: 100vh;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    /* === Topbar (mobile) === */
+    .topbar {
+      grid-column: 1; grid-row: auto;
+      flex-wrap: wrap; padding: 12px;
+      gap: 14px; min-height: auto;
+    }
+    .brand-logo { width: 32px; height: 32px; }
+    .brand-title { font-size: 24px; }
+    .brand-sub { font-size: 11px; }
+    .topbar-stat { min-width: 0; padding-left: 10px; flex: 1 0 28%; border-left: 1px solid #1f2933; }
+    .topbar-stat-label { font-size: 10px; }
+    .topbar-stat-value { font-size: 16px; }
+
+    /* === Panels (mobile) === */
+    .panel-header { padding: 10px 14px; font-size: 13px; }
+    .col-news, .col-cams, .col-prices, .col-side, .ticker {
+      grid-column: 1; grid-row: auto;
+    }
+    .col-news { height: 480px; }
+    .col-cams { height: 380px; }
+    .col-prices { height: 520px; }
+    .col-side { display: flex; flex-direction: column; gap: 10px; }
+    .col-side > .panel { min-height: 240px; }
+    .col-side > .panel:nth-child(2) { min-height: 140px; }
+    .panel-tab { font-size: 12px; padding: 6px 10px; min-height: 32px; }
+    .stage.tab-cams .col-cams { height: auto; min-height: 60vh; }
+    .stage.tab-prices .col-prices { height: auto; min-height: 60vh; }
+
+    /* === Chips / filters === */
+    .chip-row { padding: 10px 10px; gap: 8px; }
+    .chip {
+      padding: 8px 14px;
+      font-size: 12px;
+      min-height: 36px;
+      display: inline-flex; align-items: center;
+    }
+
+    /* === News items === */
+    .news-item { padding: 14px 14px; }
+    .news-meta { font-size: 11px; margin-bottom: 6px; }
+    .news-tag { font-size: 10px; padding: 2px 7px; }
+    .news-title { font-size: 15px; line-height: 1.55; }
+
+    /* === Camera tiles === */
+    .cam-grid {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap: 6px; padding: 6px;
+    }
+    .cam-label { font-size: 11px; padding: 3px 7px; }
+    .cam-rec { font-size: 11px; padding: 3px 7px; }
+    .cam-stats { font-size: 10px; padding: 4px 6px; }
+
+    /* === Price rows === */
+    .price-row {
+      grid-template-columns: 96px 1fr 92px 62px;
+      padding: 12px 14px; gap: 12px;
+    }
+    .price-symbol { font-size: 14px; }
+    .price-row div div[style*="font-size:8px"] { font-size: 11px !important; }
+    .price-spark { height: 32px; }
+    .price-value { font-size: 16px; }
+    .price-change { font-size: 13px; padding: 3px 6px; }
+
+    /* === Vehicle rows === */
+    .vehicle-row {
+      grid-template-columns: 18px 1fr 76px;
+      padding: 12px 12px; gap: 10px; font-size: 13px;
+    }
+    .v-status { width: 12px; height: 12px; }
+    .v-id { font-size: 14px; }
+    .v-loc { font-size: 12px; margin-top: 2px; }
+    .v-load { font-size: 14px; }
+
+    /* === Alert items === */
+    .alert-item { padding: 12px 14px; border-left-width: 4px; }
+    .alert-time { font-size: 11px; }
+    .alert-msg { font-size: 14px; margin-top: 4px; line-height: 1.45; }
+
+    /* === Map markers (mobile) === */
+    .veh-marker { width: 16px; height: 16px; }
+    .veh-label { font-size: 11px; top: 22px; padding: 2px 6px; }
+    .yard-marker { width: 22px; height: 22px; }
+    .yard-label { font-size: 12px; top: 28px; padding: 2px 6px; }
+
+    /* === Ticker (mobile) === */
+    .ticker { height: 48px; }
+    .ticker-label { padding: 0 14px; font-size: 13px; }
+    .ticker-item { padding: 0 22px; font-size: 14px; }
+    .ticker-item.up::before, .ticker-item.down::before { font-size: 11px; }
+
+    /* === Map fallback (mobile) === */
+    .map-fallback { font-size: 14px; padding: 30px 20px; }
+    .map-fallback .icon { font-size: 36px; }
+  }
+
+  /* Tighter for very small phones */
+  @media (max-width: 380px) {
+    .topbar-stat { flex: 1 0 44%; }
+    .price-row { grid-template-columns: 80px 1fr 80px 58px; padding: 10px 10px; gap: 8px; }
+    .price-symbol { font-size: 13px; }
+    .price-value { font-size: 14px; }
+  }
+
+  /* ============ THEME SWITCHER UI (fixed floating) ============ */
+  .theme-switcher {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 10000;
+    display: flex; align-items: center;
+  }
+  .theme-btn {
+    background: #131820;
+    color: #ffb020;
+    border: 1px solid #ffb020;
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.3);
+    min-height: 38px;
+  }
+  .theme-btn:hover { background: #1f2933; }
+  .theme-btn .swatch {
+    width: 14px; height: 14px;
+    border: 1px solid rgba(255,255,255,0.3);
+    background: linear-gradient(135deg, var(--sw1, #ffb020) 50%, var(--sw2, #00d4ff) 50%);
+    flex-shrink: 0;
+  }
+  .theme-menu {
+    position: absolute;
+    top: calc(100% + 6px); right: 0;
+    background: #0d1116;
+    border: 1px solid #ffb020;
+    z-index: 10001;
+    min-width: 240px;
+    display: none;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  }
+  .theme-menu.open { display: block; }
+  .theme-menu::before {
+    content: '';
+    position: absolute; top: -1px; left: -1px;
+    width: 10px; height: 10px;
+    border-top: 1px solid #ffb020; border-left: 1px solid #ffb020;
+  }
+  .theme-option {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid #1f2933;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
+  .theme-option:last-child { border-bottom: none; }
+  .theme-option:hover { background: #131820; }
+  .theme-option.selected { background: #1f2933; color: #ffb020; }
+  .theme-option .opt-swatch {
+    width: 22px; height: 22px;
+    border: 1px solid rgba(255,255,255,0.2);
+    flex-shrink: 0;
+  }
+  .theme-option .opt-name { font-weight: 700; font-size: 13px; }
+  .theme-option .opt-desc { color: #6b7886; font-size: 10px; margin-top: 3px; letter-spacing: 0.08em; line-height: 1.35; }
+
+  @media (max-width: 900px) {
+    .theme-switcher { top: 10px; right: 10px; }
+    .theme-btn { padding: 10px 14px; font-size: 12px; min-height: 44px; }
+    .theme-menu { min-width: 260px; max-width: calc(100vw - 20px); }
+    .theme-option { padding: 14px 14px; font-size: 13px; }
+    .theme-option .opt-name { font-size: 14px; }
+    .theme-option .opt-desc { font-size: 11px; }
+  }
+
+  /* ============ THEME: CYBER (default fallback covered) ============ */
+  body[data-theme="cyber"] {
+    background: #050810;
+    color: #c8e6ff;
+  }
+  body[data-theme="cyber"] .panel { background: #0a1220; border-color: #1a2a44; }
+  body[data-theme="cyber"] .panel::before { border-top-color: #00d4ff; border-left-color: #00d4ff; }
+  body[data-theme="cyber"] .panel::after { border-bottom-color: #00d4ff; border-right-color: #00d4ff; }
+  body[data-theme="cyber"] .panel-header { background: #0e1830; border-bottom-color: #1a2a44; color: #00d4ff; }
+  body[data-theme="cyber"] .topbar { background: #0a1220; border-color: #1a2a44; }
+  body[data-theme="cyber"] .brand,
+  body[data-theme="cyber"] .topbar-stat-value.amber { color: #00d4ff; }
+  body[data-theme="cyber"] .brand-logo { background: #00d4ff; }
+  body[data-theme="cyber"] .topbar-stat { border-left-color: #1a2a44; }
+  body[data-theme="cyber"] .chip-row { background: #0e1830; border-bottom-color: #1a2a44; }
+  body[data-theme="cyber"] .chip { border-color: #1a4060; color: #6090b0; }
+  body[data-theme="cyber"] .chip.active { background: #00d4ff; color: #000; border-color: #00d4ff; }
+  body[data-theme="cyber"] .chip.active:hover { background: #00d4ff; color: #000; }
+  body[data-theme="cyber"] .price-symbol,
+  body[data-theme="cyber"] .panel-header,
+  body[data-theme="cyber"] .cam-label,
+  body[data-theme="cyber"] .ticker-label { color: #00d4ff; }
+  body[data-theme="cyber"] .ticker-label { background: #00d4ff; }
+  body[data-theme="cyber"] .ticker { background: #0a1220; border-color: #1a2a44; }
+  body[data-theme="cyber"] .news-item,
+  body[data-theme="cyber"] .vehicle-row,
+  body[data-theme="cyber"] .price-row,
+  body[data-theme="cyber"] .alert-item { border-bottom-color: #1a2a44; }
+  body[data-theme="cyber"] .theme-btn { color: #00d4ff; border-color: #1a4060; background: #0e1830; }
+  body[data-theme="cyber"] .panel::before,
+  body[data-theme="cyber"] .panel::after { /* keep cyan */ }
+
+  /* ============ THEME: MILITARY ============ */
+  body[data-theme="military"] {
+    background: #0a0d08;
+    color: #d4d1bd;
+  }
+  body[data-theme="military"] .panel { background: #14180e; border-color: #2a3018; }
+  body[data-theme="military"] .panel::before { border-top-color: #b8a55a; border-left-color: #b8a55a; }
+  body[data-theme="military"] .panel::after { border-bottom-color: #b8a55a; border-right-color: #b8a55a; }
+  body[data-theme="military"] .panel-header { background: #1a2010; border-bottom-color: #2a3018; color: #b8a55a; }
+  body[data-theme="military"] .topbar { background: #14180e; border-color: #2a3018; }
+  body[data-theme="military"] .brand,
+  body[data-theme="military"] .topbar-stat-value.amber,
+  body[data-theme="military"] .price-symbol,
+  body[data-theme="military"] .cam-label { color: #b8a55a; }
+  body[data-theme="military"] .brand-logo { background: #b8a55a; }
+  body[data-theme="military"] .topbar-stat { border-left-color: #2a3018; }
+  body[data-theme="military"] .chip-row { background: #1a2010; border-bottom-color: #2a3018; }
+  body[data-theme="military"] .chip { border-color: #3a4520; color: #807550; }
+  body[data-theme="military"] .chip.active { background: #b8a55a; color: #000; border-color: #b8a55a; }
+  body[data-theme="military"] .chip.active:hover { background: #b8a55a; color: #000; }
+  body[data-theme="military"] .ticker-label { background: #b8a55a; }
+  body[data-theme="military"] .ticker { background: #14180e; border-color: #2a3018; }
+  body[data-theme="military"] .news-item,
+  body[data-theme="military"] .vehicle-row,
+  body[data-theme="military"] .price-row,
+  body[data-theme="military"] .alert-item { border-bottom-color: #2a3018; }
+  body[data-theme="military"] .news-source { color: #8aa05a; }
+  body[data-theme="military"] .theme-btn { color: #b8a55a; border-color: #3a4520; background: #1a2010; }
+
+  /* ============ THEME: MATRIX ============ */
+  body[data-theme="matrix"] {
+    background: #000a00;
+    color: #b8ffb8;
+  }
+  body[data-theme="matrix"] .panel { background: #001a05; border-color: #103a18; }
+  body[data-theme="matrix"] .panel::before { border-top-color: #00ff66; border-left-color: #00ff66; }
+  body[data-theme="matrix"] .panel::after { border-bottom-color: #00ff66; border-right-color: #00ff66; }
+  body[data-theme="matrix"] .panel-header { background: #002a0e; border-bottom-color: #103a18; color: #00ff66; }
+  body[data-theme="matrix"] .topbar { background: #001a05; border-color: #103a18; }
+  body[data-theme="matrix"] .brand,
+  body[data-theme="matrix"] .topbar-stat-value.amber,
+  body[data-theme="matrix"] .price-symbol,
+  body[data-theme="matrix"] .cam-label,
+  body[data-theme="matrix"] .news-source { color: #00ff66; }
+  body[data-theme="matrix"] .brand-logo { background: #00ff66; }
+  body[data-theme="matrix"] .topbar-stat { border-left-color: #103a18; }
+  body[data-theme="matrix"] .chip-row { background: #002a0e; border-bottom-color: #103a18; }
+  body[data-theme="matrix"] .chip { border-color: #1a5025; color: #4a8a55; }
+  body[data-theme="matrix"] .chip.active { background: #00ff66; color: #000; border-color: #00ff66; }
+  body[data-theme="matrix"] .chip.active:hover { background: #00ff66; color: #000; }
+  body[data-theme="matrix"] .ticker-label { background: #00ff66; }
+  body[data-theme="matrix"] .ticker { background: #001a05; border-color: #103a18; }
+  body[data-theme="matrix"] .news-item,
+  body[data-theme="matrix"] .vehicle-row,
+  body[data-theme="matrix"] .price-row,
+  body[data-theme="matrix"] .alert-item { border-bottom-color: #103a18; }
+  body[data-theme="matrix"] .theme-btn { color: #00ff66; border-color: #1a5025; background: #002a0e; }
+
+  /* ============ THEME: DAYLIGHT (light mode) ============ */
+  body[data-theme="daylight"] {
+    background: #e8eaee;
+    color: #1c2230;
+  }
+  body[data-theme="daylight"]::before { display: none; }
+  body[data-theme="daylight"] .panel { background: #ffffff; border-color: #c8cdd6; }
+  body[data-theme="daylight"] .panel::before { border-top-color: #d97706; border-left-color: #d97706; }
+  body[data-theme="daylight"] .panel::after { border-bottom-color: #d97706; border-right-color: #d97706; }
+  body[data-theme="daylight"] .panel-header { background: #f3f5f8; border-bottom-color: #c8cdd6; color: #b45309; }
+  body[data-theme="daylight"] .panel-header .id { color: #6b7280; }
+  body[data-theme="daylight"] .topbar { background: #ffffff; border-color: #c8cdd6; }
+  body[data-theme="daylight"] .brand,
+  body[data-theme="daylight"] .topbar-stat-value.amber,
+  body[data-theme="daylight"] .price-symbol { color: #b45309; }
+  body[data-theme="daylight"] .brand-logo { background: #d97706; }
+  body[data-theme="daylight"] .brand-sub { color: #6b7280; }
+  body[data-theme="daylight"] .topbar-stat { border-left-color: #c8cdd6; }
+  body[data-theme="daylight"] .topbar-stat-label { color: #6b7280; }
+  body[data-theme="daylight"] .topbar-stat-value { color: #1c2230; }
+  body[data-theme="daylight"] .topbar-stat-value.up { color: #15803d; }
+  body[data-theme="daylight"] .topbar-stat-value.down { color: #b91c1c; }
+  body[data-theme="daylight"] .chip-row { background: #f3f5f8; border-bottom-color: #c8cdd6; }
+  body[data-theme="daylight"] .chip { border-color: #c8cdd6; color: #6b7280; }
+  body[data-theme="daylight"] .chip:hover { background: #e8eaee; color: #1c2230; border-color: #94a3b8; }
+  body[data-theme="daylight"] .chip.active { background: #d97706; color: #fff; border-color: #d97706; }
+  body[data-theme="daylight"] .chip.active:hover { background: #d97706; color: #fff; }
+  body[data-theme="daylight"] .news-item { border-bottom-color: #e5e7eb; }
+  body[data-theme="daylight"] .news-item:hover { background: #f3f5f8; }
+  body[data-theme="daylight"] .news-meta { color: #6b7280; }
+  body[data-theme="daylight"] .news-source { color: #0369a1; }
+  body[data-theme="daylight"] .news-title { color: #1c2230; }
+  body[data-theme="daylight"] .tag-CRIT { color: #b91c1c; }
+  body[data-theme="daylight"] .tag-MKT { color: #b45309; }
+  body[data-theme="daylight"] .tag-POL { color: #0369a1; }
+  body[data-theme="daylight"] .tag-OPS { color: #15803d; }
+  body[data-theme="daylight"] .tag-SNS { color: #be185d; }
+  body[data-theme="daylight"] .price-row,
+  body[data-theme="daylight"] .vehicle-row,
+  body[data-theme="daylight"] .alert-item { border-bottom-color: #e5e7eb; }
+  body[data-theme="daylight"] .price-row div[style*="color:#6b7886"] { color: #6b7280 !important; }
+  body[data-theme="daylight"] .price-value { color: #1c2230; }
+  body[data-theme="daylight"] .price-change.up { color: #15803d; background: rgba(21,128,61,0.1); }
+  body[data-theme="daylight"] .price-change.down { color: #b91c1c; background: rgba(185,28,28,0.1); }
+  body[data-theme="daylight"] .v-id { color: #1c2230; }
+  body[data-theme="daylight"] .v-loc { color: #6b7280; }
+  body[data-theme="daylight"] .alert-time { color: #6b7280; }
+  body[data-theme="daylight"] .alert-item { background: rgba(185,28,28,0.12); }
+  body[data-theme="daylight"] .alert-item.warn { background: rgba(217,119,6,0.15); }
+  body[data-theme="daylight"] .alert-item.info { background: rgba(3,105,161,0.1); }
+  body[data-theme="daylight"] .ticker { background: #ffffff; border-color: #c8cdd6; }
+  body[data-theme="daylight"] .ticker-label { background: #d97706; color: #fff; }
+  body[data-theme="daylight"] .ticker-item { border-right-color: #e5e7eb; }
+  body[data-theme="daylight"] .cam-label { color: #fbbf24; }
+  body[data-theme="daylight"] #map { background: #e8eaee; }
+  body[data-theme="daylight"] .leaflet-container { background: #e8eaee !important; }
+  body[data-theme="daylight"] .theme-btn { color: #b45309; border-color: #c8cdd6; background: #f3f5f8; }
+  body[data-theme="daylight"] .theme-btn:hover { background: #e8eaee; }
+  body[data-theme="daylight"] .theme-menu { background: #ffffff; border-color: #c8cdd6; }
+  body[data-theme="daylight"] .theme-option { border-bottom-color: #e5e7eb; }
+  body[data-theme="daylight"] .theme-option:hover { background: #f3f5f8; }
+  body[data-theme="daylight"] .theme-option.selected { background: #fef3c7; color: #b45309; }
+  body[data-theme="daylight"] .theme-option .opt-desc { color: #6b7280; }
+  body[data-theme="daylight"] ::-webkit-scrollbar-track { background: #f3f5f8; }
+  body[data-theme="daylight"] ::-webkit-scrollbar-thumb { background: #c8cdd6; }
+  body[data-theme="daylight"] .ticker { height: 38px; }
+  body[data-theme="daylight"] .panel-body { scrollbar-color: #c8cdd6 #f3f5f8; }
+
+  .topbar {
+    display: flex; align-items: center;
+    background: #0d1116; border: 1px solid #1f2933;
+    padding: 0 12px; gap: 10px;
+    flex-wrap: nowrap;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; color: #ffb020; flex-shrink: 0; }
+  .brand-logo {
+    width: 22px; height: 22px; background: #ffb020;
+    -webkit-clip-path: polygon(20% 0, 100% 0, 80% 100%, 0 100%);
+    clip-path: polygon(20% 0, 100% 0, 80% 100%, 0 100%);
+  }
+  .brand-title { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; line-height: 1; }
+  .brand-sub { font-size: 9px; color: #6b7886; letter-spacing: 0.2em; }
+  .topbar-company {
+    flex: 1; text-align: center;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 22px; font-weight: 700;
+    letter-spacing: 0.4em;
+    color: #ffb020;
+    background: rgba(255,176,32,0.08);
+    padding: 4px 16px;
+    text-shadow: 0 0 32px rgba(255,176,32,0.5), 0 0 64px rgba(255,176,32,0.2);
+    white-space: nowrap;
+    user-select: none;
+  }
+  @media (max-width: 900px) {
+    .topbar-company { flex: 1 0 100%; order: -1; font-size: 18px; letter-spacing: 0.15em; }
+  }
+
+  .topbar-stat {
+    display: flex; flex-direction: column;
+    border-left: 1px solid #1f2933;
+    padding-left: 12px;
+    min-width: 60px;
+  }
+  .topbar-stat-label { font-size: 7px; color: #6b7886; letter-spacing: 0.18em; white-space: nowrap; }
+  .topbar-stat-value { font-size: 11px; font-weight: 700; white-space: nowrap; }
+  .topbar-stat-value.up { color: #4ade80; }
+  .topbar-stat-value.down { color: #ff4d5e; }
+  .topbar-stat-value.amber { color: #ffb020; }
+
+  .live-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: #ff4d5e; box-shadow: 0 0 8px #ff4d5e;
+    animation: pulse 1.4s infinite;
+    display: inline-block; margin-right: 4px;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .news-item {
+    padding: 8px 10px;
+    border-bottom: 1px solid #1f2933;
+    cursor: pointer;
+  }
+  .news-item:hover { background: #131820; }
+  .news-meta { display: flex; justify-content: space-between; font-size: 9px; color: #6b7886; margin-bottom: 4px; letter-spacing: 0.08em; }
+  .news-source { color: #00d4ff; font-weight: 500; }
+  .news-title { font-size: 11px; line-height: 1.45; color: #d6dde5; }
+  .news-tag {
+    display: inline-block; padding: 1px 5px;
+    font-size: 8px; margin-right: 4px;
+    border: 1px solid currentColor; letter-spacing: 0.1em;
+  }
+  .tag-CRIT { color: #ff4d5e; }
+  .tag-MKT { color: #ffb020; }
+  .tag-POL { color: #00d4ff; }
+  .tag-OPS { color: #4ade80; }
+  .tag-SNS { color: #ff3da8; }
+
+  .chip-row {
+    display: flex; gap: 4px; padding: 6px 8px;
+    border-bottom: 1px solid #1f2933;
+    background: #131820;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+  .chip {
+    padding: 2px 6px; font-size: 9px;
+    border: 1px solid #2d3a48; color: #6b7886;
+    cursor: pointer; letter-spacing: 0.1em;
+    user-select: none;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .chip:hover { background: #1f2933; color: #d6dde5; border-color: #6b7886; }
+  .chip:active { transform: translateY(1px); }
+  .chip.active { background: #ffb020; color: #000; border-color: #ffb020; }
+  .chip.active:hover { background: #ffb020; color: #000; }
+  .chip:focus-visible, .theme-btn:focus-visible, .theme-option:focus-visible {
+    outline: 2px solid #ffb020;
+    outline-offset: 2px;
+  }
+
+  #map { height: 100%; width: 100%; background: #0a0e13; }
+  .leaflet-container { background: #0a0e13 !important; font-family: 'JetBrains Mono', monospace !important; }
+  .leaflet-control-zoom a {
+    background: #131820 !important;
+    color: #ffb020 !important;
+    border: 1px solid #2d3a48 !important;
+  }
+
+  .map-fallback {
+    height: 100%; width: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: #0a0e13;
+    color: #6b7886; font-size: 11px;
+    padding: 20px; text-align: center;
+    flex-direction: column; gap: 10px;
+  }
+  .map-fallback .icon { font-size: 24px; color: #ffb020; }
+
+  .veh-marker {
+    width: 12px; height: 12px;
+    border: 2px solid #000; border-radius: 50%;
+    box-sizing: content-box;
+  }
+  .veh-run { background: #ffb020; box-shadow: 0 0 0 1px #ffb020, 0 0 10px rgba(255,176,32,0.6); }
+  .veh-idle { background: #6b7886; box-shadow: 0 0 0 1px #6b7886; }
+  .veh-alert { background: #ff4d5e; box-shadow: 0 0 0 1px #ff4d5e, 0 0 10px #ff4d5e; animation: pulse 1s infinite; }
+  .veh-live { background: #ff3da8; box-shadow: 0 0 0 1px #ff3da8, 0 0 12px #ff3da8; }
+
+  .veh-label {
+    position: absolute; top: 16px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 8px; white-space: nowrap;
+    background: rgba(0,0,0,0.8); padding: 1px 4px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    color: #ffb020; pointer-events: none;
+  }
+  .veh-label.live-lbl { color: #ff3da8; }
+
+  .yard-marker {
+    width: 16px; height: 16px;
+    background: transparent;
+    border: 2px solid #00d4ff;
+    transform: rotate(45deg);
+    box-shadow: 0 0 8px #00d4ff;
+  }
+  .yard-label {
+    position: absolute; top: 22px; left: 50%;
+    transform: translateX(-50%);
+    color: #00d4ff; font-size: 9px; white-space: nowrap;
+    background: rgba(0,0,0,0.85); padding: 1px 4px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+    letter-spacing: 0.08em; pointer-events: none;
+  }
+
+  .cam-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 4px; padding: 4px;
+    height: 100%;
+  }
+  .cam-tile {
+    position: relative; background: #000;
+    border: 1px solid #1f2933; overflow: hidden;
+    min-height: 60px;
+  }
+  .cam-tile.live { border-color: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,0.3); }
+  .cam-tile.offline { border-color: #ff4d5e; }
+  .cam-feed {
+    width: 100%; height: 100%;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0, rgba(255,255,255,0.04) 1px, transparent 1px, transparent 2px),
+      linear-gradient(135deg, #0a1419 0%, #1a2530 100%);
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .cam-feed img, .cam-feed video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    position: absolute; inset: 0; z-index: 1;
+  }
+  .cam-feed .cam-placeholder {
+    color: #6b7886; font-size: 10px;
+    text-align: center; letter-spacing: 0.08em; z-index: 0;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .cam-feed .cam-placeholder .icon { font-size: 22px; }
+  .cam-noise {
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(circle at 30% 40%, rgba(255,176,32,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 70% 60%, rgba(0,212,255,0.1) 0%, transparent 50%);
+    animation: noise 8s infinite;
+    z-index: 0; pointer-events: none;
+  }
+  @keyframes noise { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.9; } }
+  .cam-label {
+    position: absolute; top: 4px; left: 4px;
+    font-size: 9px; color: #ffb020;
+    background: rgba(0,0,0,0.7); padding: 1px 5px;
+    letter-spacing: 0.1em; font-weight: 700; z-index: 2;
+  }
+  .cam-rec {
+    position: absolute; top: 4px; right: 4px;
+    display: flex; align-items: center; gap: 3px;
+    font-size: 9px; color: #ff4d5e;
+    background: rgba(0,0,0,0.7); padding: 1px 5px; z-index: 2;
+  }
+  .cam-rec.live { color: #4ade80; }
+  .cam-stats {
+    position: absolute; bottom: 4px; left: 4px; right: 4px;
+    font-size: 8px; color: #6b7886;
+    display: flex; justify-content: space-between;
+    background: rgba(0,0,0,0.6); padding: 2px 4px; z-index: 2;
+  }
+  .cam-silhouette {
+    position: absolute; inset: 20% 25%;
+    background: linear-gradient(180deg, transparent 40%, rgba(255,176,32,0.3) 70%, rgba(255,176,32,0.5) 100%);
+    clip-path: polygon(20% 100%, 30% 60%, 40% 50%, 60% 50%, 70% 60%, 80% 100%);
+    opacity: 0.7; z-index: 0; pointer-events: none;
+  }
+
+  .price-section-header {
+    padding: 2px 10px;
+    font-size: 8px; color: #6b7886;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    border-bottom: 1px solid #1f2933;
+    background: #0a0e14;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .price-section-header::before { content: ''; width: 6px; height: 1px; background: #ffb020; }
+  .price-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 80px 56px;
+    align-items: center;
+    padding: 5px 10px;
+    border-bottom: 1px solid #1f2933;
+    gap: 8px;
+  }
+  .price-row.heavy {
+    padding: 6px 10px;
+    background: rgba(255,176,32,0.03);
+  }
+  .price-row.heavy .price-symbol { font-size: 13px; }
+  .price-row.heavy .price-value { font-size: 14px; }
+  .price-symbol { font-weight: 700; font-size: 11px; color: #ffb020; letter-spacing: 0.08em; }
+  .price-spark { height: 22px; }
+  .price-row.heavy .price-spark { height: 28px; }
+  .price-value { font-size: 12px; font-weight: 700; text-align: right; }
+  .price-change { font-size: 10px; text-align: right; padding: 1px 4px; }
+  .price-row.heavy .price-change { font-size: 12px; font-weight: 700; }
+  .price-change.up { color: #4ade80; background: rgba(74,222,128,0.1); }
+  .price-change.down { color: #ff4d5e; background: rgba(255,77,94,0.1); }
+  .price-row.precious { opacity: 0.65; padding: 3px 10px; }
+  .price-row.precious .price-symbol { font-size: 10px; color: #8a8a7a; }
+  .price-row.precious .price-value { font-size: 10px; }
+
+  .vehicle-row {
+    display: grid;
+    grid-template-columns: 16px 1fr 60px;
+    align-items: center;
+    padding: 5px 8px;
+    border-bottom: 1px solid #1f2933;
+    gap: 6px; font-size: 10px;
+  }
+  .v-status { width: 8px; height: 8px; border-radius: 50%; }
+  .v-status.run { background: #4ade80; box-shadow: 0 0 6px #4ade80; }
+  .v-status.idle { background: #ffb020; }
+  .v-status.off { background: #6b7886; }
+  .v-status.alert { background: #ff4d5e; animation: pulse 1s infinite; }
+  .v-id { color: #d6dde5; font-weight: 600; }
+  .v-loc { color: #6b7886; font-size: 9px; }
+  .v-load { text-align: right; font-weight: 700; }
+
+  .alert-item {
+    padding: 12px 10px;
+    border-bottom: 1px solid #1f2933;
+    border-left: 4px solid #ff4d5e;
+    background: rgba(255,77,94,0.12);
+    position: relative;
+    animation: crit-pulse 2s ease-in-out infinite;
+  }
+  .alert-item.warn {
+    border-left-color: #ffb020;
+    background: rgba(255,176,32,0.12);
+    animation: none;
+  }
+  .alert-item.info {
+    border-left-color: #00d4ff;
+    background: rgba(0,212,255,0.08);
+    animation: none;
+  }
+  .alert-time { font-size: 10px; color: #6b7886; }
+  .alert-msg { font-size: 13px; margin-top: 2px; line-height: 1.4; }
+  .alert-badge {
+    display: inline-block;
+    padding: 1px 6px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    border-radius: 2px;
+    margin-left: 4px;
+  }
+  .alert-item .alert-badge { background: #ff4d5e; color: #fff; }
+  .alert-item.warn .alert-badge { background: #ffb020; color: #000; }
+  .alert-item.info .alert-badge { background: #00d4ff; color: #000; }
+  .crit-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #ff4d5e;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #ff4d5e;
+    animation: crit-dot 1.4s ease-in-out infinite;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+  @keyframes crit-pulse {
+    0%, 100% { box-shadow: inset 0 0 0 rgba(255,77,94,0); }
+    50% { box-shadow: inset 0 0 16px rgba(255,77,94,0.25); }
+  }
+  @keyframes crit-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.3; transform: scale(0.6); }
+  }
+
+  .ticker {
+    background: #0d1116; border: 1px solid #1f2933;
+    height: 38px;
+    display: flex; align-items: center;
+    overflow: hidden; position: relative;
+  }
+  .ticker-label {
+    background: #ffb020; color: #000;
+    padding: 0 12px; height: 100%;
+    display: flex; align-items: center;
+    font-weight: 700; font-size: 11px;
+    letter-spacing: 0.15em; flex-shrink: 0;
+  }
+  .ticker-wrap { flex: 1; overflow: hidden; position: relative; height: 100%; }
+  .ticker-content {
+    display: flex; align-items: center; height: 100%;
+    animation: ticker 80s linear infinite;
+    white-space: nowrap; width: max-content;
+  }
+  .ticker-item {
+    padding: 0 24px; font-size: 11px;
+    display: flex; align-items: center; gap: 8px;
+    border-right: 1px solid #1f2933; height: 100%;
+  }
+  .ticker-item.up::before { content: '▲'; color: #4ade80; font-size: 9px; }
+  .ticker-item.down::before { content: '▼'; color: #ff4d5e; font-size: 9px; }
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #131820; }
+  ::-webkit-scrollbar-thumb { background: #2d3a48; }
+
+  .chart-wrap { padding: 16px 14px; height: 100%; position: relative; flex: 1; min-height: 0; overflow: hidden; }
+  .chart-wrap canvas { max-height: 100%; display: block; }
+
+  @media print {
+    .theme-switcher,
+    body::before { display: none !important; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .live-dot,
+    .veh-alert,
+    .v-status.alert,
+    .alert-item,
+    .crit-dot,
+    .cam-noise,
+    .ticker-content { animation: none !important; }
+    .chip { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo"></div>
+      <div>
+        <div class="brand-title">SCRAP COMMAND</div>
+        <div class="brand-sub">OPS · HQ · v4.21</div>
+      </div>
+    </div>
+    <div class="topbar-company">株式会社SKR</div>
+    <div class="topbar-stat">
+      <div class="topbar-stat-label">SYS TIME</div>
+      <div class="topbar-stat-value" id="sysTime">--:--:--</div>
+    </div>
+    <div class="topbar-stat">
+      <div class="topbar-stat-label">FEEDS</div>
+      <div class="topbar-stat-value amber"><span class="live-dot"></span>147 / 152</div>
+    </div>
+    <div class="topbar-stat">
+      <div class="topbar-stat-label">CAMERAS</div>
+      <div class="topbar-stat-value up">24 ONLINE</div>
+    </div>
+    <div class="topbar-stat">
+      <div class="topbar-stat-label">FLEET</div>
+      <div class="topbar-stat-value down">GPS OFFLINE</div>
+    </div>
+    <div class="topbar-stat">
+      <div class="topbar-stat-label">ALERTS</div>
+      <div class="topbar-stat-value amber">NO ACTIVE</div>
+    </div>
+  </header>
+
+  <section class="panel col-news">
+    <div class="panel-header">
+      <span>● 情報ストリーム</span>
+      <span><button class="panel-max" title="最大化">⛶</button><span class="id">INTEL.FEED.001</span></span>
+    </div>
+    <div class="chip-row" id="newsFilters">
+      <div class="chip active" data-filter="ALL">ALL</div>
+      <div class="chip" data-filter="TV">TV</div>
+      <div class="chip" data-filter="RSS">RSS</div>
+      <div class="chip" data-filter="SNS">X/SNS</div>
+      <div class="chip" data-filter="REUTERS">REUTERS</div>
+      <div class="chip" data-filter="NIKKEI">日経</div>
+      <div class="chip" data-filter="LME">LME</div>
+    </div>
+    <div class="panel-body" id="newsList"></div>
+  </section>
+
+  <section class="panel col-map">
+    <div class="panel-header">
+      <span>● 車両・拠点 GPS トラッキング</span>
+      <span><button class="panel-max" title="最大化">⛶</button><span class="id">FLEET.GEO.MAP</span></span>
+    </div>
+    <div class="panel-body" style="overflow:hidden">
+      <div id="map"></div>
+    </div>
+  </section>
+
+  <section class="panel col-cams">
+    <div class="panel-header">
+      <span>● 現場カメラ // ライブモニター</span>
+      <span style="display:flex;align-items:center;gap:6px">
+        <span class="panel-tabs" id="viewTabs">
+          <button class="panel-tab active" data-view="split" title="分割表示">◫</button>
+          <button class="panel-tab" data-view="cams" title="カメラ全画面">📷</button>
+          <button class="panel-tab" data-view="prices" title="価格全画面">📊</button>
+        </span>
+        <button class="panel-max" title="最大化">⛶</button>
+
+        <span class="id">CAM.MUX.01-06</span>
+      </span>
+    </div>
+    <div class="panel-body" id="camGrid" style="overflow:hidden"></div>
+  </section>
+
+  <section class="panel col-prices">
+    <div class="panel-header">
+      <span>● 貴金属・非鉄スクラップ価格</span>
+      <button class="panel-max" title="最大化">⛶</button>
+
+      <span class="id">PRICE.LME.SHFE</span>
+    </div>
+    <div class="panel-body" id="priceList"></div>
+  </section>
+
+  <aside class="col-side">
+    <section class="panel">
+      <div class="panel-header">
+        <span>● 車両ステータス</span>
+        <span><button class="panel-max" title="最大化">⛶</button>
+        <span class="id">FLEET.LIST</span></span>
+      </div>
+      <div class="panel-body" id="vehicleList"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-header">
+        <span>● システムアラート</span>
+        <span><button class="panel-max" title="最大化">⛶</button>
+        <span class="id">ALERT.QUEUE</span></span>
+      </div>
+      <div class="panel-body" id="alertList"></div>
+    </section>
+    <section class="panel">
+      <div class="panel-header">
+        <span>● 価格推移 // 24H</span>
+        <span><button class="panel-max" title="最大化">⛶</button>
+        <span class="id">CHART.LIVE</span></span>
+      </div>
+      <div class="chart-wrap"><canvas id="bigChart"></canvas></div>
+    </section>
+  </aside>
+
+  <footer class="ticker">
+    <div class="ticker-label">LIVE TICKER</div>
+    <div class="ticker-wrap">
+      <div class="ticker-content" id="tickerContent"></div>
+    </div>
+  </footer>
+
+</div>
+
+<!-- Floating theme switcher (always on top, fixed position) -->
+<div class="theme-switcher">
+  <button class="theme-btn" id="themeBtn" type="button" aria-label="Theme selector" aria-haspopup="menu">
+    <span class="swatch" id="themeSwatch"></span>
+    <span id="themeLabel">AMBER</span>
+    <span style="font-size:9px;opacity:0.7">▼</span>
+  </button>
+  <div class="theme-menu" id="themeMenu" role="menu"></div>
+</div>
+
+<!-- Libraries: synchronous load to guarantee global availability -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" crossorigin=""></script>
+
+<script>
+(function(){
+  'use strict';
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  function safe(name, fn) {
+    try { fn(); } catch(e) { console.error('['+name+'] failed:', e); }
+  }
+
+  /* ============ VIEW TAB SWITCHER + PANEL MAXIMIZE ============ */
+  var backdrop = null;
+  function ensureBackdrop() {
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.className = 'max-backdrop';
+      document.body.appendChild(backdrop);
+    }
+    return backdrop;
+  }
+  var maximizedPanel = null;
+  function restorePanel() {
+    if (maximizedPanel) {
+      maximizedPanel.classList.remove('maximized');
+      maximizedPanel = null;
+    }
+    if (backdrop) backdrop.classList.remove('on');
+  }
+
+  safe('tabs', function(){
+    var stage = document.querySelector('.stage');
+    var tabs = document.getElementById('viewTabs');
+    if (stage && tabs) {
+      tabs.addEventListener('click', function(e){
+        var btn = e.target.closest('.panel-tab');
+        if (!btn) return;
+        var view = btn.getAttribute('data-view');
+        stage.classList.remove('tab-cams', 'tab-prices');
+        if (view === 'cams') stage.classList.add('tab-cams');
+        if (view === 'prices') stage.classList.add('tab-prices');
+        var allBtns = tabs.querySelectorAll('.panel-tab');
+        for (var i=0; i<allBtns.length; i++) allBtns[i].classList.remove('active');
+        btn.classList.add('active');
+      });
+    }
+
+    // Panel maximize/restore via delegation
+    document.querySelector('.stage').addEventListener('click', function(e){
+      var btn = e.target.closest('.panel-max');
+      if (!btn) return;
+      var panel = btn.closest('.panel');
+      if (!panel) return;
+      // If clicking the already-maximized panel's button, restore
+      if (panel === maximizedPanel) {
+        restorePanel();
+        return;
+      }
+      // Restore previous, then maximize this one
+      restorePanel();
+      panel.classList.add('maximized');
+      maximizedPanel = panel;
+      ensureBackdrop().classList.add('on');
+      // Re-trigger chart resize if the maximized panel contains a chart
+      var chartWrap = panel.querySelector('.chart-wrap');
+      if (chartWrap) {
+        setTimeout(function(){
+          var c = Chart.getChart && Chart.getChart('bigChart');
+          if (c) c.resize();
+        }, 350);
+      }
+    });
+
+    // Click backdrop to restore
+    document.addEventListener('click', function(e){
+      if (e.target === backdrop) restorePanel();
+    });
+    // Escape key to restore
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && maximizedPanel) restorePanel();
+    });
+  });
+
+  /* ============ TIME ============ */
+  safe('time', function(){
+    function tick() {
+      var d = new Date();
+      function pad(n){ return (n<10?'0':'')+n; }
+      var el = document.getElementById('sysTime');
+      if (el) el.textContent = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+' JST';
+    }
+    setInterval(tick, 1000); tick();
+  });
+
+  /* ============ NEWS ============ */
+  // ★ 情報ソース: 実際のRSS/APIを使用する場合は各URLを設定
+  //    手動更新の場合は newsData を直接編集してください
+  var NEWS_SOURCE_URL = ''; // 例: 'https://your-api.com/scrap-news.json'
+  var newsData = [
+    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'09:42', title:'一銅 ¥---/kg 続伸 — 中国向け輸出需要が下支え、首都圏買取競合激化', loc:'KANTO' },
+    { tag:'CRIT', src:'REUTERS',      cat:['RSS','REUTERS'], time:'09:38', title:'中国、銅スクラップ輸入規制を一部緩和へ — 来月から段階適用、日本産需要増の見通し', loc:'BEIJING' },
+    { tag:'MKT',  src:'LME LIVE',     cat:['RSS','LME'],     time:'09:35', title:'LME銅 3M $---/t — 在庫減少で前日比 ---%、テクニカルサポート接近', loc:'LONDON' },
+    { tag:'SNS',  src:'X / 業界',     cat:['SNS'],           time:'09:31', title:'関東圏ミックスメタル相場、今週2回目の買取単価改定 — 二号銅・真鍮に上昇圧力', loc:'KANTO' },
+    { tag:'POL',  src:'環境省',       cat:['TV'],            time:'09:24', title:'改正バーゼル法施行に伴う再生資源輸出書類要件を明示 — スクラップ業界に対応呼びかけ', loc:'TOKYO' },
+    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'09:20', title:'ヤードA 本日の搬入予定 32件 — アルミ缶大口持ち込み案件あり、計量準備完了', loc:'YARD_A' },
+    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'09:15', title:'鉄スクラップ HMS ¥---/t 弱含み — 国内電炉メーカー買値据え置き、輸出オファー減', loc:'TOKYO' },
+    { tag:'MKT',  src:'SHFE',         cat:['RSS'],           time:'09:08', title:'上海銅先物 +0.4% 反発 — アジア時間でドル安支援、亜鉛・ニッケルも堅調', loc:'SHANGHAI' },
+    { tag:'SNS',  src:'X / 海外',     cat:['SNS'],           time:'09:02', title:'米国 ISRI 家電CRT回収プロトコル改訂 — 日本からの輸出スクラップにも波及か', loc:'WASHINGTON' },
+    { tag:'POL',  src:'日経',         cat:['RSS','NIKKEI'],  time:'08:48', title:'経産省 戦略物資リストに「使用済み磁石」追加検討 — レアアース回収ルート整備へ', loc:'TOKYO' },
+    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'08:40', title:'ヤードB 第3コンテナ搬出完了 — 被覆銅線 2.8t、明日の入荷枠に余裕', loc:'YARD_B' },
+    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'08:32', title:'ステンレス304 ¥---/kg 底堅い — 新規スクラップ発生少なく需給逼迫継続', loc:'KANTO' },
+    { tag:'SNS',  src:'X / 国内',     cat:['SNS'],           time:'08:25', title:'「アルミUBC北関東で再び品薄」集荷業者ポスト — 飲料メーカー増産で缶需要拡大', loc:'GUNMA' },
+    { tag:'POL',  src:'EU REPORT',    cat:['RSS'],           time:'08:18', title:'欧州委 CBAM第2段階のスクラップ取扱協議 — Q4草案、日本に与える影響は限定的', loc:'BRUSSELS' },
+    { tag:'MKT',  src:'REUTERS',      cat:['RSS','REUTERS'], time:'08:10', title:'チリ銅鉱山ストで産出一時停止 — 供給懸念再燃もLME在庫はなお潤沢', loc:'SANTIAGO' },
+    { tag:'MKT',  src:'市中相場',     cat:['RSS'],           time:'08:05', title:'真鍮 ¥---/kg 小幅安 — 市中在庫だぶつき感、需要家の買い控え継続', loc:'KANTO' },
+    { tag:'OPS',  src:'社内',         cat:['RSS'],           time:'07:55', title:'拠点C 本日午後より重機メンテナンス — 搬入は午前中推奨、ご協力お願いします', loc:'DEPOT_C' },
+    { tag:'POL',  src:'日経',         cat:['RSS','NIKKEI'],  time:'07:48', title:'国内大手商社 東南アジア向け鉄スクラップ輸出拡大方針 — 国内電炉との奪い合い懸念', loc:'TOKYO' },
+    { tag:'MKT',  src:'LME LIVE',     cat:['RSS','LME'],     time:'07:40', title:'LME亜鉛在庫 3週連続減 — ダイカスト向け需要堅調、テクニカル買い継続', loc:'LONDON' },
+    { tag:'SNS',  src:'X / 業界',     cat:['SNS'],           time:'07:32', title:'「電線スクラップ単価 東京近郊で急騰」集荷現場の生声 — ケーブル ¥---/kg 強気', loc:'TOKYO' }
+  ];
+  // 外部APIからのデータ取得（設定された場合のみ実行）
+  function fetchNewsData() {
+    if (!NEWS_SOURCE_URL) return;
+    try {
+      fetch(NEWS_SOURCE_URL).then(function(r){ return r.json(); }).then(function(data){
+        if (Array.isArray(data) && data.length > 0) { newsData = data; renderNews(); }
+      }).catch(function(){});
+    } catch(e) {}
+  }
+
+  var currentFilter = 'ALL';
+
+  function renderNews() {
+    var filtered = currentFilter === 'ALL'
+      ? newsData
+      : newsData.filter(function(n){ return n.cat && n.cat.indexOf(currentFilter) !== -1; });
+    var listEl = document.getElementById('newsList');
+    if (!listEl) return;
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<div style="padding:30px 12px;text-align:center;color:#6b7886;font-size:10px;letter-spacing:0.1em">'
+        +'NO MATCHING FEEDS<br><span style="font-size:9px">該当ソースなし — 他のフィルタを選択してください</span></div>';
+      return;
+    }
+    listEl.innerHTML = filtered.map(function(n){
+      return '<div class="news-item">'
+        +'<div class="news-meta">'
+          +'<span><span class="news-tag tag-'+n.tag+'">'+n.tag+'</span><span class="news-source">'+escapeHtml(n.src)+'</span></span>'
+          +'<span>'+n.time+' · '+escapeHtml(n.loc)+'</span>'
+        +'</div>'
+        +'<div class="news-title">'+escapeHtml(n.title)+'</div>'
+      +'</div>';
+    }).join('');
+  }
+
+  safe('news', function(){
+    renderNews();
+    fetchNewsData();
+    var filterBar = document.getElementById('newsFilters');
+    if (!filterBar) return;
+    filterBar.addEventListener('click', function(e){
+      var target = e.target;
+      while (target && target !== filterBar && !target.classList.contains('chip')) {
+        target = target.parentNode;
+      }
+      if (!target || !target.classList.contains('chip')) return;
+      var f = target.getAttribute('data-filter');
+      if (!f) return;
+      currentFilter = f;
+      var chips = filterBar.querySelectorAll('.chip');
+      for (var i=0; i<chips.length; i++) chips[i].classList.remove('active');
+      target.classList.add('active');
+      renderNews();
+    });
+  });
+
+  /* ============ DATA ============ */
+  var vehicles = [
+    { id:'KSW-01', lat:35.683, lng:139.769, status:'run',   loc:'拠点B → ヤードA', load:'82%' },
+    { id:'KSW-02', lat:35.679, lng:139.765, status:'run',   loc:'幹線道路 南下',   load:'45%' },
+    { id:'KSW-03', lat:35.681, lng:139.767, status:'idle',  loc:'本社待機',         load:'0%'  },
+    { id:'KSW-04', lat:35.677, lng:139.771, status:'run',   loc:'拠点C',           load:'97%' },
+    { id:'KSW-05', lat:35.685, lng:139.763, status:'run',   loc:'高速道 北上',     load:'12%' },
+    { id:'KSW-06', lat:35.675, lng:139.773, status:'idle',  loc:'ヤードA',         load:'0%'  },
+    { id:'KSW-07', lat:35.687, lng:139.761, status:'alert', loc:'環状道 渋滞',     load:'78%' },
+    { id:'KSW-08', lat:35.689, lng:139.759, status:'run',   loc:'中継拠点D',       load:'63%' },
+    { id:'KSW-09', lat:35.673, lng:139.775, status:'off',   loc:'整備中',           load:'—'   },
+    { id:'KSW-10', lat:35.691, lng:139.757, status:'run',   loc:'拠点E 集荷',      load:'30%' }
+  ];
+
+  /* ============ MAP (DISABLED) ============ */
+  var GPS_ENABLED = false; // ← GPS有効化する場合は true に変更
+  safe('map', function(){
+    if (!GPS_ENABLED) { document.getElementById('map').outerHTML = '<div class="map-fallback"><div class="icon">📍</div><div>GPS MODULE OFFLINE</div><div style="font-size:9px">車両追跡は現在利用できません</div></div>'; return; }
+    if (typeof L === 'undefined') {
+      document.getElementById('map').outerHTML =
+        '<div class="map-fallback">'
+        +'<div class="icon">⚠</div>'
+        +'<div>MAP MODULE OFFLINE</div>'
+        +'<div style="font-size:9px">Leaflet ライブラリの読み込みに失敗しました。<br>ネットワーク接続を確認してください。</div>'
+        +'</div>';
+      return;
+    }
+
+    var map = L.map('map', { zoomControl: false, attributionControl: false }).setView([35.681, 139.767], 10);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd', maxZoom: 19
+    }).addTo(map);
+    L.control.zoom({ position: 'topright' }).addTo(map);
+
+    var yards = [
+      { name:'本社・ヤードA', lat:35.681, lng:139.767 },
+      { name:'ヤードB',       lat:35.675, lng:139.773 },
+      { name:'拠点C',         lat:35.677, lng:139.771 },
+      { name:'中継拠点D',     lat:35.689, lng:139.759 }
+    ];
+    yards.forEach(function(y){
+      var icon = L.divIcon({
+        className: '',
+        html: '<div class="yard-marker"></div><div class="yard-label">'+escapeHtml(y.name)+'</div>',
+        iconSize:[16,16], iconAnchor:[8,8]
+      });
+      L.marker([y.lat, y.lng], { icon: icon }).addTo(map);
+    });
+
+    var statusToClass = { run:'veh-run', idle:'veh-idle', alert:'veh-alert', off:'veh-idle' };
+    vehicles.forEach(function(v){
+      var cls = statusToClass[v.status] || 'veh-idle';
+      var icon = L.divIcon({
+        className: '',
+        html: '<div class="veh-marker '+cls+'"></div><div class="veh-label">'+escapeHtml(v.id)+'</div>',
+        iconSize:[12,12], iconAnchor:[6,6]
+      });
+      L.marker([v.lat, v.lng], { icon: icon }).addTo(map);
+    });
+
+    var movingMarker = null;
+    function animateVehicle() {
+      var t = Date.now() / 8000;
+      var lat = 35.86 + Math.sin(t) * 0.04;
+      var lng = 139.97 + Math.cos(t) * 0.05;
+      if (movingMarker) {
+        movingMarker.setLatLng([lat, lng]);
+      } else {
+        var icon = L.divIcon({
+          className: '',
+          html: '<div class="veh-marker veh-live"></div><div class="veh-label live-lbl">KSW-11 LIVE</div>',
+          iconSize:[12,12], iconAnchor:[6,6]
+        });
+        movingMarker = L.marker([lat, lng], { icon: icon }).addTo(map);
+      }
+    }
+    animateVehicle();
+    setInterval(animateVehicle, 1500);
+
+    setTimeout(function(){ map.invalidateSize(); }, 200);
+    window.addEventListener('resize', function(){ map.invalidateSize(); });
+  });
+
+  /* ============ CAMERAS (IP Camera Stream) ============ */
+  // ★ 各拠点のスマホIPカメラURLを設定してください
+  //    例: Android IP Webcam → 'http://192.168.1.xx:8080/video'
+  //    URLが空欄の場合はモック表示になります
+  var CAMERA_CONFIG = [
+    { id:'CAM-01', loc:'ヤードA 入口',   url:'', kpi:'入庫 4t/h' },
+    { id:'CAM-02', loc:'ヤードA 計量',   url:'', kpi:'稼働率 87%' },
+    { id:'CAM-03', loc:'ヤードB 圧縮機', url:'', kpi:'プレス 23/h' },
+    { id:'CAM-04', loc:'ヤードB 仕分線', url:'', kpi:'OK' },
+    { id:'CAM-05', loc:'拠点C 搬出口',   url:'', kpi:'積込中' },
+    { id:'CAM-06', loc:'拠点D 中継',     url:'', kpi:'監視' }
+  ];
+
+  safe('cams', function(){
+    var html = '<div class="cam-grid">' + CAMERA_CONFIG.map(function(c){
+      var hasUrl = c.url && c.url.length > 0;
+      var tileClass = hasUrl ? 'cam-tile live' : 'cam-tile offline';
+      var recClass = hasUrl ? 'cam-rec live' : 'cam-rec';
+      var recText = hasUrl ? '● LIVE' : '● STBY';
+
+      var feedContent;
+      if (hasUrl) {
+        feedContent = '<img src="'+escapeHtml(c.url)+'" alt="'+escapeHtml(c.id)+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">'
+          +'<div class="cam-placeholder" style="display:none">'
+            +'<div class="icon">⚠</div>'
+            +'<div>STREAM OFFLINE</div>'
+            +'<div style="font-size:8px">再接続待機中...</div>'
+          +'</div>';
+      } else {
+        var camCharCode = c.id && c.id.length > 0 ? c.id.charCodeAt(c.id.length-1) : 0;
+        feedContent = '<div class="cam-noise" style="animation-delay:'+(camCharCode*0.13)+'s"></div>'
+          +'<div class="cam-silhouette" style="filter:hue-rotate('+(camCharCode*60)+'deg)"></div>'
+          +'<div class="cam-placeholder">'
+            +'<div class="icon">📡</div>'
+            +'<div>NO STREAM</div>'
+            +'<div style="font-size:8px">URL未設定</div>'
+          +'</div>';
+      }
+
+      return '<div class="'+tileClass+'">'
+        +'<div class="cam-feed">'+feedContent+'</div>'
+        +'<div class="cam-label">'+escapeHtml(c.id)+' · '+escapeHtml(c.loc)+'</div>'
+        +'<div class="'+recClass+'">'+recText+'</div>'
+        +'<div class="cam-stats"><span>1080p · 30fps</span><span>'+escapeHtml(c.kpi)+'</span></div>'
+      +'</div>';
+    }).join('') + '</div>';
+    document.getElementById('camGrid').innerHTML = html;
+  });
+
+  /* ============ PRICES (Scrap metals prioritized) ============ */
+  var pricesScrap = [
+    { sym:'一銅',    name:'一号銅線 (99.9%)',    unit:'JPY/kg', value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'二号銅',  name:'二号銅 (96%)',        unit:'JPY/kg', value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'Cu LME', name:'銅 (LME 3M)',         unit:'USD/t',  value:0,  chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'真鍮',   name:'真鍮 / 黄銅スクラップ',  unit:'JPY/kg', value:0,   chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'Al缶',   name:'アルミUBC缶',          unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'Al地金', name:'アルミ地金',           unit:'USD/t',  value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'Alサッシ',name:'アルミサッシ',         unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'Zn',     name:'亜鉛ダイカスト',       unit:'USD/t',  value:0,  chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'Ni',     name:'ニッケル',             unit:'USD/t',  value:0, chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'SUS304', name:'ステンレス 304',       unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'SUS310', name:'ステンレス 310S',      unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'Fe-HMS', name:'鉄スクラップ HMS',     unit:'JPY/t',  value:0, chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'重鉄',   name:'重鉄 (6mm以上)',        unit:'JPY/t',  value:0, chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'軽鉄',   name:'軽鉄 (6mm未満)',        unit:'JPY/t',  value:0, chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'Pb',     name:'鉛 / バッテリー',       unit:'USD/t',  value:0,  chg:0, hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'モーター',name:'電動機スクラップ',      unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' },
+    { sym:'ケーブル',name:'被覆銅線',             unit:'JPY/kg', value:0,   chg:0,  hist:[0,0,0,0,0,0,0,0], weight:'heavy' }
+  ];
+  var pricesPrecious = [
+    { sym:'Au',     name:'金 SPOT',          unit:'USD/oz', value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0] },
+    { sym:'Ag',     name:'銀',               unit:'USD/oz', value:0, chg:0,  hist:[0,0,0,0,0,0,0,0] },
+    { sym:'Pt',     name:'プラチナ',         unit:'USD/oz', value:0,   chg:0, hist:[0,0,0,0,0,0,0,0] },
+    { sym:'Pd',     name:'パラジウム',       unit:'USD/oz', value:0,  chg:0,  hist:[0,0,0,0,0,0,0,0] }
+  ];
+
+  var PRICE_SOURCE_URL = ''; // 例: 'https://your-api.com/scrap-prices.json'
+  function fetchPriceData() {
+    if (!PRICE_SOURCE_URL) return;
+    try {
+      fetch(PRICE_SOURCE_URL).then(function(r){ return r.json(); }).then(function(data){
+        if (data.scrap && Array.isArray(data.scrap)) { pricesScrap = data.scrap; }
+        if (data.precious && Array.isArray(data.precious)) { pricesPrecious = data.precious; }
+        renderPrices();
+      }).catch(function(){});
+    } catch(e) {}
+  }
+  function renderPrices() {
+    document.getElementById('priceList').innerHTML = buildPriceHTML();
+  }
+  function buildPriceHTML() {
+    var html = '<div class="price-section-header">非鉄・スクラップ価格</div>';
+    html += pricesScrap.map(function(p){ return renderPriceRow(p, 'heavy'); }).join('');
+    html += '<div class="price-section-header">貴金属参考</div>';
+    html += pricesPrecious.map(function(p){ return renderPriceRow(p, 'precious'); }).join('');
+    return html;
+  }
+  function sparkline(data) {
+    var w=80, h=20, min=Math.min.apply(null,data), max=Math.max.apply(null,data);
+    var range = (max-min) || 1;
+    var pts = data.map(function(v,i){
+      return ((i/(data.length-1))*w)+','+(h - ((v-min)/range)*(h-2) - 1);
+    }).join(' ');
+    var trend = data[data.length-1] >= data[0];
+    var color = trend ? '#4ade80' : '#ff4d5e';
+    return '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">'
+      +'<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.3"/>'
+    +'</svg>';
+  }
+
+  function renderPriceRow(p, cls) {
+    return '<div class="price-row '+cls+'">'
+      +'<div>'
+        +'<div class="price-symbol">'+escapeHtml(p.sym)+'</div>'
+        +'<div style="font-size:8px;color:#6b7886">'+escapeHtml(p.name)+'</div>'
+      +'</div>'
+      +'<div class="price-spark">'+sparkline(p.hist)+'</div>'
+      +'<div>'
+        +'<div class="price-value">'+p.value.toLocaleString()+'</div>'
+        +'<div style="font-size:8px;color:#6b7886;text-align:right">'+p.unit+'</div>'
+      +'</div>'
+      +'<div class="price-change '+(p.chg>=0?'up':'down')+'">'+(p.chg>=0?'+':'')+p.chg+'%</div>'
+    +'</div>';
+  }
+  safe('prices', function(){
+    document.getElementById('priceList').innerHTML = buildPriceHTML();
+    fetchPriceData();
+  });
+
+  /* ============ CHART ============ */
+  safe('chart', function(){
+    if (typeof Chart === 'undefined') {
+      var wrap = document.querySelector('.chart-wrap');
+      if (wrap) wrap.innerHTML = '<div style="color:#6b7886;font-size:10px;padding:20px;text-align:center">CHART MODULE OFFLINE</div>';
+      return;
+    }
+    var labels = [];
+    for (var i=0; i<24; i++) labels.push((i<10?'0':'')+i+':00');
+    var ctx = document.getElementById('bigChart').getContext('2d');
+    // Scrap / non-ferrous metals: Cu, Al, Fe-HMS, SUS304
+    var cuData = [], alData = [], feData = [], susData = [];
+    for (var j=0; j<24; j++) {
+      cuData.push(9840 + Math.sin(j/2.5)*45 + Math.sin(j/5)*20 + (Math.random()-0.5)*15);
+      alData.push(2410 + Math.sin(j/3)*20 + Math.cos(j/4)*10 + (Math.random()-0.5)*8);
+      feData.push(365  + Math.sin(j/3.5)*8  + Math.cos(j/6)*4  + (Math.random()-0.5)*3);
+      susData.push(288  + Math.sin(j/2.8)*5  + Math.sin(j/4.5)*3 + (Math.random()-0.5)*2);
+    }
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label:'Cu (USD/t)', data:cuData, borderColor:'#ffb020', backgroundColor:'rgba(255,176,32,0.08)',
+            tension:0.35, borderWidth:2, pointRadius:0, fill:true },
+          { label:'Al (USD/t)', data:alData, borderColor:'#8aa05a', backgroundColor:'rgba(138,160,90,0.08)',
+            tension:0.35, borderWidth:2, pointRadius:0, fill:true },
+          { label:'Fe-HMS (USD/t)', data:feData, borderColor:'#6b7886', backgroundColor:'rgba(107,120,134,0.08)',
+            tension:0.35, borderWidth:2, pointRadius:0, fill:true },
+          { label:'SUS304 (JPY/kg)', data:susData, borderColor:'#00d4ff', backgroundColor:'rgba(0,212,255,0.08)',
+            tension:0.35, borderWidth:2, pointRadius:0, fill:true }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'SCRAP METALS // 24H TREND',
+            color: '#ffb020',
+            font: { size: 11, weight: 'bold' },
+            padding: { bottom: 8 }
+          },
+          legend: {
+            position: 'top',
+            labels: { color:'#d6dde5', font:{size:10, weight:'bold'}, boxWidth:14, boxHeight:8, padding:14 }
+          }
+        },
+        scales: {
+          x: {
+            ticks:{color:'#6b7886',font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:8},
+            grid:{color:'#1f2933'}
+          },
+          y: {
+            ticks:{color:'#d6dde5',font:{size:9}},
+            grid:{color:'#1f2933'}
+          }
+        }
+      }
+    });
+  });
+
+  /* ============ VEHICLE LIST ============ */
+  safe('vehicles', function(){
+    document.getElementById('vehicleList').innerHTML = vehicles.map(function(v){
+      return '<div class="vehicle-row">'
+        +'<div class="v-status '+v.status+'"></div>'
+        +'<div>'
+          +'<div class="v-id">'+escapeHtml(v.id)+'</div>'
+          +'<div class="v-loc">'+escapeHtml(v.loc)+'</div>'
+        +'</div>'
+        +'<div class="v-load">'+escapeHtml(v.load)+'</div>'
+      +'</div>';
+    }).join('');
+  });
+
+  /* ============ ALERTS ============ */
+  safe('alerts', function(){
+    var alerts = [
+      { lvl:'crit', time:'09:42', msg:'KSW-07 圏央道で予期せぬ停止 — ドライバー応答待ち' },
+      { lvl:'warn', time:'09:35', msg:'ヤードB 第3コンテナ重量センサー異常 (+18%)' },
+      { lvl:'crit', time:'09:21', msg:'CAM-04 映像信号断続 — 自動再接続試行中' },
+      { lvl:'warn', time:'09:14', msg:'銅相場 5分足で -0.8% 急落 — 閾値通知' },
+      { lvl:'info', time:'09:02', msg:'本日の搬入予定 32件 / 完了 11件' },
+      { lvl:'info', time:'08:50', msg:'システムバックアップ正常完了' }
+    ];
+    document.getElementById('alertList').innerHTML = alerts.map(function(a){
+      var dotHtml = a.lvl === 'crit' ? '<span class="crit-dot"></span>' : '';
+      return '<div class="alert-item '+(a.lvl==='crit'?'crit':a.lvl)+'">'
+        + dotHtml
+        + '<div class="alert-time">'+a.time+' <span class="alert-badge">'+a.lvl.toUpperCase()+'</span></div>'
+        + '<div class="alert-msg">'+escapeHtml(a.msg)+'</div>'
+      +'</div>';
+    }).join('');
+  });
+
+  /* ============ TICKER ============ */
+  safe('ticker', function(){
+    var tickerItems = [
+      { dir:'up',   t:'一銅 ¥---/kg' },
+      { dir:'up',   t:'二号銅 ¥---/kg' },
+      { dir:'down', t:'真鍮 ¥---/kg' },
+      { dir:'up',   t:'Al缶 ¥---/kg' },
+      { dir:'up',   t:'Alサッシ ¥---/kg' },
+      { dir:'up',   t:'SUS304 ¥---/kg' },
+      { dir:'up',   t:'SUS310S ¥---/kg' },
+      { dir:'down', t:'Fe-HMS ¥---/t' },
+      { dir:'up',   t:'重鉄 ¥---/t' },
+      { dir:'down', t:'軽鉄 ¥---/t' },
+      { dir:'up',   t:'モーター ¥---/kg' },
+      { dir:'up',   t:'ケーブル ¥---/kg' },
+      { dir:'down', t:'LME Cu $---/t' },
+      { dir:'up',   t:'LME Al $---/t' },
+      { dir:'down', t:'LME Zn $---/t' },
+      { dir:'up',   t:'USD/JPY --- ' }
+    ];
+    document.getElementById('tickerContent').innerHTML = tickerItems.concat(tickerItems).map(function(i){
+      return '<div class="ticker-item '+i.dir+'">'+escapeHtml(i.t)+'</div>';
+    }).join('');
+  });
+
+  /* ============ THEME SWITCHER ============ */
+  safe('theme', function(){
+    var themes = [
+      { id:'amber',    name:'AMBER',    desc:'産業 / 工業オペレーション (デフォルト)', c1:'#ffb020', c2:'#00d4ff' },
+      { id:'cyber',    name:'CYBER',    desc:'サイバーセキュリティ / ナイトオプス',    c1:'#00d4ff', c2:'#ff3da8' },
+      { id:'military', name:'MILITARY', desc:'戦術指揮 / フィールドオペレーション',    c1:'#b8a55a', c2:'#8aa05a' },
+      { id:'matrix',   name:'MATRIX',   desc:'ターミナル / グリーンモノクローム',     c1:'#00ff66', c2:'#003a18' },
+      { id:'daylight', name:'DAYLIGHT', desc:'昼間モード / ハイコントラスト ライト',  c1:'#d97706', c2:'#0369a1' }
+    ];
+
+    var btn = document.getElementById('themeBtn');
+    var menu = document.getElementById('themeMenu');
+    var label = document.getElementById('themeLabel');
+    var swatch = document.getElementById('themeSwatch');
+    if (!btn || !menu) return;
+
+    function applyTheme(id) {
+      var t = themes.filter(function(x){ return x.id === id; })[0] || themes[0];
+      if (t.id === 'amber') {
+        document.body.removeAttribute('data-theme');
+      } else {
+        document.body.setAttribute('data-theme', t.id);
+      }
+      label.textContent = t.name;
+      swatch.style.setProperty('--sw1', t.c1);
+      swatch.style.setProperty('--sw2', t.c2);
+      var opts = menu.querySelectorAll('.theme-option');
+      for (var i=0; i<opts.length; i++) {
+        opts[i].classList.toggle('selected', opts[i].getAttribute('data-id') === t.id);
+      }
+      try { localStorage.setItem('scrap.theme', t.id); } catch(e) {}
+    }
+
+    menu.innerHTML = themes.map(function(t){
+      return '<div class="theme-option" data-id="'+t.id+'" role="menuitem">'
+        +'<div class="opt-swatch" style="background:linear-gradient(135deg,'+t.c1+' 50%,'+t.c2+' 50%)"></div>'
+        +'<div>'
+          +'<div class="opt-name">'+t.name+'</div>'
+          +'<div class="opt-desc">'+escapeHtml(t.desc)+'</div>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      menu.classList.toggle('open');
+    });
+    menu.addEventListener('click', function(e){
+      var target = e.target;
+      while (target && target !== menu && !target.classList.contains('theme-option')) {
+        target = target.parentNode;
+      }
+      if (!target || !target.classList.contains('theme-option')) return;
+      applyTheme(target.getAttribute('data-id'));
+      menu.classList.remove('open');
+    });
+    document.addEventListener('click', function(){ menu.classList.remove('open'); });
+
+    var saved = null;
+    try { saved = localStorage.getItem('scrap.theme'); } catch(e) {}
+    applyTheme(saved || 'amber');
+  });
+
+})();
+</script>
+</body>
+</html>

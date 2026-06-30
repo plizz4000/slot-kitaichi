@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>勤怠入力 / Attendance Form</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Noto+Sans:wght@400;700;900&display=swap');
+:root{--navy:#1a3a5c;--green:#15803d;--red:#b91c1c;--orange:#c2410c;--bg:#f4f5f7;--border:#d1d5db;--text:#111827;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans JP','Noto Sans',sans-serif;background:var(--bg);color:var(--text);font-size:17px;min-height:100vh;}
+.lang-bar{background:#fff;border-bottom:2px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.08);}
+.lang-label{font-size:13px;font-weight:700;color:#888;white-space:nowrap;}
+.lang-btn{padding:7px 14px;border-radius:20px;border:2px solid var(--border);background:#f9f9f9;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'Noto Sans JP','Noto Sans',sans-serif;}
+.lang-btn:active{opacity:.7;}.lang-btn.active{border-color:var(--navy);background:#eff6ff;color:var(--navy);}
+.hdr{background:var(--navy);color:#fff;padding:18px 20px 14px;text-align:center;box-shadow:0 3px 8px rgba(0,0,0,.25);}
+.hdr h1{font-size:22px;font-weight:900;}.hdr p{font-size:14px;opacity:.75;margin-top:4px;}.hdr-date{font-size:16px;font-weight:700;color:#93c5fd;margin-top:6px;}
+.wrap{max-width:520px;margin:0 auto;padding:20px 16px 100px;}
+.section{background:#fff;border-radius:16px;box-shadow:0 1px 5px rgba(0,0,0,.08);margin-bottom:16px;overflow:hidden;}
+.section-hdr{background:var(--navy);color:#fff;padding:12px 18px;font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px;}
+.section-body{padding:18px;}
+.fld{margin-bottom:16px;}.fld:last-child{margin-bottom:0;}
+.fld label{display:block;font-size:15px;font-weight:700;color:#444;margin-bottom:7px;}
+.fld label .req{color:var(--red);margin-left:4px;font-size:13px;}
+.big-select,.big-textarea{width:100%;padding:13px 14px;border-radius:10px;border:2px solid var(--border);background:#f9f9f9;font-family:'Noto Sans JP','Noto Sans',sans-serif;font-size:17px;font-weight:500;color:var(--text);outline:none;transition:border-color .15s,background .15s;appearance:none;}
+.big-select:focus,.big-textarea:focus{border-color:var(--navy);background:#fff;}
+.big-textarea{resize:vertical;min-height:80px;}
+.status-group{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.status-btn{padding:18px 10px;border-radius:12px;border:3px solid var(--border);background:#f9f9f9;font-family:'Noto Sans JP','Noto Sans',sans-serif;font-size:16px;font-weight:900;color:#888;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.status-btn .s-icon{font-size:32px;line-height:1;}.status-btn:active{opacity:.7;}
+.status-btn.sel-present{border-color:var(--green);background:#f0fdf4;color:var(--green);}
+.status-btn.sel-absent{border-color:var(--red);background:#fef2f2;color:var(--red);}
+.role-group{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.role-btn{padding:12px 6px;border-radius:10px;border:2px solid var(--border);background:#f9f9f9;font-family:'Noto Sans JP','Noto Sans',sans-serif;font-size:12px;font-weight:700;color:#666;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:4px;line-height:1.3;}
+.role-btn .r-icon{font-size:26px;line-height:1;}.role-btn:active{opacity:.7;}
+.role-btn.sel{border-color:var(--c,#1a3a5c);background:var(--bg2,#eff6ff);color:var(--c,#1a3a5c);}
+.submit-btn{width:100%;padding:18px;border-radius:12px;border:none;background:var(--navy);color:#fff;font-family:'Noto Sans JP','Noto Sans',sans-serif;font-size:20px;font-weight:900;cursor:pointer;transition:background .15s;}
+.submit-btn:hover{background:#2d5a8e;}.submit-btn:active{background:#142d48;}
+.done-screen{display:none;text-align:center;padding:48px 20px;}.done-screen.show{display:block;}
+.done-icon{font-size:72px;margin-bottom:16px;}.done-title{font-size:26px;font-weight:900;color:var(--green);margin-bottom:10px;}
+.done-sub{font-size:16px;color:#555;line-height:1.8;}
+.done-info{margin:20px auto;background:#f0fdf4;border:2px solid #86efac;border-radius:12px;padding:16px 20px;text-align:left;font-size:15px;line-height:2.2;max-width:400px;}
+.done-info .lbl{color:#888;font-size:13px;display:block;}.done-info .val{font-weight:900;font-size:17px;}
+.btn-back{margin-top:20px;padding:14px 40px;border-radius:10px;border:2px solid var(--navy);background:#eff6ff;color:var(--navy);font-family:'Noto Sans JP','Noto Sans',sans-serif;font-size:17px;font-weight:700;cursor:pointer;}
+.err-msg{color:var(--red);font-size:13px;font-weight:700;margin-top:6px;display:none;}.err-msg.show{display:block;}
+.has-err .big-select{border-color:var(--red);background:#fef2f2;}
+.gs-info{background:#f0f9ff;border:2px solid #7dd3fc;border-radius:12px;padding:14px 16px;font-size:14px;color:#0c4a6e;line-height:1.9;margin-bottom:16px;}
+.gs-url{display:block;margin-top:8px;padding:10px 14px;background:#fff;border:2px solid #7dd3fc;border-radius:8px;font-size:13px;color:#0369a1;font-weight:700;cursor:pointer;}
+#toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:13px 28px;border-radius:30px;font-size:16px;font-weight:700;z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+#toast.show{opacity:1;}
+@media(max-width:400px){.role-group{grid-template-columns:1fr 1fr;}.lang-btn{font-size:13px;padding:6px 10px;}}
+</style>
+</head>
+<body>
+<div class="lang-bar"><span class="lang-label">🌐</span>
+<button class="lang-btn active" onclick="setLang('ja')">🇯🇵 日本語</button>
+<button class="lang-btn" onclick="setLang('en')">🇺🇸 English</button>
+<button class="lang-btn" onclick="setLang('si')">🇱🇰 සිංහල</button>
+<button class="lang-btn" onclick="setLang('ne')">🇳🇵 नेपाली</button>
+<button class="lang-btn" onclick="setLang('ta')">🇮🇳 தமிழ்</button>
+</div>
+<div class="hdr"><h1 id="ttl-main">📝 勤怠入力フォーム</h1><p id="ttl-sub">毎朝 出勤時に入力してください</p><div class="hdr-date" id="hdDate"></div></div>
+<div class="wrap">
+<div id="formArea">
+  <div class="gs-info"><strong id="gs-title">📊 Googleスプレッドシートと連携中</strong> <span id="gs-desc">入力した内容は自動的にスプレッドシートに記録されます。</span><span class="gs-url" id="gsUrlDisplay">⚙️ タップしてGASのURLを設定</span></div>
+
+  <div class="section"><div class="section-hdr" id="sec-name">👤 あなたの名前</div><div class="section-body"><div class="fld" id="fld-name"><label id="lbl-name">名前を選んでください <span class="req">※必須</span></label><select class="big-select" id="sel-name"><option value="">── 選んでください ──</option></select><div class="err-msg" id="err-name">名前を選んでください</div></div></div></div>
+
+  <div class="section"><div class="section-hdr" id="sec-status">📅 今日の出勤状況</div><div class="section-body"><div class="fld" id="fld-status"><label id="lbl-status">出勤しますか？ <span class="req">※必須</span></label><div class="status-group"><button class="status-btn" id="btn-present" onclick="selectStatus('present')"><span class="s-icon">✅</span><span id="lbl-present">出勤します</span></button><button class="status-btn" id="btn-absent" onclick="selectStatus('absent')"><span class="s-icon">🏠</span><span id="lbl-absent">欠勤します</span></button></div><div class="err-msg" id="err-status">出勤状況を選んでください</div></div></div></div>
+
+  <div id="work-detail" style="display:none;">
+    <!-- ① 場所（都県→市区町村）を先に -->
+    <div class="section"><div class="section-hdr" id="sec-place">📍 場所</div><div class="section-body">
+      <div class="fld" id="fld-ws"><label id="lbl-ws">都県 <span class="req">※必須</span></label><select class="big-select" id="sel-ws" onchange="updateAreas()"><option value="">── 選んでください ──</option></select><div class="err-msg" id="err-ws">都県を選んでください</div></div>
+      <div class="fld"><label id="lbl-area">市区町村</label><select class="big-select" id="sel-area"><option value="">── 都県を先に選んでください ──</option></select></div>
+    </div></div>
+
+    <!-- ② 拠点（現場/ヤード/工場/外注→詳細） -->
+    <div class="section"><div class="section-hdr" id="sec-site">🏗️ 拠点</div><div class="section-body">
+      <div class="fld" id="fld-site"><label id="lbl-site">拠点を選んでください <span class="req">※必須</span></label><select class="big-select" id="sel-site" onchange="updateSiteSubs()"><option value="">── 選んでください ──</option></select><div class="err-msg" id="err-site">拠点を選んでください</div></div>
+      <div class="fld" id="fld-site-sub" style="display:none;"><label id="lbl-site-sub">拠点の詳細</label><select class="big-select" id="sel-site-sub"><option value="">── 選んでください ──</option></select></div>
+    </div></div>
+
+    <!-- ③ 担当 -->
+    <div class="section"><div class="section-hdr" id="sec-role">🎯 今日の担当</div><div class="section-body"><div class="fld" id="fld-role"><label id="lbl-role">担当を選んでください <span class="req">※必須</span></label><div class="role-group" id="roleGroup"></div><div class="err-msg" id="err-role">担当を選んでください</div></div></div></div>
+
+    <!-- ③-b 車両ナンバー（ドライバー時のみ表示） -->
+    <div class="section" id="sec-vehicle-wrap" style="display:none;">
+      <div class="section-hdr" id="sec-vehicle">🚗 車両ナンバー</div>
+      <div class="section-body">
+        <div class="fld">
+          <label id="lbl-vehicle">使用する車両のナンバーを入力してください</label>
+          <input class="big-select" type="text" id="inp-vehicle" placeholder="例：品川 300 あ 1234" maxlength="20" style="letter-spacing:.08em;font-weight:700;">
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 備考 -->
+    <div class="section"><div class="section-hdr" id="sec-note">💬 連絡事項（任意）</div><div class="section-body"><div class="fld"><label id="lbl-note">何かあれば入力してください</label><textarea class="big-textarea" id="txt-note"></textarea></div></div></div>
+  </div>
+  <button class="submit-btn" onclick="submitForm()" id="btn-submit">📤 送信する</button>
+</div>
+<div class="done-screen" id="doneScreen"><div class="done-icon" id="doneIcon">✅</div><div class="done-title" id="doneTitle">送信しました！</div><div class="done-sub" id="doneSub">お疲れさまです。</div><div class="done-info" id="doneInfo"></div><button class="btn-back" onclick="resetForm()" id="btn-back">🔄 もう一度入力する</button></div>
+</div>
+<div id="toast"></div>
+
+<script>
+/* ═══ 翻訳データ ═══ */
+const T={
+ja:{mainTitle:'📝 勤怠入力フォーム',subTitle:'毎朝 出勤時に入力してください',gsTitle:'📊 Googleスプレッドシートと連携中',gsDesc:'入力した内容は自動的にスプレッドシートに記録されます。',gsSet:'⚙️ タップしてGASのURLを設定',gsOk:'✅ スプレッドシート連携済み',secName:'👤 あなたの名前',lblName:'名前を選んでください',req:'※必須',nameBlank:'── 選んでください ──',errName:'名前を選んでください',secStatus:'📅 今日の出勤状況',lblStatus:'出勤しますか？',present:'出勤します',absent:'欠勤します',errStatus:'出勤状況を選んでください',secPlace:'📍 場所',lblWs:'都県',wsBlank:'── 選んでください ──',errWs:'都県を選んでください',lblArea:'市区町村',areaBlank:'── 都県を先に選んでください ──',secSite:'🏗️ 拠点',lblSite:'拠点を選んでください',siteBlank:'── 選んでください ──',errSite:'拠点を選んでください',lblSiteSub:'拠点の詳細',secRole:'🎯 今日の担当',lblRole:'担当を選んでください',errRole:'担当を選んでください',secVehicle:'🚗 車両ナンバー',lblVehicle:'使用する車両のナンバーを入力してください',secNote:'💬 連絡事項（任意）',lblNote:'何かあれば入力してください',notePlaceholder:'例：午後から別現場に移動します',submit:'📤 送信する',sending:'送信中...',doneTitle:'送信しました！',doneSub:'お疲れさまです。入力内容が記録されました。',absentTitle:'欠勤を登録しました',absentSub:'お大事にしてください。',doneBack:'🔄 もう一度入力する',dNameLbl:'お名前',dDateLbl:'日付・時間',dStatusLbl:'出勤状況',dPlaceLbl:'場所',dSiteLbl:'拠点',dRoleLbl:'担当',dNoteLbl:'連絡事項',sentOk:'✅ スプレッドシートに送信済み',sentLocal:'💾 端末に保存済み（オフライン）',
+roles:[{id:'operator',label:'オペレーター',icon:'🎮',color:'#1d4ed8',bg:'#dbeafe'},{id:'assistant',label:'手元',icon:'🙌',color:'#15803d',bg:'#dcfce7'},{id:'driver',label:'ドライバー',icon:'🚗',color:'#b45309',bg:'#fef3c7'},{id:'manager',label:'管理者',icon:'📋',color:'#7c3aed',bg:'#ede9fe'},{id:'other',label:'その他',icon:'📝',color:'#6b7280',bg:'#f3f4f6'}],
+sites:[{id:'genba',label:'🏗️ 現場',subs:['取手作業','第3作業','その他現場']},{id:'yard',label:'🚛 ヤード',subs:['アビコヤード','その他ヤード']},{id:'factory',label:'🏭 工場',subs:['第1ライン','第2ライン','倉庫','その他工場']},{id:'gaichuu',label:'🔧 外注',subs:['宮崎建設','本社','その他外注']}],
+ws:[{id:'chiba',label:'千葉',icon:'🌊',areas:['千葉市','船橋市','市川市','松戸市','柏市','我孫子市','野田市','流山市','取手市','その他千葉']},{id:'ibaraki',label:'茨城',icon:'🌾',areas:['取手市','守谷市','つくば市','牛久市','土浦市','龍ケ崎市','その他茨城']},{id:'saitama',label:'埼玉',icon:'⛩️',areas:['さいたま市','草加市','越谷市','春日部市','吉川市','三郷市','その他埼玉']},{id:'tokyo',label:'東京',icon:'🗼',areas:['葛飾区','江戸川区','足立区','墨田区','江東区','荒川区','その他東京']}]},
+en:{mainTitle:'📝 Attendance Form',subTitle:'Please fill in every morning',gsTitle:'📊 Connected to Google Spreadsheet',gsDesc:'Your input will be recorded automatically.',gsSet:'⚙️ Tap to set GAS URL',gsOk:'✅ Spreadsheet connected',secName:'👤 Your Name',lblName:'Select your name',req:'*Required',nameBlank:'── Please select ──',errName:'Please select your name',secStatus:'📅 Today\'s Status',lblStatus:'Are you coming to work today?',present:'Working today',absent:'Absent today',errStatus:'Please select your status',secPlace:'📍 Location',lblWs:'Prefecture',wsBlank:'── Please select ──',errWs:'Please select a prefecture',lblArea:'City / District',areaBlank:'── Select prefecture first ──',secSite:'🏗️ Site',lblSite:'Select site',siteBlank:'── Please select ──',errSite:'Please select a site',lblSiteSub:'Site detail',secRole:'🎯 Today\'s Role',lblRole:'Select your role',errRole:'Please select a role',secVehicle:'🚗 Vehicle Number',lblVehicle:'Enter the vehicle number you are using',secNote:'💬 Message (Optional)',lblNote:'Any notes for today?',notePlaceholder:'e.g. Moving to another site in the afternoon',submit:'📤 Submit',sending:'Sending...',doneTitle:'Submitted!',doneSub:'Thank you. Your attendance has been recorded.',absentTitle:'Absence Recorded',absentSub:'Please take care!',doneBack:'🔄 Submit again',dNameLbl:'Name',dDateLbl:'Date / Time',dStatusLbl:'Status',dPlaceLbl:'Location',dSiteLbl:'Site',dRoleLbl:'Role',dNoteLbl:'Message',sentOk:'✅ Sent to spreadsheet',sentLocal:'💾 Saved locally (offline)',
+roles:[{id:'operator',label:'Operator',icon:'🎮',color:'#1d4ed8',bg:'#dbeafe'},{id:'assistant',label:'Assistant',icon:'🙌',color:'#15803d',bg:'#dcfce7'},{id:'driver',label:'Driver',icon:'🚗',color:'#b45309',bg:'#fef3c7'},{id:'manager',label:'Manager',icon:'📋',color:'#7c3aed',bg:'#ede9fe'},{id:'other',label:'Other',icon:'📝',color:'#6b7280',bg:'#f3f4f6'}],
+sites:[{id:'genba',label:'🏗️ Work Site',subs:['Toride Work','3rd Work','Other Site']},{id:'yard',label:'🚛 Yard',subs:['Abiko Yard','Other Yard']},{id:'factory',label:'🏭 Factory',subs:['Line 1','Line 2','Warehouse','Other Factory']},{id:'gaichuu',label:'🔧 Outsource',subs:['Miyazaki Const.','Head Office','Other']}],
+ws:[{id:'chiba',label:'Chiba',icon:'🌊',areas:['Chiba City','Funabashi','Ichikawa','Matsudo','Kashiwa','Abiko','Noda','Nagareyama','Toride','Other Chiba']},{id:'ibaraki',label:'Ibaraki',icon:'🌾',areas:['Toride','Moriya','Tsukuba','Ushiku','Tsuchiura','Ryugasaki','Other Ibaraki']},{id:'saitama',label:'Saitama',icon:'⛩️',areas:['Saitama City','Soka','Koshigaya','Kasukabe','Yoshikawa','Misato','Other Saitama']},{id:'tokyo',label:'Tokyo',icon:'🗼',areas:['Katsushika','Edogawa','Adachi','Sumida','Koto','Arakawa','Other Tokyo']}]},
+si:{mainTitle:'📝 පැමිණීම් ෆෝමය',subTitle:'කරුණාකර සෑම දිනකම උදෑසන සම්පූර්ණ කරන්න',gsTitle:'📊 Google Spreadsheet සමඟ සම්බන්ධිතයි',gsDesc:'ඔබගේ ඇතුළත් කිරීම ස්වයංක්‍රීයව වාර්තා වේ.',gsSet:'⚙️ GAS URL සැකසීමට ස්පර්ශ කරන්න',gsOk:'✅ Spreadsheet සම්බන්ධිතයි',secName:'👤 ඔබගේ නම',lblName:'ඔබගේ නම තෝරන්න',req:'*අවශ්‍යයි',nameBlank:'── තෝරන්න ──',errName:'කරුණාකර ඔබගේ නම තෝරන්න',secStatus:'📅 අද පැමිණීම',lblStatus:'අද ඔබ වැඩට එනවාද?',present:'වැඩට එනවා',absent:'නිවාඩු',errStatus:'කරුණාකර තෝරන්න',secPlace:'📍 ස්ථානය',lblWs:'පළාත',wsBlank:'── තෝරන්න ──',errWs:'කරුණාකර පළාත තෝරන්න',lblArea:'නගරය',areaBlank:'── පළාත මුලින් තෝරන්න ──',secSite:'🏗️ වැඩ ස්ථානය',lblSite:'වැඩ ස්ථානය තෝරන්න',siteBlank:'── තෝරන්න ──',errSite:'වැඩ ස්ථානය තෝරන්න',lblSiteSub:'විස්තර',secRole:'🎯 අදගේ කාර්යය',lblRole:'කාර්යය තෝරන්න',errRole:'කරුණාකර කාර්යය තෝරන්න',secVehicle:'🚗 වාහන අංකය',lblVehicle:'ඔබ භාවිතා කරන වාහන අංකය ඇතුළත් කරන්න',secNote:'💬 පණිවිඩය (අවශ්‍ය නැත)',lblNote:'කිව යුතු දෙයක් ඇත්ද?',notePlaceholder:'',submit:'📤 යවන්න',sending:'යවමින්...',doneTitle:'යවා ඇත!',doneSub:'ස්තූතියි. ඔබගේ පැමිණීම වාර්තා විය.',absentTitle:'නිවාඩු ලියාපදිංචි විය',absentSub:'සෞඛ්‍යමත්ව සිටින්න!',doneBack:'🔄 නැවත ඇතුළත් කරන්න',dNameLbl:'නම',dDateLbl:'දිනය / වේලාව',dStatusLbl:'තත්ත්වය',dPlaceLbl:'ස්ථානය',dSiteLbl:'වැඩ ස්ථානය',dRoleLbl:'කාර්යය',dNoteLbl:'පණිවිඩය',sentOk:'✅ Spreadsheet වෙත යවා ඇත',sentLocal:'💾 ස්ථානීයව සුරකින ලදී',
+roles:[{id:'operator',label:'ඔපරේටර්',icon:'🎮',color:'#1d4ed8',bg:'#dbeafe'},{id:'assistant',label:'සහායක',icon:'🙌',color:'#15803d',bg:'#dcfce7'},{id:'driver',label:'රියදුරු',icon:'🚗',color:'#b45309',bg:'#fef3c7'},{id:'manager',label:'කළමනාකරු',icon:'📋',color:'#7c3aed',bg:'#ede9fe'},{id:'other',label:'වෙනත්',icon:'📝',color:'#6b7280',bg:'#f3f4f6'}],
+sites:[{id:'genba',label:'🏗️ වැඩ ස්ථානය',subs:['ටොරිඩේ','3 වැනි','වෙනත්']},{id:'yard',label:'🚛 යාඩ්',subs:['අබිකෝ යාඩ්','වෙනත් යාඩ්']},{id:'factory',label:'🏭 කර්මාන්ත',subs:['1 ලයින්','2 ලයින්','ගබඩාව','වෙනත්']},{id:'gaichuu',label:'🔧 බාහිර',subs:['මියසාකි','ප්‍රධාන','වෙනත්']}],
+ws:[{id:'chiba',label:'චිබා',icon:'🌊',areas:['චිබා නගරය','ෆුනාබාෂි','ඉචිකාවා','මැට්සුඩෝ','කාෂිවා','අබිකෝ','නෝඩා','නගරේයාමා','ටොරිඩේ','අනෙකුත් චිබා']},{id:'ibaraki',label:'ඉබාරකි',icon:'🌾',areas:['ටොරිඩේ','මොරියා','සූකුබා','උෂිකු','සූචිඋරා','රියූගාසකි','අනෙකුත් ඉබාරකි']},{id:'saitama',label:'සයිතාමා',icon:'⛩️',areas:['සයිතාමා නගරය','සෝකා','කෝෂිගායා','කාසුකාබේ','යෝෂිකාවා','මිසාටෝ','අනෙකුත් සයිතාමා']},{id:'tokyo',label:'ටෝකියෝ',icon:'🗼',areas:['කැට්සූෂිකා','එඩෝගාවා','අඩාචි','සූමිඩා','කෝටෝ','අරාකාවා','අනෙකුත් ටෝකියෝ']}]},
+ne:{mainTitle:'📝 हाजिरी फारम',subTitle:'कृपया हर बिहान भर्नुहोस्',gsTitle:'📊 Google Spreadsheet सँग जोडिएको छ',gsDesc:'तपाईंको जानकारी स्वचालित रूपमा रेकर्ड हुनेछ।',gsSet:'⚙️ GAS URL सेट गर्न ट्याप गर्नुहोस्',gsOk:'✅ Spreadsheet जोडिएको छ',secName:'👤 तपाईंको नाम',lblName:'आफ्नो नाम छान्नुहोस्',req:'*अनिवार्य',nameBlank:'── छान्नुहोस् ──',errName:'कृपया आफ्नो नाम छान्नुहोस्',secStatus:'📅 आजको उपस्थिति',lblStatus:'के तपाईं आज काममा आउनुहुन्छ?',present:'काममा आउँछु',absent:'बिदा लिन्छु',errStatus:'कृपया छान्नुहोस्',secPlace:'📍 ठाउँ',lblWs:'प्रिफेक्चर',wsBlank:'── छान्नुहोस् ──',errWs:'कृपया प्रिफेक्चर छान्नुहोस्',lblArea:'सहर / जिल्ला',areaBlank:'── पहिले प्रिफेक्चर छान्नुहोस् ──',secSite:'🏗️ कार्यस्थल',lblSite:'कार्यस्थल छान्नुहोस्',siteBlank:'── छान्नुहोस् ──',errSite:'कार्यस्थल छान्नुहोस्',lblSiteSub:'विवरण',secRole:'🎯 आजको जिम्मेवारी',lblRole:'जिम्मेवारी छान्नुहोस्',errRole:'कृपया जिम्मेवारी छान्नुहोस्',secVehicle:'🚗 गाडी नम्बर',lblVehicle:'प्रयोग गर्ने गाडीको नम्बर लेख्नुहोस्',secNote:'💬 सन्देश (ऐच्छिक)',lblNote:'केही भन्नु छ?',notePlaceholder:'',submit:'📤 पठाउनुहोस्',sending:'पठाउँदैछु...',doneTitle:'पठाइयो!',doneSub:'धन्यवाद। तपाईंको हाजिरी दर्ता भयो।',absentTitle:'बिदा दर्ता भयो',absentSub:'ख्याल राख्नुहोस्!',doneBack:'🔄 फेरि भर्नुहोस्',dNameLbl:'नाम',dDateLbl:'मिति / समय',dStatusLbl:'स्थिति',dPlaceLbl:'ठाउँ',dSiteLbl:'कार्यस्थल',dRoleLbl:'जिम्मेवारी',dNoteLbl:'सन्देश',sentOk:'✅ Spreadsheet मा पठाइयो',sentLocal:'💾 स्थानीय रूपमा सुरक्षित',
+roles:[{id:'operator',label:'अपरेटर',icon:'🎮',color:'#1d4ed8',bg:'#dbeafe'},{id:'assistant',label:'सहायक',icon:'🙌',color:'#15803d',bg:'#dcfce7'},{id:'driver',label:'चालक',icon:'🚗',color:'#b45309',bg:'#fef3c7'},{id:'manager',label:'प्रबन्धक',icon:'📋',color:'#7c3aed',bg:'#ede9fe'},{id:'other',label:'अन्य',icon:'📝',color:'#6b7280',bg:'#f3f4f6'}],
+sites:[{id:'genba',label:'🏗️ कार्यस्थल',subs:['तोरिडे काम','तेस्रो काम','अन्य']},{id:'yard',label:'🚛 यार्ड',subs:['अबिको यार्ड','अन्य यार्ड']},{id:'factory',label:'🏭 कारखाना',subs:['लाइन १','लाइन २','गोदाम','अन्य']},{id:'gaichuu',label:'🔧 ठेक्का',subs:['मियाजाकि','मुख्य','अन्य']}],
+ws:[{id:'chiba',label:'चिबा',icon:'🌊',areas:['चिबा सिटी','फुनाबाशी','इचिकावा','माट्सुडो','काशिवा','अबिको','नोडा','नागारेयामा','तोरिडे','अन्य चिबा']},{id:'ibaraki',label:'इबाराकि',icon:'🌾',areas:['तोरिडे','मोरिया','त्सुकुबा','उशिकु','त्सुचिउरा','र्युगासाकि','अन्य इबाराकि']},{id:'saitama',label:'साइतामा',icon:'⛩️',areas:['साइतामा सिटी','सोका','कोशिगाया','कासुकाबे','योशिकावा','मिसाटो','अन्य साइतामा']},{id:'tokyo',label:'टोकियो',icon:'🗼',areas:['काट्सुशिका','एडोगावा','अदाची','सुमिडा','कोटो','अराकावा','अन्य टोकियो']}]},
+ta:{mainTitle:'📝 வருகைப் படிவம்',subTitle:'தினமும் காலையில் நிரப்பவும்',gsTitle:'📊 Google Spreadsheet உடன் இணைக்கப்பட்டுள்ளது',gsDesc:'உங்கள் தகவல் தானாகவே பதிவாகும்.',gsSet:'⚙️ GAS URL அமைக்க தட்டவும்',gsOk:'✅ Spreadsheet இணைக்கப்பட்டது',secName:'👤 உங்கள் பெயர்',lblName:'உங்கள் பெயரைத் தேர்ந்தெடுக்கவும்',req:'*கட்டாயம்',nameBlank:'── தேர்ந்தெடுக்கவும் ──',errName:'உங்கள் பெயரை தேர்ந்தெடுக்கவும்',secStatus:'📅 இன்றைய வருகை',lblStatus:'இன்று வேலைக்கு வருகிறீர்களா?',present:'வருகிறேன்',absent:'வரவில்லை',errStatus:'தேர்ந்தெடுக்கவும்',secPlace:'📍 இடம்',lblWs:'மாகாணம்',wsBlank:'── தேர்ந்தெடுக்கவும் ──',errWs:'மாகாணத்தை தேர்ந்தெடுக்கவும்',lblArea:'நகரம்',areaBlank:'── முதலில் மாகாணம் தேர்ந்தெடுக்கவும் ──',secSite:'🏗️ பணியிடம்',lblSite:'பணியிடத்தை தேர்ந்தெடுக்கவும்',siteBlank:'── தேர்ந்தெடுக்கவும் ──',errSite:'பணியிடத்தை தேர்ந்தெடுக்கவும்',lblSiteSub:'விவரம்',secRole:'🎯 இன்றைய பணி',lblRole:'பணியைத் தேர்ந்தெடுக்கவும்',errRole:'பணியைத் தேர்ந்தெடுக்கவும்',secVehicle:'🚗 வாகன எண்',lblVehicle:'நீங்கள் பயன்படுத்தும் வாகன எண்ணை உள்ளிடவும்',secNote:'💬 செய்தி (விருப்பம்)',lblNote:'ஏதாவது சொல்ல வேண்டுமா?',notePlaceholder:'',submit:'📤 அனுப்பு',sending:'அனுப்புகிறது...',doneTitle:'அனுப்பப்பட்டது!',doneSub:'நன்றி. உங்கள் வருகை பதிவாகியது.',absentTitle:'விடுமுறை பதிவாகியது',absentSub:'கவனமாக இருங்கள்!',doneBack:'🔄 மீண்டும் நிரப்பவும்',dNameLbl:'பெயர்',dDateLbl:'தேதி / நேரம்',dStatusLbl:'நிலை',dPlaceLbl:'இடம்',dSiteLbl:'பணியிடம்',dRoleLbl:'பணி',dNoteLbl:'செய்தி',sentOk:'✅ Spreadsheet க்கு அனுப்பப்பட்டது',sentLocal:'💾 உள்ளூரில் சேமிக்கப்பட்டது',
+roles:[{id:'operator',label:'ஆபரேட்டர்',icon:'🎮',color:'#1d4ed8',bg:'#dbeafe'},{id:'assistant',label:'உதவியாளர்',icon:'🙌',color:'#15803d',bg:'#dcfce7'},{id:'driver',label:'ஓட்டுநர்',icon:'🚗',color:'#b45309',bg:'#fef3c7'},{id:'manager',label:'மேலாளர்',icon:'📋',color:'#7c3aed',bg:'#ede9fe'},{id:'other',label:'மற்றவை',icon:'📝',color:'#6b7280',bg:'#f3f4f6'}],
+sites:[{id:'genba',label:'🏗️ பணியிடம்',subs:['தோரிடே','3வது பணி','மற்றவை']},{id:'yard',label:'🚛 யார்டு',subs:['அபிகோ யார்டு','மற்ற யார்டு']},{id:'factory',label:'🏭 தொழிற்சாலை',subs:['லைன் 1','லைன் 2','கிடங்கு','மற்றவை']},{id:'gaichuu',label:'🔧 வெளிப்பணி',subs:['மியாசாகி','தலைமை','மற்றவை']}],
+ws:[{id:'chiba',label:'சிபா',icon:'🌊',areas:['சிபா நகரம்','புனாபாஷி','இச்சிகாவா','மட்சுடோ','காஷிவா','அபிகோ','நோடா','நாகரேயாமா','தோரிடே','மற்ற சிபா']},{id:'ibaraki',label:'இபாராகி',icon:'🌾',areas:['தோரிடே','மோரியா','சுகுபா','உஷிகு','சுச்சிவுரா','ரியுகாசாகி','மற்ற இபாராகி']},{id:'saitama',label:'சைடாமா',icon:'⛩️',areas:['சைடாமா நகரம்','சோகா','கோஷிகாயா','காசுகாபே','யோஷிகாவா','மிசாடோ','மற்ற சைடாமா']},{id:'tokyo',label:'டோக்கியோ',icon:'🗼',areas:['காட்சுஷிகா','எடோகாவா','அடாச்சி','சுமிடா','கோடோ','அராகாவா','மற்ற டோக்கியோ']}]}
+};
+
+const MEMBERS=[{ja:'宮川',en:'Miyakawa',si:'මියකාව',ne:'मियाकावा',ta:'மியகாவா'},{ja:'半谷',en:'Hantani',si:'හාන්ටානි',ne:'हान्टानी',ta:'ஹந்தானி'},{ja:'村山',en:'Murayama',si:'මුරයාමා',ne:'मुरायामा',ta:'முரயாமா'},{ja:'鈴木',en:'Suzuki',si:'සුසුකි',ne:'सुजुकी',ta:'சுசுகி'},{ja:'坂本',en:'Sakamoto',si:'සකමොතො',ne:'साकामोतो',ta:'சகமோட்டோ'},{ja:'アジット',en:'Ajit',si:'අජිත්',ne:'अजित',ta:'அஜித்'},{ja:'木下',en:'Kinoshita',si:'කිනොෂිටා',ne:'किनोशिता',ta:'கினோஷிட்டா'},{ja:'テリナ',en:'Terina',si:'තෙරිනා',ne:'तेरिना',ta:'தேரினா'},{ja:'スレーシュ',en:'Suresh',si:'සුරේෂ්',ne:'सुरेश',ta:'சுரேஷ்'},{ja:'アクラン',en:'Akuran',si:'අකුරාන්',ne:'अकुरान',ta:'அக்குரான்'},{ja:'ダナ',en:'Dana',si:'ඩනා',ne:'दाना',ta:'டானா'},{ja:'オポル',en:'Oporu',si:'ඔපොරු',ne:'ओपोरु',ta:'ஒபோரு'},{ja:'ニシャンタ',en:'Nishantha',si:'නිශාන්ත',ne:'निशान्त',ta:'நிஷாந்தா'},{ja:'サマンタ',en:'Samantha',si:'සමන්තා',ne:'समन्था',ta:'சமந்தா'},{ja:'レン',en:'Ren',si:'රෙන්',ne:'रेन',ta:'ரேன்'},{ja:'スメーダ',en:'Sumedha',si:'සුමේධා',ne:'सुमेधा',ta:'சுமேதா'},{ja:'ガヤン',en:'Gayan',si:'ගයාන්',ne:'गयान',ta:'கயான்'},{ja:'スミット',en:'Sumit',si:'සුමිත්',ne:'सुमित',ta:'சுமித்'},{ja:'ティワンカ',en:'Tiwanka',si:'තිවංකා',ne:'तिवङ्का',ta:'திவங்கா'},{ja:'カビット',en:'Kabid',si:'කාබිඩ්',ne:'काबिड',ta:'காபிட்'},{ja:'ソーマ',en:'Soma',si:'සෝමා',ne:'सोमा',ta:'சோமா'}];
+
+let lang=localStorage.getItem('kintai_lang')||'ja',selectedStatus='',selectedRole='';
+let GAS_URL=localStorage.getItem('gas_url')||'https://script.google.com/macros/s/AKfycbwn-p7WKMylNUhesds1tmO0V3cGk1CdqFGvk5fixmg8DBnY4RBbW6RBXQWh2HkGzyae/exec';
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+
+window.onload=function(){const now=new Date();const days={ja:['日','月','火','水','木','金','土'],en:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],si:['ඉරිදා','සඳුදා','අඟහරු','බදාදා','බ්‍රහස්','සිකු','සෙනසු'],ne:['आइत','सोम','मंगल','बुध','बिही','शुक्र','शनि'],ta:['ஞா','திங்','செவ்','புத','வியா','வெள்','சனி']};const d=days[lang]||days.ja;document.getElementById('hdDate').textContent=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()} (${d[now.getDay()]})`;buildNameOptions();const saved=localStorage.getItem('kintai_name');if(saved)document.getElementById('sel-name').value=saved;applyLang(lang);updateGasDisplay();};
+
+function setLang(l){lang=l;localStorage.setItem('kintai_lang',l);document.querySelectorAll('.lang-btn').forEach((b,i)=>{b.classList.toggle('active',['ja','en','si','ne','ta'][i]===l);});applyLang(l);}
+function buildNameOptions(){const s=document.getElementById('sel-name');const cv=s.value;while(s.options.length>1)s.remove(1);MEMBERS.forEach(m=>{const o=document.createElement('option');o.value=m.ja;o.textContent=m[lang]||m.ja;s.appendChild(o);});if(cv)s.value=cv;}
+
+function applyLang(l){const t=T[l]||T.ja;
+document.getElementById('ttl-main').textContent=t.mainTitle;document.getElementById('ttl-sub').textContent=t.subTitle;
+document.getElementById('gs-title').textContent=t.gsTitle;document.getElementById('gs-desc').textContent=t.gsDesc;updateGasDisplay();
+document.getElementById('sec-name').textContent=t.secName;document.getElementById('lbl-name').innerHTML=`${t.lblName} <span class="req">${t.req}</span>`;document.getElementById('sel-name').options[0].textContent=t.nameBlank;document.getElementById('err-name').textContent=t.errName;buildNameOptions();
+document.getElementById('sec-status').textContent=t.secStatus;document.getElementById('lbl-status').innerHTML=`${t.lblStatus} <span class="req">${t.req}</span>`;document.getElementById('lbl-present').textContent=t.present;document.getElementById('lbl-absent').textContent=t.absent;document.getElementById('err-status').textContent=t.errStatus;
+// 場所
+document.getElementById('sec-place').textContent=t.secPlace;document.getElementById('lbl-ws').innerHTML=`${t.lblWs} <span class="req">${t.req}</span>`;document.getElementById('err-ws').textContent=t.errWs;document.getElementById('lbl-area').textContent=t.lblArea;
+const wsSel=document.getElementById('sel-ws');const curWs=wsSel.value;wsSel.innerHTML=`<option value="">${t.wsBlank}</option>`;t.ws.forEach(w=>{const o=document.createElement('option');o.value=w.id;o.textContent=`${w.icon} ${w.label}`;wsSel.appendChild(o);});if(curWs)wsSel.value=curWs;updateAreas();
+// 拠点
+document.getElementById('sec-site').textContent=t.secSite;document.getElementById('lbl-site').innerHTML=`${t.lblSite} <span class="req">${t.req}</span>`;document.getElementById('err-site').textContent=t.errSite;document.getElementById('lbl-site-sub').textContent=t.lblSiteSub;
+const siteSel=document.getElementById('sel-site');const curSite=siteSel.value;siteSel.innerHTML=`<option value="">${t.siteBlank}</option>`;(t.sites||[]).forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.label;siteSel.appendChild(o);});if(curSite)siteSel.value=curSite;updateSiteSubs();
+// 担当
+document.getElementById('sec-role').textContent=t.secRole;document.getElementById('lbl-role').innerHTML=`${t.lblRole} <span class="req">${t.req}</span>`;document.getElementById('err-role').textContent=t.errRole;buildRoleBtns();
+// 備考
+document.getElementById('sec-note').textContent=t.secNote;document.getElementById('lbl-note').textContent=t.lblNote;document.getElementById('txt-note').placeholder=t.notePlaceholder;
+document.getElementById('sec-vehicle').textContent=t.secVehicle||'🚗 車両ナンバー';document.getElementById('lbl-vehicle').textContent=t.lblVehicle||'使用する車両のナンバーを入力してください';
+document.getElementById('btn-submit').textContent=t.submit;document.getElementById('btn-back').textContent=t.doneBack;}
+
+function updateGasDisplay(){const t=T[lang]||T.ja;const el=document.getElementById('gsUrlDisplay');if(GAS_URL){el.textContent=t.gsOk;el.style.color='#15803d';el.onclick=null;}else{el.textContent=t.gsSet;el.style.color='#0369a1';el.onclick=()=>{const url=prompt('Google Apps Script WebアプリのURLを入力：');if(url&&url.startsWith('https://')){GAS_URL=url;localStorage.setItem('gas_url',url);updateGasDisplay();toast('✅ 設定しました！');}};}}
+
+function buildRoleBtns(){const t=T[lang]||T.ja;const g=document.getElementById('roleGroup');g.innerHTML='';t.roles.forEach(r=>{const b=document.createElement('button');b.className='role-btn'+(selectedRole===r.id?' sel':'');b.id='rbtn-'+r.id;b.style.setProperty('--c',r.color);b.style.setProperty('--bg2',r.bg);b.innerHTML=`<span class="r-icon">${r.icon}</span>${r.label}`;b.onclick=()=>selectRole(r.id);g.appendChild(b);});}
+
+function selectStatus(val){selectedStatus=val;document.getElementById('btn-present').className='status-btn'+(val==='present'?' sel-present':'');document.getElementById('btn-absent').className='status-btn'+(val==='absent'?' sel-absent':'');document.getElementById('err-status').classList.remove('show');document.getElementById('work-detail').style.display=(val==='present')?'block':'none';if(val==='absent'){selectedRole='';buildRoleBtns();document.getElementById('sel-site').value='';updateSiteSubs();document.getElementById('sec-vehicle-wrap').style.display='none';document.getElementById('inp-vehicle').value='';}}
+function selectRole(id){selectedRole=id;(T[lang]||T.ja).roles.forEach(r=>{const b=document.getElementById('rbtn-'+r.id);if(b)b.className='role-btn'+(r.id===id?' sel':'');});document.getElementById('err-role').classList.remove('show');document.getElementById('fld-role').classList.remove('has-err');document.getElementById('sec-vehicle-wrap').style.display=(id==='driver')?'block':'none';if(id!=='driver')document.getElementById('inp-vehicle').value='';}
+function updateAreas(){const t=T[lang]||T.ja;const wsId=document.getElementById('sel-ws').value;const areaSel=document.getElementById('sel-area');const ws=t.ws.find(w=>w.id===wsId);areaSel.innerHTML='';if(!ws){areaSel.innerHTML=`<option value="">${t.areaBlank}</option>`;return;}areaSel.innerHTML='<option value="">── ──</option>';ws.areas.forEach(a=>{const o=document.createElement('option');o.value=a;o.textContent=a;areaSel.appendChild(o);});document.getElementById('err-ws').classList.remove('show');document.getElementById('fld-ws').classList.remove('has-err');}
+function updateSiteSubs(){const t=T[lang]||T.ja;const siteId=document.getElementById('sel-site').value;const subFld=document.getElementById('fld-site-sub');const subSel=document.getElementById('sel-site-sub');const site=(t.sites||[]).find(s=>s.id===siteId);if(site&&site.subs&&site.subs.length>0){subFld.style.display='block';subSel.innerHTML='<option value="">── ──</option>';site.subs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;subSel.appendChild(o);});}else{subFld.style.display='none';subSel.innerHTML='';}if(siteId){document.getElementById('err-site').classList.remove('show');document.getElementById('fld-site').classList.remove('has-err');}}
+
+function validate(){let ok=true;if(!document.getElementById('sel-name').value){document.getElementById('err-name').classList.add('show');document.getElementById('fld-name').classList.add('has-err');ok=false;}else{document.getElementById('err-name').classList.remove('show');document.getElementById('fld-name').classList.remove('has-err');}
+if(!selectedStatus){document.getElementById('err-status').classList.add('show');ok=false;}else{document.getElementById('err-status').classList.remove('show');}
+if(selectedStatus==='present'){if(!document.getElementById('sel-ws').value){document.getElementById('err-ws').classList.add('show');document.getElementById('fld-ws').classList.add('has-err');ok=false;}if(!document.getElementById('sel-site').value){document.getElementById('err-site').classList.add('show');document.getElementById('fld-site').classList.add('has-err');ok=false;}if(!selectedRole){document.getElementById('err-role').classList.add('show');document.getElementById('fld-role').classList.add('has-err');ok=false;}}return ok;}
+
+function submitForm(){if(!validate()){window.scrollTo({top:0,behavior:'smooth'});return;}const t=T[lang]||T.ja;const btn=document.getElementById('btn-submit');btn.textContent=t.sending;btn.disabled=true;
+const name=document.getElementById('sel-name').value;const role=selectedRole?((t.roles.find(r=>r.id===selectedRole))||{label:''}).label:'';const wsId=document.getElementById('sel-ws').value;const wsLabel=(t.ws.find(w=>w.id===wsId)||{label:''}).label;const area=document.getElementById('sel-area').value;const siteId=document.getElementById('sel-site').value;const siteObj=(t.sites||[]).find(s=>s.id===siteId);const siteLabel=siteObj?siteObj.label.replace(/^[^\s]+\s/,''):'';const siteSub=document.getElementById('sel-site-sub')?.value||'';const vehicle=document.getElementById('inp-vehicle')?.value.trim()||'';const note=document.getElementById('txt-note').value.trim();const now=new Date();const dateStr=`${now.getFullYear()}/${now.getMonth()+1}/${now.getDate()}`;const timeStr=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;const statusLabel=selectedStatus==='present'?'出勤':'欠勤';
+localStorage.setItem('kintai_name',name);
+const payload={name,date:dateStr,time:timeStr,lang,status:statusLabel,role,sitetype:siteLabel,sitesub:siteSub,worksite:wsLabel,area,vehicle,note};
+const logs=JSON.parse(localStorage.getItem('kintai_log')||'[]');logs.push({...payload});localStorage.setItem('kintai_log',JSON.stringify(logs));
+if(GAS_URL){const params=new URLSearchParams(payload);const img=new Image();img.src=GAS_URL+'?'+params.toString();setTimeout(()=>{showDone(payload,true,t);btn.textContent=t.submit;btn.disabled=false;},800);}else{showDone(payload,false,t);btn.textContent=t.submit;btn.disabled=false;}}
+
+function showDone(d,sent,t){document.getElementById('formArea').style.display='none';const done=document.getElementById('doneScreen');done.classList.add('show');const isAbsent=d.status==='欠勤';document.getElementById('doneIcon').textContent=isAbsent?'🏠':'✅';document.getElementById('doneTitle').textContent=isAbsent?t.absentTitle:t.doneTitle;document.getElementById('doneSub').textContent=isAbsent?t.absentSub:t.doneSub;
+const workRows=!isAbsent?`<div><span class="lbl">${t.dPlaceLbl}</span><span class="val">${d.worksite}${d.area?' / '+d.area:''}</span></div><div><span class="lbl">${t.dSiteLbl}</span><span class="val">${d.sitetype||'—'}${d.sitesub?' › '+d.sitesub:''}</span></div><div><span class="lbl">${t.dRoleLbl}</span><span class="val">${d.role||'—'}</span></div>${d.vehicle?`<div><span class="lbl">🚗 車両No.</span><span class="val">${d.vehicle}</span></div>`:''}`:'';
+document.getElementById('doneInfo').innerHTML=`<div><span class="lbl">${t.dNameLbl}</span><span class="val">${d.name}</span></div><div><span class="lbl">${t.dDateLbl}</span><span class="val">${d.date}　${d.time}</span></div><div><span class="lbl">${t.dStatusLbl}</span><span class="val">${d.status}</span></div>${workRows}${d.note?`<div><span class="lbl">${t.dNoteLbl}</span><span class="val">${d.note}</span></div>`:''}<div style="margin-top:10px;font-size:13px;color:${sent?'#15803d':'#888'};">${sent?t.sentOk:t.sentLocal}</div>`;}
+
+function resetForm(){selectedStatus='';selectedRole='';document.getElementById('btn-present').className='status-btn';document.getElementById('btn-absent').className='status-btn';document.getElementById('work-detail').style.display='none';document.getElementById('txt-note').value='';document.getElementById('sel-site').value='';document.getElementById('inp-vehicle').value='';document.getElementById('sec-vehicle-wrap').style.display='none';updateSiteSubs();buildRoleBtns();document.getElementById('formArea').style.display='block';document.getElementById('doneScreen').classList.remove('show');window.scrollTo({top:0,behavior:'smooth'});}
+</script>
+</body>
+</html>

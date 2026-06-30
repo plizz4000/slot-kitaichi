@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S.K.R 申請ガイド</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #0d1117; color: #c9d1d9; font-family: 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', 'Noto Sans CJK JP', sans-serif; padding: 20px; max-width: 1200px; margin: 0 auto; font-size: 16px; }
+h1 { color: #58a6ff; font-size: 1.6em; margin-bottom: 8px; }
+h2 { color: #f0883e; font-size: 1.2em; margin: 24px 0 12px; border-bottom: 1px solid #30363d; padding-bottom: 6px; }
+h3 { color: #7ee787; font-size: 1em; margin: 16px 0 8px; }
+.subtitle { color: #8b949e; font-size: 0.85em; margin-bottom: 20px; }
+.tab-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.tab { padding: 10px 20px; background: #21262d; border: 1px solid #30363d; border-radius: 8px; cursor: pointer; font-size: 0.95em; color: #c9d1d9; transition: all 0.2s; min-height: 44px; display: flex; align-items: center; justify-content: center; }
+.tab:hover { background: #30363d; }
+.tab.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
+.panel { display: none; }
+.panel.active { display: block; }
+.card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.badge { padding: 3px 10px; border-radius: 12px; font-size: 0.75em; font-weight: 600; white-space: nowrap; }
+.badge-red { background: #da3633; color: #fff; }
+.badge-yellow { background: #d29922; color: #fff; }
+.badge-green { background: #238636; color: #fff; }
+.badge-blue { background: #1f6feb; color: #fff; }
+table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 0.9em; }
+th { background: #21262d; color: #58a6ff; text-align: left; padding: 8px 10px; border: 1px solid #30363d; }
+td { padding: 8px 10px; border: 1px solid #30363d; }
+tr:hover { background: #1c2128; }
+.checklist { list-style: none; padding: 0; }
+.checklist li { padding: 8px 0; border-bottom: 1px solid #21262d; display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.checklist input[type="checkbox"] { width: 24px; height: 24px; min-width: 24px; accent-color: #238636; cursor: pointer; }
+.checklist label { cursor: pointer; flex: 1; line-height: 1.5; }
+.checklist input:checked + label { color: #8b949e; text-decoration: line-through; }
+.flow { background: #1c2128; border-radius: 8px; padding: 14px; font-family: monospace; font-size: 0.85em; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: break-word; margin: 10px 0; color: #7ee787; overflow-x: auto; }
+.highlight { background: #f0883e22; border-left: 3px solid #f0883e; padding: 10px 14px; margin: 10px 0; border-radius: 0 6px 6px 0; font-size: 0.9em; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 768px) { .grid2 { grid-template-columns: 1fr; } }
+.talk-box { background: #0d2137; border: 1px solid #1f6feb; border-radius: 8px; padding: 14px; font-size: 0.9em; line-height: 1.6; margin: 10px 0; }
+.calc { background: #1c2128; padding: 12px; border-radius: 8px; margin: 8px 0; }
+.calc input { background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 6px 10px; border-radius: 4px; width: 100px; font-size: 0.9em; }
+.calc-result { color: #f0883e; font-weight: 600; font-size: 1.1em; margin-top: 8px; }
+.case-table input[type="text"] { background: #0d1117; border: 1px solid #30363d; color: #c9d1d9; padding: 4px 8px; border-radius: 4px; width: 100%; font-size: 0.85em; }
+
+/* === Mobile responsive (375px-414px) === */
+@media (max-width: 600px) {
+  body { padding: 12px; font-size: 16px; }
+  h1 { font-size: 1.4em; }
+  h2 { font-size: 1.15em; margin: 18px 0 10px; }
+  .subtitle { font-size: 0.9em; }
+
+  /* Tab bar: 2-column grid for larger tap targets */
+  .tab-bar { gap: 6px; }
+  .tab { padding: 12px 10px; font-size: 0.9em; min-height: 48px; flex: 1 1 calc(50% - 6px); text-align: center; }
+
+  /* Cards */
+  .card { padding: 14px 12px; border-radius: 8px; }
+  .card-header { flex-wrap: wrap; gap: 6px; }
+
+  /* Flow blocks: prevent overflow */
+  .flow { font-size: 0.78em; padding: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+  /* Highlight blocks */
+  .highlight { padding: 10px 12px; font-size: 0.88em; line-height: 1.5; }
+
+  /* Tables → card layout on mobile */
+  table:not(.case-table) { display: block; }
+  table:not(.case-table) thead { display: none; }
+  table:not(.case-table) tbody { display: block; }
+  table:not(.case-table) tr { display: block; background: #161b22; border: 1px solid #30363d; border-radius: 8px; margin-bottom: 8px; padding: 10px 12px; }
+  table:not(.case-table) tr:hover { background: #1c2128; }
+  table:not(.case-table) td,
+  table:not(.case-table) th { display: block; border: none; padding: 4px 0; text-align: left; background: transparent; }
+  table:not(.case-table) td::before,
+  table:not(.case-table) th::before { content: attr(data-label); color: #58a6ff; font-weight: 600; display: block; font-size: 0.8em; margin-bottom: 2px; }
+
+  /* Case-table (tracker) stays table but scrolls horizontally */
+  .case-table { font-size: 0.8em; min-width: 600px; }
+  .case-table input[type="text"] { font-size: 14px; padding: 6px 8px; min-height: 36px; }
+
+  /* Checklist: bigger touch targets */
+  .checklist li { padding: 10px 0; gap: 12px; min-height: 48px; }
+  .checklist input[type="checkbox"] { width: 28px; height: 28px; min-width: 28px; }
+  .checklist label { font-size: 0.95em; }
+
+  /* Calculator */
+  .calc { padding: 14px 12px; }
+  .calc input { width: 80px; font-size: 1em; padding: 8px 10px; min-height: 44px; }
+  .calc select { font-size: 0.9em; padding: 8px; min-height: 44px; }
+  .calc button { padding: 10px 20px; font-size: 1em; min-height: 44px; margin-top: 8px; }
+  .calc p { line-height: 2.2; }
+
+  /* Talk box */
+  .talk-box { font-size: 0.9em; padding: 12px; }
+
+  /* Lists inside cards */
+  .card ul:not(.checklist) { padding-left: 16px; }
+  .card ul:not(.checklist) li { line-height: 1.8; font-size: 0.93em; }
+
+  /* Badge in card-header */
+  .badge { font-size: 0.7em; padding: 4px 8px; }
+}
+</style>
+</head>
+<body>
+
+<h1>S.K.R 申請ガイド</h1>
+<p class="subtitle">解体案件で必要な役所申請 + 補助金申請の仕組み</p>
+
+<div class="tab-bar">
+  <div class="tab active" onclick="showTab('judge')">判断フロー</div>
+  <div class="tab" onclick="showTab('recycle')">①建設リサイクル法</div>
+  <div class="tab" onclick="showTab('noise')">②特定建設作業</div>
+  <div class="tab" onclick="showTab('gbiz')">③Gビズ</div>
+  <div class="tab" onclick="showTab('asbestos')">アスベスト</div>
+  <div class="tab" onclick="showTab('subsidy')">補助金</div>
+  <div class="tab" onclick="showTab('tracker')">案件管理</div>
+</div>
+
+<!-- 判断フロー -->
+<div id="judge" class="panel active">
+  <h2>この案件にどの届出が必要？</h2>
+  <div class="card">
+    <h3>役所申請の判断</h3>
+    <div class="flow">案件を受注
+  │
+  ├─ 床面積 80㎡以上 or 請負金額 500万円以上？
+  │   YES → ① 建設リサイクル法の届出（必須）
+  │          着工 7日前まで → 建築指導課
+  │
+  ├─ 住宅地/商業地で騒音・振動が出る重機作業？
+  │   YES → ② 特定建設作業届出
+  │          作業開始 7日前まで → 環境課
+  │
+  └─ 電子申請で出す書類がある？(補助金等)
+      YES → ③ Gビズ アカウント必要
+             取得に 2〜3週間</div>
+  </div>
+  <div class="card">
+    <h3>アスベスト事前調査の判断</h3>
+    <div class="flow">建物の着工日は？
+  │
+  ├─ 2006年9月1日以降
+  │   → 事前調査は必要だが「石綿なし」で報告可
+  │     （みなし報告でOK）
+  │
+  └─ 2006年8月31日以前
+      → 書面 + 目視の事前調査が必須
+        │
+        ├─ 石綿不明 → 分析調査 or みなし(石綿あり扱い)
+        └─ 石綿確定 → 除去計画 + 労基署届出</div>
+  </div>
+  <div class="card">
+    <h3>補助金が使えるか？</h3>
+    <div class="flow">施主の物件はどの自治体？
+  │
+  ├─ 松戸市 → 上限60万(1/3) ※昭和56年以前+1年空き家
+  ├─ 成田市 → 上限50万(1/2) ※特定空家認定が必要
+  ├─ 野田市 → 上限50万(1/2) ※評点100点以上の特定空家
+  │
+  └─ 柏/流山/我孫子/印西/白井/取手
+      → 解体補助なし
+
+  ⚠ 全市共通: 工事契約前に申請が必須！</div>
+  </div>
+</div>
+
+<!-- ①建設リサイクル法 -->
+<div id="recycle" class="panel">
+  <h2>① 建設リサイクル法の届出</h2>
+  <div class="highlight">⏰ 提出期限: 着工 <strong>7日前</strong>まで ／ 届出先: 建築指導課 ／ 届出なし = 10万円以下の過料</div>
+  <div class="card">
+    <div class="card-header"><h3>対象</h3><span class="badge badge-red">必須確認</span></div>
+    <p>床面積合計 <strong>80㎡以上</strong> の建築物の解体工事</p>
+  </div>
+  <div class="card">
+    <h3>必要書類チェックリスト</h3>
+    <ul class="checklist">
+      <li><input type="checkbox" id="r1"><label for="r1">届出書（様式第1号）※自治体HPからDL</label></li>
+      <li><input type="checkbox" id="r2"><label for="r2">分別解体等の計画等（別表）</label></li>
+      <li><input type="checkbox" id="r3"><label for="r3">案内図（現場の位置がわかる地図）</label></li>
+      <li><input type="checkbox" id="r4"><label for="r4">設計図 or 写真（建物の構造・規模がわかるもの）</label></li>
+      <li><input type="checkbox" id="r5"><label for="r5">工程表</label></li>
+      <li><input type="checkbox" id="r6"><label for="r6">委任状（届出者と発注者が異なる場合）</label></li>
+      <li><input type="checkbox" id="r7"><label for="r7">建設業許可証の写し</label></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>記入ガイド（S.K.R典型値）</h3>
+    <table>
+      <thead><tr><th>項目</th><th>記入内容</th></tr></thead>
+      <tbody>
+      <tr><td data-label="項目">届出者</td><td data-label="記入内容">発注者（施主）の氏名・住所</td></tr>
+      <tr><td data-label="項目">工事施工者</td><td data-label="記入内容">S.K.R（または元請の社名）</td></tr>
+      <tr><td data-label="項目">工事の種類</td><td data-label="記入内容">「建築物の解体」にチェック</td></tr>
+      <tr><td data-label="項目">構造</td><td data-label="記入内容">木造 / 鉄骨造 / RC造 から選択</td></tr>
+      <tr><td data-label="項目">床面積</td><td data-label="記入内容">登記簿 or 図面から算出</td></tr>
+      <tr><td data-label="項目">工期</td><td data-label="記入内容">着工日〜完了予定日</td></tr>
+      <tr><td data-label="項目">分別解体の方法</td><td data-label="記入内容">手作業＋機械併用（通常はこれ）</td></tr>
+      <tr><td data-label="項目">廃棄物の種類</td><td data-label="記入内容">木くず / コンクリートがら / 金属くず / ガラス陶磁器 / 混合廃棄物</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ②特定建設作業 -->
+<div id="noise" class="panel">
+  <h2>② 特定建設作業届出（騒音・振動）</h2>
+  <div class="highlight">⏰ 提出期限: 作業開始 <strong>7日前</strong>まで ／ 届出先: 環境課</div>
+  <div class="card">
+    <div class="card-header"><h3>該当する作業（解体で多いもの）</h3><span class="badge badge-yellow">要確認</span></div>
+    <table>
+      <thead><tr><th>作業</th><th>解体での頻度</th></tr></thead>
+      <tbody>
+      <tr><td data-label="作業">ブレーカー（大型）を使う作業</td><td data-label="頻度" style="color:#f0883e">★ 最多</td></tr>
+      <tr><td data-label="作業">バックホウ（一定重量以上）</td><td data-label="頻度">多い</td></tr>
+      <tr><td data-label="作業">くい打機・くい抜機</td><td data-label="頻度">たまに</td></tr>
+      <tr><td data-label="作業">さく岩機</td><td data-label="頻度">稀</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>規制基準（これを超えるとNG）</h3>
+    <table>
+      <thead><tr><th>項目</th><th>基準</th></tr></thead>
+      <tbody>
+      <tr><td data-label="項目">作業時間</td><td data-label="基準">7:00〜19:00</td></tr>
+      <tr><td data-label="項目">1日の作業</td><td data-label="基準">連続6時間以内（合計10時間以内）</td></tr>
+      <tr><td data-label="項目">作業期間</td><td data-label="基準">連続6日以内</td></tr>
+      <tr><td data-label="項目">日曜・祝日</td><td data-label="基準" style="color:#da3633">作業禁止</td></tr>
+      <tr><td data-label="項目">騒音</td><td data-label="基準">敷地境界で 85dB 以下</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>必要書類チェックリスト</h3>
+    <ul class="checklist">
+      <li><input type="checkbox" id="n1"><label for="n1">特定建設作業実施届出書（騒音用）</label></li>
+      <li><input type="checkbox" id="n2"><label for="n2">特定建設作業実施届出書（振動用）※振動該当時</label></li>
+      <li><input type="checkbox" id="n3"><label for="n3">付近見取図（作業場所を示す図面）</label></li>
+      <li><input type="checkbox" id="n4"><label for="n4">工程表（特定建設作業の実施期間）</label></li>
+      <li><input type="checkbox" id="n5"><label for="n5">使用機械の仕様書（型式・出力等）</label></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ③Gビズ -->
+<div id="gbiz" class="panel">
+  <h2>③ Gビズ（GビズID・電子申請）</h2>
+  <div class="highlight">⚠ アカウント取得に <strong>2〜3週間</strong>かかる。必要になる前に早めに取得</div>
+  <div class="card">
+    <h3>使う場面</h3>
+    <table>
+      <thead><tr><th>場面</th><th>内容</th></tr></thead>
+      <tbody>
+      <tr><td data-label="場面">補助金申請</td><td data-label="内容">jGrants経由の電子申請</td></tr>
+      <tr><td data-label="場面">CCUS</td><td data-label="内容">建設キャリアアップシステム登録</td></tr>
+      <tr><td data-label="場面">各種電子届出</td><td data-label="内容">自治体による</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <h3>アカウント取得チェックリスト</h3>
+    <ul class="checklist">
+      <li><input type="checkbox" id="g1"><label for="g1">GビズID公式サイト（gbiz-id.go.jp）でアカウント申請</label></li>
+      <li><input type="checkbox" id="g2"><label for="g2">印鑑証明書（発行3ヶ月以内）を準備</label></li>
+      <li><input type="checkbox" id="g3"><label for="g3">登記簿謄本（発行3ヶ月以内）を準備 ※法人</label></li>
+      <li><input type="checkbox" id="g4"><label for="g4">申請書を印刷・押印・郵送</label></li>
+      <li><input type="checkbox" id="g5"><label for="g5">届いたらログイン確認</label></li>
+    </ul>
+  </div>
+  <div class="card">
+    <div class="card-header"><h3>注意</h3><span class="badge badge-red">重要</span></div>
+    <ul style="padding-left: 20px; line-height: 2;">
+      <li>アカウントは<strong>会社に1つ</strong>。担当者退職でも引き継げるようID/PWを共有管理</li>
+      <li>マイナンバーカードの電子証明書 = <strong>有効期限5年で更新必要</strong></li>
+      <li>認証キー期限切れ → 市役所で復活手続き</li>
+    </ul>
+  </div>
+</div>
+
+<!-- アスベスト -->
+<div id="asbestos" class="panel">
+  <h2>アスベスト事前調査</h2>
+  <div class="highlight">2022年4月〜義務化 ／ 報告: 石綿事前調査結果報告システム（厚労省）で電子報告</div>
+  <div class="card">
+    <h3>報告が必要な工事</h3>
+    <table>
+      <thead><tr><th>工事種別</th><th>条件</th></tr></thead>
+      <tbody>
+      <tr><td data-label="工事種別">解体工事</td><td data-label="条件">床面積合計 <strong>80㎡以上</strong></td></tr>
+      <tr><td data-label="工事種別">改修工事</td><td data-label="条件">請負金額 <strong>100万円以上</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2">
+    <div class="card" style="border-color: #238636;">
+      <div class="card-header"><h3>2006年9月以降の建物</h3><span class="badge badge-green">簡易</span></div>
+      <p>事前調査は必要だが<br><strong>「石綿なし」で報告可（みなし）</strong></p>
+      <ul class="checklist" style="margin-top: 10px;">
+        <li><input type="checkbox" id="a1"><label for="a1">着工年月日を登記簿で確認</label></li>
+        <li><input type="checkbox" id="a2"><label for="a2">電子報告システムで「石綿なし」報告</label></li>
+      </ul>
+    </div>
+    <div class="card" style="border-color: #da3633;">
+      <div class="card-header"><h3>2006年8月以前の建物</h3><span class="badge badge-red">要調査</span></div>
+      <p><strong>書面 + 目視の事前調査が必須</strong></p>
+      <ul class="checklist" style="margin-top: 10px;">
+        <li><input type="checkbox" id="a3"><label for="a3">設計図書で石綿含有建材の有無を書面調査</label></li>
+        <li><input type="checkbox" id="a4"><label for="a4">現地で目視調査</label></li>
+        <li><input type="checkbox" id="a5"><label for="a5">不明な場合: 分析調査 or みなし(石綿あり扱い)</label></li>
+        <li><input type="checkbox" id="a6"><label for="a6">石綿確定時: 除去計画作成 + 労基署届出</label></li>
+        <li><input type="checkbox" id="a7"><label for="a7">電子報告システムで結果報告</label></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 補助金 -->
+<div id="subsidy" class="panel">
+  <h2>空き家解体 補助金ガイド</h2>
+  <div class="highlight">⚠ 全市共通: <strong>工事契約前に申請が必須</strong>。契約後は使えない。見積り段階で施主に案内する</div>
+
+  <div class="card">
+    <div class="card-header"><h3>松戸市 — 老朽空家等除却費用補助金</h3><span class="badge badge-blue">上限60万</span></div>
+    <table>
+      <tbody>
+      <tr><th data-label="">補助率</th><td data-label="補助率">1/3以内</td><th data-label="">上限</th><td data-label="上限">60万円</td></tr>
+      <tr><th data-label="">受付</th><td data-label="受付">令和8年 5/18〜7/17</td><th data-label="">枠</th><td data-label="枠">約15戸（先着）</td></tr>
+      <tr><th data-label="">窓口</th><td data-label="窓口" colspan="3">街づくり部 住宅政策課</td></tr>
+      </tbody>
+    </table>
+    <h3 style="margin-top: 12px;">条件</h3>
+    <ul class="checklist">
+      <li><input type="checkbox" id="m1"><label for="m1">昭和56年(1981年)5月31日以前の建築</label></li>
+      <li><input type="checkbox" id="m2"><label for="m2">1年以上空き家</label></li>
+      <li><input type="checkbox" id="m3"><label for="m3">市税の滞納がない</label></li>
+      <li><input type="checkbox" id="m4"><label for="m4">まだ工事契約をしていない</label></li>
+    </ul>
+    <h3 style="margin-top: 12px;">必要書類</h3>
+    <ul class="checklist">
+      <li><input type="checkbox" id="m5"><label for="m5">補助金交付申請書（市HPからDL）</label></li>
+      <li><input type="checkbox" id="m6"><label for="m6">建物の登記事項証明書</label></li>
+      <li><input type="checkbox" id="m7"><label for="m7">建物の現況写真（外観4方向+内部）</label></li>
+      <li><input type="checkbox" id="m8"><label for="m8">解体工事の見積書</label></li>
+      <li><input type="checkbox" id="m9"><label for="m9">案内図</label></li>
+      <li><input type="checkbox" id="m10"><label for="m10">市税の納税証明書</label></li>
+      <li><input type="checkbox" id="m11"><label for="m11">本人確認書類</label></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>成田市 — 特定空家等除却工事費補助金</h3><span class="badge badge-blue">上限50万</span></div>
+    <table>
+      <tbody>
+      <tr><th data-label="">補助率</th><td data-label="補助率">1/2</td><th data-label="">上限</th><td data-label="上限">50万円</td></tr>
+      <tr><th data-label="">受付</th><td data-label="受付">4月〜10月末目安</td><th data-label="">窓口</th><td data-label="窓口">建築住宅課 0476-20-1564</td></tr>
+      </tbody>
+    </table>
+    <ul class="checklist" style="margin-top: 10px;">
+      <li><input type="checkbox" id="n6"><label for="n6">特定空家の認定を受けている</label></li>
+      <li><input type="checkbox" id="n7"><label for="n7">勧告(空家法22条2項)を受けていない</label></li>
+      <li><input type="checkbox" id="n8"><label for="n8">個人所有の一戸建て</label></li>
+      <li><input type="checkbox" id="n9"><label for="n9">工事契約前</label></li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>野田市 — 危険空家除却工事等助成金</h3><span class="badge badge-blue">上限50万</span></div>
+    <table>
+      <tbody>
+      <tr><th data-label="">補助率</th><td data-label="補助率">除却費の1/2</td><th data-label="">上限</th><td data-label="上限">50万円（+裁判費50万）</td></tr>
+      <tr><th data-label="">窓口</th><td data-label="窓口" colspan="3">市民生活課 04-7123-1083</td></tr>
+      </tbody>
+    </table>
+    <div class="calc">
+      <h3>補助金額かんたん計算</h3>
+      <p style="margin: 8px 0;">延床面積 <input type="number" id="calcArea" value="100" min="1"> ㎡ ×
+      <select id="calcType" style="background:#0d1117;border:1px solid #30363d;color:#c9d1d9;padding:6px;border-radius:4px;">
+        <option value="32000">木造(32,000円/㎡)</option>
+        <option value="46000">鉄骨(46,000円/㎡)</option>
+      </select>
+      <button onclick="calcSubsidy()" style="background:#238636;color:#fff;border:none;padding:6px 16px;border-radius:4px;cursor:pointer;margin-left:8px;">計算</button></p>
+      <div id="calcResult" class="calc-result"></div>
+    </div>
+  </div>
+
+  <div class="card" style="border-color: #f0883e;">
+    <h3>営業トーク例</h3>
+    <div class="talk-box">「この物件、〇〇市の空き家解体補助金の対象になる可能性があります。<br>
+上限〇〇万円で、工事費の〇分の1が補助されます。<br>
+申請手続きもサポートできますので、まずは対象かどうか一緒に確認しませんか？」</div>
+    <p style="color: #8b949e; font-size: 0.85em; margin-top: 8px;">※ 補助金は施主への還元。S.K.Rの取り分は変わらない = 施主の負担減 = 受注しやすくなる</p>
+  </div>
+</div>
+
+<!-- 案件管理 -->
+<div id="tracker" class="panel">
+  <h2>案件ごとの提出管理</h2>
+  <div class="card">
+    <div style="overflow-x: auto;">
+    <table class="case-table">
+      <tr>
+        <th>案件名</th><th>現場住所</th><th>着工日</th><th>建築年</th><th>床面積</th>
+        <th>①リサイクル</th><th>②特定建設</th><th>③Gビズ</th><th>アスベスト</th>
+      </tr>
+      <tr>
+        <td style="color:#7ee787">（例）○○戸建</td>
+        <td>○○市○○X-X</td><td>7/10</td><td>1985年</td><td>120㎡</td>
+        <td><span class="badge badge-red">要 7/3</span></td>
+        <td><span class="badge badge-yellow">要(ブレーカー)</span></td>
+        <td><span class="badge badge-green">不要</span></td>
+        <td><span class="badge badge-red">要(書面+目視)</span></td>
+      </tr>
+      <tr>
+        <td><input type="text" placeholder="案件名"></td>
+        <td><input type="text" placeholder="住所"></td>
+        <td><input type="text" placeholder="着工日"></td>
+        <td><input type="text" placeholder="建築年"></td>
+        <td><input type="text" placeholder="㎡"></td>
+        <td><input type="text" placeholder="要/不要"></td>
+        <td><input type="text" placeholder="要/不要"></td>
+        <td><input type="text" placeholder="要/不要"></td>
+        <td><input type="text" placeholder="要/不要"></td>
+      </tr>
+      <tr>
+        <td><input type="text" placeholder="案件名"></td>
+        <td><input type="text" placeholder="住所"></td>
+        <td><input type="text" placeholder="着工日"></td>
+        <td><input type="text" placeholder="建築年"></td>
+        <td><input type="text" placeholder="㎡"></td>
+        <td><input type="text" placeholder="要/不要"></td>
+        <td><input type="text" placeholder="要/不要"></td>
+        <td><input type="text" placeholder="要/不要"></td>
+        <td><input type="text" placeholder="要/不要"></td>
+      </tr>
+    </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>7/24 サンプル案件 期限カウントダウン</h3>
+    <p style="font-size: 1.3em; color: #f0883e; margin: 8px 0;" id="countdown"></p>
+    <p style="color: #8b949e;">建物使用期限までに全作業完了が必須（役員会議決定事項）</p>
+  </div>
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function calcSubsidy() {
+  const area = parseInt(document.getElementById('calcArea').value) || 0;
+  const rate = parseInt(document.getElementById('calcType').value);
+  const standard = area * rate * 0.8;
+  const subsidy = Math.min(standard * 0.5, 500000);
+  document.getElementById('calcResult').innerHTML =
+    `標準除却費: ${standard.toLocaleString()}円 × 50% = ${(standard*0.5).toLocaleString()}円<br>` +
+    `→ 補助金額: <strong>${subsidy.toLocaleString()}円</strong>` + (subsidy >= 500000 ? '（上限適用）' : '');
+}
+
+// countdown
+const deadline = new Date('2026-07-24T23:59:59');
+function updateCountdown() {
+  const now = new Date();
+  const diff = deadline - now;
+  if (diff <= 0) { document.getElementById('countdown').textContent = '期限到達'; return; }
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  document.getElementById('countdown').textContent = `残り ${days}日 ${hours}時間`;
+}
+updateCountdown();
+setInterval(updateCountdown, 60000);
+calcSubsidy();
+</script>
+
+</body>
+</html>

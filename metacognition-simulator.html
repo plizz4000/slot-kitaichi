@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MetaMind — メタ認知シミュレーター</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a28;
+    --border: #2a2a40;
+    --accent: #7c6fff;
+    --accent2: #ff6b9d;
+    --accent3: #00e5c3;
+    --text: #e8e8f0;
+    --muted: #6a6a8a;
+    --warn: #ffb347;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(124,111,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(124,111,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .logo {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 6px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .title {
+    font-size: clamp(28px, 6vw, 44px);
+    font-weight: 300;
+    letter-spacing: -1px;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+
+  .title span {
+    color: var(--accent);
+  }
+
+  .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    margin-bottom: 32px;
+    animation: fadeIn 0.6s ease 0.3s both;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Scenario card */
+  .scenario-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    animation: fadeIn 0.5s ease both;
+  }
+
+  .scenario-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent3);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .scenario-text {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  /* Questions */
+  .question-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+    transition: border-color 0.3s;
+    animation: slideUp 0.4s ease both;
+  }
+
+  .question-block:hover {
+    border-color: var(--accent);
+  }
+
+  .q-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .q-text {
+    font-size: 15px;
+    line-height: 1.7;
+    margin-bottom: 20px;
+    color: var(--text);
+  }
+
+  .q-subtext {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    font-style: italic;
+  }
+
+  /* Scale */
+  .scale-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .scale-label {
+    font-size: 11px;
+    color: var(--muted);
+    white-space: nowrap;
+    font-family: 'DM Mono', monospace;
+    min-width: 60px;
+  }
+
+  .scale-label:last-child { text-align: right; }
+
+  .scale-options {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .scale-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .scale-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(124,111,255,0.1);
+  }
+
+  .scale-btn.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 0 0 16px rgba(124,111,255,0.4);
+  }
+
+  /* Text answer */
+  .text-answer {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    padding: 14px 16px;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .text-answer:focus {
+    border-color: var(--accent);
+  }
+
+  /* Nav buttons */
+  .nav-wrap {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: 32px;
+  }
+
+  .btn {
+    padding: 14px 32px;
+    border-radius: 40px;
+    border: none;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-outline:hover {
+    border-color: var(--muted);
+    color: var(--text);
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(124,111,255,0.3);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(124,111,255,0.4);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Results */
+  #results { display: none; }
+
+  .result-header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeDown 0.6s ease both;
+  }
+
+  .result-title {
+    font-size: 32px;
+    font-weight: 300;
+    margin-bottom: 8px;
+  }
+
+  .result-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent3);
+    text-transform: uppercase;
+  }
+
+  /* Score radar */
+  .radar-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    animation: fadeIn 0.5s ease 0.1s both;
+  }
+
+  .radar-svg-wrap {
+    flex-shrink: 0;
+    margin: 0 auto;
+  }
+
+  .score-list {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .score-item {
+    margin-bottom: 16px;
+    animation: slideUp 0.4s ease both;
+  }
+
+  .score-item:nth-child(1) { animation-delay: 0.1s; }
+  .score-item:nth-child(2) { animation-delay: 0.2s; }
+  .score-item:nth-child(3) { animation-delay: 0.3s; }
+  .score-item:nth-child(4) { animation-delay: 0.4s; }
+  .score-item:nth-child(5) { animation-delay: 0.5s; }
+
+  .score-name {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+
+  .score-name span:last-child {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+  }
+
+  .score-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .score-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  /* Analysis cards */
+  .analysis-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  @media (max-width: 500px) {
+    .analysis-grid { grid-template-columns: 1fr; }
+  }
+
+  .analysis-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 24px;
+    animation: slideUp 0.4s ease both;
+  }
+
+  .analysis-card:nth-child(1) { animation-delay: 0.15s; }
+  .analysis-card:nth-child(2) { animation-delay: 0.25s; }
+  .analysis-card:nth-child(3) { animation-delay: 0.35s; }
+  .analysis-card:nth-child(4) { animation-delay: 0.45s; }
+
+  .card-icon { font-size: 22px; margin-bottom: 10px; }
+
+  .card-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .card-value {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* Insights */
+  .insights-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 16px;
+    animation: slideUp 0.5s ease 0.3s both;
+  }
+
+  .insights-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--accent2);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .insight-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+
+  .insight-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+
+  .insight-text {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  /* Overall score ring */
+  .overall-score {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: fadeIn 0.5s ease 0.05s both;
+  }
+
+  .score-ring-wrap {
+    display: inline-block;
+    position: relative;
+  }
+
+  .score-ring-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  .score-ring-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 36px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .score-ring-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Bias tags */
+  .bias-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .bias-tag {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Personality section */
+  .personality-section {
+    margin-bottom: 24px;
+    animation: slideUp 0.5s ease 0.35s both;
+  }
+
+  .personality-section-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .personality-duo {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  @media (max-width: 520px) {
+    .personality-duo { grid-template-columns: 1fr; }
+  }
+
+  .mbti-card {
+    background: var(--surface);
+    border: 1px solid #7c6fff55;
+    border-radius: 20px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .mbti-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; left: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(124,111,255,0.15), transparent 70%);
+    pointer-events: none;
+  }
+
+  .shichusuimei-card {
+    background: var(--surface);
+    border: 1px solid #ff6b9d55;
+    border-radius: 20px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+  }
+
+  .shichusuimei-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(255,107,157,0.15), transparent 70%);
+    pointer-events: none;
+  }
+
+  .pcard-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 14px;
+  }
+
+  .mbti-type {
+    font-family: 'DM Mono', monospace;
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    line-height: 1;
+    margin-bottom: 6px;
+    background: linear-gradient(135deg, #7c6fff, #a78bff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .mbti-name {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 4px;
+    font-weight: 400;
+  }
+
+  .mbti-nickname {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 14px;
+  }
+
+  .mbti-axes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .mbti-axis {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .axis-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .axis-fill-left {
+    position: absolute;
+    right: 50%;
+    top: 0; bottom: 0;
+    border-radius: 4px 0 0 4px;
+    background: linear-gradient(90deg, #7c6fff, #a78bff);
+  }
+
+  .axis-fill-right {
+    position: absolute;
+    left: 50%;
+    top: 0; bottom: 0;
+    border-radius: 0 4px 4px 0;
+    background: linear-gradient(90deg, #a78bff, #7c6fff);
+  }
+
+  .axis-lo { color: var(--muted); min-width: 10px; text-align: right; }
+  .axis-hi { color: var(--accent); min-width: 10px; }
+
+  .mbti-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  /* Shichusuimei */
+  .gogyo-symbol {
+    font-size: 52px;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .gogyo-name {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    background: linear-gradient(135deg, #ff6b9d, #ffb347);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gogyo-type {
+    font-size: 13px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .gogyo-kanji {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 14px;
+  }
+
+  .gogyo-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 14px;
+  }
+
+  .gogyo-trait {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    border: 1px solid;
+  }
+
+  .gogyo-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  .compat-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Restart */
+  .restart-wrap {
+    text-align: center;
+    margin-top: 40px;
+    animation: fadeIn 0.5s ease 0.6s both;
+  }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Phase display */
+  #quiz { }
+
+  .phase-indicator {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 32px;
+    animation: fadeIn 0.5s ease 0.4s both;
+  }
+
+  .phase-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+  }
+
+  .phase-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  .phase-dot.done {
+    background: var(--accent3);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">MetaMind Simulator v1.0</div>
+    <h1 class="title">あなたの<span>意思決定</span>を<br>解剖する</h1>
+    <p class="subtitle">思考の癖・バイアス・判断精度を可視化する<br>メタ認知トレーニングシステム</p>
+  </div>
+
+  <!-- Quiz section -->
+  <div id="quiz">
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="prog-label">PHASE 1 / 3 — 状況認識</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="phase-indicator">
+      <div class="phase-dot active" id="pd0"></div>
+      <div class="phase-dot" id="pd1"></div>
+      <div class="phase-dot" id="pd2"></div>
+    </div>
+
+    <div id="phase-content"></div>
+
+    <div class="nav-wrap">
+      <button class="btn btn-outline" id="btn-back" onclick="goBack()">← 戻る</button>
+      <button class="btn btn-primary" id="btn-next" onclick="goNext()">次へ →</button>
+    </div>
+  </div>
+
+  <!-- Results section -->
+  <div id="results">
+    <div class="result-header">
+      <div class="result-tag">Analysis Complete</div>
+      <h2 class="result-title">あなたの<span style="color:var(--accent)">思考プロフィール</span></h2>
+    </div>
+
+    <div class="overall-score">
+      <div class="score-ring-wrap">
+        <svg width="140" height="140" id="ring-svg">
+          <circle cx="70" cy="70" r="56" fill="none" stroke="var(--border)" stroke-width="8"/>
+          <circle cx="70" cy="70" r="56" fill="none" stroke="url(#rg)" stroke-width="8"
+            stroke-linecap="round" stroke-dasharray="351.858" stroke-dashoffset="351.858"
+            transform="rotate(-90 70 70)" id="ring-circle"/>
+          <defs>
+            <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#7c6fff"/>
+              <stop offset="100%" stop-color="#ff6b9d"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="score-ring-label">
+          <div class="score-ring-num" id="overall-num">--</div>
+          <div class="score-ring-sub">/ 100</div>
+        </div>
+      </div>
+      <div style="margin-top:12px; font-size:13px; color:var(--muted); font-family:'Space Mono',monospace;" id="overall-label"></div>
+    </div>
+
+    <div class="radar-wrap">
+      <div class="radar-svg-wrap">
+        <svg width="200" height="200" id="radar-svg" viewBox="0 0 200 200"></svg>
+      </div>
+      <div class="score-list" id="score-list"></div>
+    </div>
+
+    <div class="analysis-grid" id="analysis-grid"></div>
+
+    <!-- Personality Diagnosis -->
+    <div class="personality-section">
+      <div class="personality-section-title">✦ 性格診断マッピング ✦</div>
+      <div class="personality-duo">
+        <div class="mbti-card" id="mbti-card"></div>
+        <div class="shichusuimei-card" id="gogyo-card"></div>
+      </div>
+    </div>
+
+    <div class="insights-card" id="insights-card">
+      <div class="insights-title">💡 メタ認知インサイト</div>
+      <div id="insights-content"></div>
+    </div>
+
+    <div class="insights-card" id="bias-card">
+      <div class="insights-title">⚠️ 検出されたバイアス傾向</div>
+      <div id="bias-content"></div>
+    </div>
+
+    <div class="insights-card" id="train-card">
+      <div class="insights-title">🎯 トレーニング推奨</div>
+      <div id="train-content"></div>
+    </div>
+
+    <div class="restart-wrap">
+      <button class="btn btn-primary" onclick="restart()">もう一度試す</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============ DATA ============
+
+const scenarios = [
+  {
+    tag: "SCENARIO A — ビジネス判断",
+    text: "あなたは新プロジェクトのリーダーです。チームメンバーの一人が「この方向性は間違っている」と強く反対しています。上司はあなたの判断を待っており、締め切りまで残り2時間です。"
+  },
+  {
+    tag: "SCENARIO B — リスク評価",
+    text: "投資に関して、確実に30万円を得る選択肢と、60%の確率で60万円を得るが40%の確率で何も得られない選択肢があります。"
+  },
+  {
+    tag: "SCENARIO C — 情報処理",
+    text: "重要な会議の直前に、計画を根本から変える可能性のある情報が入ってきました。しかしその情報源の信頼性は70%程度です。"
+  }
+];
+
+const phases = [
+  {
+    label: "PHASE 1 / 3 — 状況認識",
+    pct: "0%",
+    questions: [
+      {
+        id: "q1", type: "scale",
+        label: "Q1",
+        text: "この状況でまず何をしますか？直感的に行動する傾向がありますか？",
+        sub: "1=じっくり分析してから / 5=直感で即行動",
+        lo: "熟慮型", hi: "直感型"
+      },
+      {
+        id: "q2", type: "scale",
+        label: "Q2",
+        text: "反対意見に対して、どの程度自分の判断を変える可能性がありますか？",
+        sub: "1=ほぼ変えない / 5=すぐに変える",
+        lo: "固執型", hi: "柔軟型"
+      },
+      {
+        id: "q3", type: "scale",
+        label: "Q3",
+        text: "時間的プレッシャーがある状況でのあなたの判断の質は？",
+        sub: "1=大幅に低下する / 5=ほとんど変わらない",
+        lo: "影響大", hi: "安定型"
+      }
+    ]
+  },
+  {
+    label: "PHASE 2 / 3 — リスク感知",
+    pct: "40%",
+    questions: [
+      {
+        id: "q4", type: "scale",
+        label: "Q4",
+        text: "リスクの高い選択肢（高リターン・低確率）と安全な選択肢、どちらを好みますか？",
+        sub: "1=常に安全策 / 5=積極的にリスクを取る",
+        lo: "安全志向", hi: "リスク志向"
+      },
+      {
+        id: "q5", type: "scale",
+        label: "Q5",
+        text: "損失と同額の利益、あなたにとって感情的な重みはどちらが大きいですか？",
+        sub: "1=利益の方が大きく感じる / 5=損失の方が大きく感じる",
+        lo: "利益重視", hi: "損失回避"
+      },
+      {
+        id: "q6", type: "scale",
+        label: "Q6",
+        text: "不完全な情報のまま決断することへの抵抗感は？",
+        sub: "1=全く抵抗ない / 5=非常に抵抗がある",
+        lo: "行動型", hi: "慎重型"
+      }
+    ]
+  },
+  {
+    label: "PHASE 3 / 3 — 思考の癖",
+    pct: "70%",
+    questions: [
+      {
+        id: "q7", type: "scale",
+        label: "Q7",
+        text: "最初に得た情報が、その後の判断にどの程度影響しますか？",
+        sub: "1=ほとんど影響しない / 5=非常に強く影響する",
+        lo: "影響小", hi: "アンカリング強"
+      },
+      {
+        id: "q8", type: "scale",
+        label: "Q8",
+        text: "自分の判断が正しいという確信の強さは、平均的に見てどの程度ですか？",
+        sub: "1=自信が持てない / 5=非常に自信がある",
+        lo: "低自信", hi: "過信傾向"
+      },
+      {
+        id: "q9", type: "text",
+        label: "Q9",
+        text: "あなたが過去に下した意思決定で「後悔している」ものを一言で教えてください。",
+        sub: "自由記述（プライベートで処理されます）",
+        placeholder: "例：あのとき転職しなかったこと"
+      },
+      {
+        id: "q10", type: "scale",
+        label: "Q10",
+        text: "自分の思考プロセスを客観的に観察できていると思いますか？",
+        sub: "1=全くできていない / 5=常にできている",
+        lo: "未発達", hi: "高メタ認知"
+      }
+    ]
+  }
+];
+
+// ============ STATE ============
+let currentPhase = 0;
+let answers = {};
+
+// ============ RENDER ============
+
+function renderPhase() {
+  const ph = phases[currentPhase];
+  document.getElementById('prog-label').textContent = ph.label;
+
+  // Update phase dots
+  for(let i = 0; i < 3; i++) {
+    const dot = document.getElementById('pd'+i);
+    dot.className = 'phase-dot';
+    if(i < currentPhase) dot.classList.add('done');
+    else if(i === currentPhase) dot.classList.add('active');
+  }
+
+  const pct = currentPhase === 0 ? 5 : currentPhase === 1 ? 40 : 70;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  let html = '';
+
+  // Scenario for phase 0
+  if(currentPhase === 0) {
+    html += `<div class="scenario-card">
+      <div class="scenario-tag">${scenarios[0].tag}</div>
+      <div class="scenario-text">${scenarios[0].text}</div>
+    </div>`;
+  } else if(currentPhase === 1) {
+    html += `<div class="scenario-card">
+      <div class="scenario-tag">${scenarios[1].tag}</div>
+      <div class="scenario-text">${scenarios[1].text}</div>
+    </div>`;
+  } else {
+    html += `<div class="scenario-card">
+      <div class="scenario-tag">${scenarios[2].tag}</div>
+      <div class="scenario-text">${scenarios[2].text}</div>
+    </div>`;
+  }
+
+  ph.questions.forEach((q, qi) => {
+    html += `<div class="question-block" style="animation-delay:${qi*0.08+0.1}s">`;
+    html += `<div class="q-label">${q.label}</div>`;
+    html += `<div class="q-text">${q.text}</div>`;
+    html += `<div class="q-subtext">${q.sub}</div>`;
+
+    if(q.type === 'scale') {
+      const cur = answers[q.id] || null;
+      html += `<div class="scale-wrap">
+        <div class="scale-label">${q.lo}</div>
+        <div class="scale-options">`;
+      for(let v = 1; v <= 5; v++) {
+        html += `<button class="scale-btn${cur===v?' selected':''}" onclick="setAnswer('${q.id}',${v},this)">${v}</button>`;
+      }
+      html += `</div><div class="scale-label">${q.hi}</div></div>`;
+    } else {
+      const cur = answers[q.id] || '';
+      html += `<textarea class="text-answer" id="ta-${q.id}" placeholder="${q.placeholder}" onchange="answers['${q.id}']=this.value">${cur}</textarea>`;
+    }
+
+    html += '</div>';
+  });
+
+  document.getElementById('phase-content').innerHTML = html;
+
+  // Back button
+  document.getElementById('btn-back').style.visibility = currentPhase === 0 ? 'hidden' : 'visible';
+  document.getElementById('btn-next').textContent = currentPhase === 2 ? '結果を見る →' : '次へ →';
+}
+
+function setAnswer(id, val, btn) {
+  answers[id] = val;
+  btn.closest('.scale-options').querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function goNext() {
+  // Collect text answers
+  const ph = phases[currentPhase];
+  ph.questions.forEach(q => {
+    if(q.type === 'text') {
+      const ta = document.getElementById('ta-'+q.id);
+      if(ta) answers[q.id] = ta.value;
+    }
+  });
+
+  if(currentPhase < 2) {
+    currentPhase++;
+    renderPhase();
+    window.scrollTo({top:0, behavior:'smooth'});
+  } else {
+    showResults();
+  }
+}
+
+function goBack() {
+  if(currentPhase > 0) {
+    currentPhase--;
+    renderPhase();
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+}
+
+// ============ RESULTS ============
+
+function calcScores() {
+  const get = id => answers[id] || 3;
+
+  // Dimensions
+  const speed     = get('q1'); // 直感度
+  const flex      = get('q2'); // 柔軟性
+  const stability = get('q3'); // 安定性
+  const riskTake  = get('q4'); // リスク志向
+  const lossAv    = get('q5'); // 損失回避
+  const uncert    = 6 - get('q6'); // 不確実性耐性
+  const anchor    = 6 - get('q7'); // アンカリング耐性 (高いほど良い)
+  const overconf  = get('q8'); // 自信
+  const metacog   = get('q10'); // メタ認知力
+
+  // 5 key scores (0-100)
+  const scores = {
+    '意思決定スピード':  Math.round((speed / 5) * 100),
+    '情報柔軟性':        Math.round((flex / 5) * 100),
+    'リスク感受性':      Math.round((riskTake / 5) * 100),
+    'バイアス耐性':      Math.round(((anchor + uncert) / 10) * 100),
+    'メタ認知力':        Math.round((metacog / 5) * 100),
+  };
+
+  const overall = Math.round(Object.values(scores).reduce((a,b)=>a+b,0) / Object.keys(scores).length);
+
+  // Biases
+  const biases = [];
+  if(get('q7') >= 4) biases.push({ name: 'アンカリング効果', color: '#ff6b9d' });
+  if(get('q8') >= 4) biases.push({ name: '過信バイアス', color: '#ffb347' });
+  if(get('q5') >= 4) biases.push({ name: '損失回避バイアス', color: '#7c6fff' });
+  if(get('q1') <= 2) biases.push({ name: '分析麻痺', color: '#00e5c3' });
+  if(get('q2') <= 2) biases.push({ name: '確証バイアス', color: '#ff6b9d' });
+  if(biases.length === 0) biases.push({ name: 'バイアス傾向は低い', color: '#00e5c3' });
+
+  return { scores, overall, biases, raw: { speed, flex, stability, riskTake, lossAv, uncert, anchor, overconf, metacog } };
+}
+
+function showResults() {
+  document.getElementById('prog-fill')?.style;
+  document.getElementById('progress-fill').style.width = '100%';
+  document.getElementById('prog-pct').textContent = '100%';
+
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('results').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const { scores, overall, biases, raw } = calcScores();
+
+  // Overall ring
+  setTimeout(() => {
+    const circumference = 351.858;
+    const offset = circumference - (overall / 100) * circumference;
+    document.getElementById('ring-circle').style.strokeDashoffset = offset;
+    document.getElementById('overall-num').textContent = overall;
+
+    const labels = ['初心者', '成長中', '中級者', '上級者', 'エキスパート'];
+    const li = overall < 30 ? 0 : overall < 50 ? 1 : overall < 65 ? 2 : overall < 80 ? 3 : 4;
+    document.getElementById('overall-label').textContent = '思考プロフィール: ' + labels[li];
+  }, 200);
+
+  // Radar SVG
+  drawRadar(Object.values(scores));
+
+  // Score list
+  const colors = ['#7c6fff','#ff6b9d','#00e5c3','#ffb347','#a8ff78'];
+  let slHtml = '';
+  Object.entries(scores).forEach(([name, val], i) => {
+    slHtml += `<div class="score-item">
+      <div class="score-name"><span>${name}</span><span>${val}</span></div>
+      <div class="score-bar"><div class="score-fill" style="width:${val}%;background:${colors[i]}"></div></div>
+    </div>`;
+  });
+  document.getElementById('score-list').innerHTML = slHtml;
+
+  // Analysis cards
+  const styleType = raw.speed >= 4 ? '直感重視型' : raw.speed <= 2 ? '熟慮重視型' : 'バランス型';
+  const riskType  = raw.riskTake >= 4 ? 'リスク志向' : raw.riskTake <= 2 ? 'リスク回避型' : '中立型';
+  const metacogLevel = raw.metacog >= 4 ? '高い' : raw.metacog <= 2 ? '要強化' : '普通';
+  const stabType = raw.stability >= 4 ? '高い' : raw.stability <= 2 ? '低い' : '普通';
+
+  document.getElementById('analysis-grid').innerHTML = `
+    <div class="analysis-card">
+      <div class="card-icon">🧠</div>
+      <div class="card-title">判断スタイル</div>
+      <div class="card-value" style="color:var(--accent)">${styleType}</div>
+      <div class="card-desc">情報処理と意思決定のアプローチ</div>
+    </div>
+    <div class="analysis-card">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">リスク態度</div>
+      <div class="card-value" style="color:var(--accent2)">${riskType}</div>
+      <div class="card-desc">不確実な状況での行動傾向</div>
+    </div>
+    <div class="analysis-card">
+      <div class="card-icon">🔍</div>
+      <div class="card-title">メタ認知力</div>
+      <div class="card-value" style="color:var(--accent3)">${metacogLevel}</div>
+      <div class="card-desc">自分の思考を観察する能力</div>
+    </div>
+    <div class="analysis-card">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">プレッシャー耐性</div>
+      <div class="card-value" style="color:var(--warn)">${stabType}</div>
+      <div class="card-desc">時間的制約下での判断安定性</div>
+    </div>
+  `;
+
+  // Personality: MBTI + 五行
+  renderMBTI(raw);
+  renderGogyo(raw);
+
+  // Insights
+  const insights = generateInsights(raw, scores);
+  document.getElementById('insights-content').innerHTML = insights.map(ins =>
+    `<div class="insight-item">
+      <div class="insight-dot" style="background:${ins.color}"></div>
+      <div class="insight-text">${ins.text}</div>
+    </div>`
+  ).join('');
+
+  // Biases
+  document.getElementById('bias-content').innerHTML = `
+    <div class="bias-tags">${biases.map(b =>
+      `<span class="bias-tag" style="background:${b.color}22;border:1px solid ${b.color};color:${b.color}">${b.name}</span>`
+    ).join('')}</div>
+    <div style="margin-top:16px;font-size:13px;line-height:1.7;color:var(--muted)">${generateBiasDesc(biases, raw)}</div>
+  `;
+
+  // Training
+  document.getElementById('train-content').innerHTML = generateTraining(raw, scores).map(t =>
+    `<div class="insight-item">
+      <div class="insight-dot" style="background:var(--accent3)"></div>
+      <div class="insight-text">${t}</div>
+    </div>`
+  ).join('');
+}
+
+// ============ MBTI MAPPING ============
+function calcMBTI(raw) {
+  // E/I: 外向(speed高・flex高) vs 内向
+  const EI = (raw.speed + raw.flex) / 2; // 高→E
+  // S/N: 現実(stability高・anchor低) vs 直感(metacog高・speed高)
+  const SN = (raw.metacog + raw.speed) / 2; // 高→N
+  // T/F: 論理(overconf高・lossAv低) vs 感情(flex高・lossAv高)
+  const TF = (raw.flex + raw.lossAv) / 2; // 高→F
+  // J/P: 計画(stability高・uncert低) vs 知覚(speed高・flex高)
+  const JP = (raw.stability + (6 - raw.speed)) / 2; // 高→J
+
+  const E = EI >= 3.5 ? 'E' : 'I';
+  const N = SN >= 3.5 ? 'N' : 'S';
+  const F = TF >= 3.5 ? 'F' : 'T';
+  const J = JP >= 3.5 ? 'J' : 'P';
+
+  const type = E + N + F + J;
+
+  const mbtiData = {
+    'ENFJ': { name: '主人公', nick: 'The Protagonist', desc: '人を鼓舞し引っ張るカリスマ。共感力と決断力を兼ね備えたリーダータイプ。', color: '#00c896' },
+    'ENFP': { name: '広報運動家', nick: 'The Campaigner', desc: '情熱的で創造的。可能性を見出すアイデアマン。柔軟な判断で周囲を巻き込む。', color: '#ff9f43' },
+    'ENTJ': { name: '指揮官', nick: 'The Commander', desc: '戦略的思考と強い意志で組織を動かす。目標達成に向けて徹底的に行動する。', color: '#7c6fff' },
+    'ENTP': { name: '討論者', nick: 'The Debater', desc: '知的好奇心旺盛で議論を楽しむ。既存の枠を超えた発想で問題を解決する。', color: '#00e5c3' },
+    'ESFJ': { name: '領事', nick: 'The Consul', desc: '協調性と責任感が強く、周囲の調和を大切にする。信頼と安定を重視する。', color: '#ff6b9d' },
+    'ESFP': { name: '芸能人', nick: 'The Entertainer', desc: '明るくエネルギッシュ。現在の瞬間を楽しみ、周囲を盛り上げる存在。', color: '#ffb347' },
+    'ESTJ': { name: '幹部', nick: 'The Executive', desc: '秩序と規律を重視する実務家。計画的かつ効率的に目標を達成する。', color: '#a8ff78' },
+    'ESTP': { name: '起業家', nick: 'The Entrepreneur', desc: '行動力とリスク感覚に優れる。現実的な問題解決と即断即決が得意。', color: '#ff6b9d' },
+    'INFJ': { name: '提唱者', nick: 'The Advocate', desc: '深い洞察力と理想主義を持つ。静かながら強い信念で人を動かす。', color: '#7c6fff' },
+    'INFP': { name: '仲介者', nick: 'The Mediator', desc: '内なる価値観と豊かな想像力。真摯に人と向き合い、共感を大切にする。', color: '#ff6b9d' },
+    'INTJ': { name: '建築家', nick: 'The Architect', desc: '戦略的・長期的視野で物事を設計する。独立心が強く、深く考え抜く。', color: '#00e5c3' },
+    'INTP': { name: '論理学者', nick: 'The Logician', desc: '純粋な知的探求を好む。理論と分析で複雑な問題を解体する思考家。', color: '#a8ff78' },
+    'ISFJ': { name: '擁護者', nick: 'The Defender', desc: '献身的で信頼性が高い。細部への注意と責任感で周囲をサポートする。', color: '#ffb347' },
+    'ISFP': { name: '冒険家', nick: 'The Adventurer', desc: '感受性豊かで柔軟。自分のペースで美と体験を探求するアーティスト。', color: '#ff9f43' },
+    'ISTJ': { name: '管理者', nick: 'The Logistician', desc: '誠実で几帳面。ルールと責任を重んじる実直な実務家タイプ。', color: '#7c6fff' },
+    'ISTP': { name: '巨匠', nick: 'The Virtuoso', desc: '冷静な観察力と実践的スキル。問題を論理的に分解し手を動かして解決する。', color: '#00e5c3' },
+  };
+
+  const axes = [
+    { lo: 'I', hi: 'E', val: EI, chosen: E },
+    { lo: 'S', hi: 'N', val: SN, chosen: N },
+    { lo: 'T', hi: 'F', val: TF, chosen: F },
+    { lo: 'P', hi: 'J', val: JP, chosen: J },
+  ];
+
+  return { type, data: mbtiData[type] || mbtiData['INTP'], axes, EI, SN, TF, JP };
+}
+
+function renderMBTI(raw) {
+  const { type, data, axes, EI, SN, TF, JP } = calcMBTI(raw);
+
+  const axesPct = [
+    { lo: 'I', hi: 'E', pct: Math.round((EI-1)/4*100), chosen: EI >= 3.5 ? 'E' : 'I' },
+    { lo: 'S', hi: 'N', pct: Math.round((SN-1)/4*100), chosen: SN >= 3.5 ? 'N' : 'S' },
+    { lo: 'T', hi: 'F', pct: Math.round((TF-1)/4*100), chosen: TF >= 3.5 ? 'F' : 'T' },
+    { lo: 'P', hi: 'J', pct: Math.round((JP-1)/4*100), chosen: JP >= 3.5 ? 'J' : 'P' },
+  ];
+
+  const axHtml = axesPct.map(ax => {
+    const isRight = ax.pct >= 50;
+    const fillPct = isRight ? (ax.pct - 50) * 2 : (50 - ax.pct) * 2;
+    const fillHtml = isRight
+      ? `<div class="axis-fill-right" style="width:${fillPct/2}%"></div>`
+      : `<div class="axis-fill-left" style="width:${fillPct/2}%"></div>`;
+    return `<div class="mbti-axis">
+      <span class="axis-lo" style="color:${!isRight?'var(--accent)':'var(--muted)'}">${ax.lo}</span>
+      <div class="axis-bar">${fillHtml}</div>
+      <span class="axis-hi" style="color:${isRight?'var(--accent)':'var(--muted)'}">${ax.hi}</span>
+    </div>`;
+  }).join('');
+
+  document.getElementById('mbti-card').innerHTML = `
+    <span class="pcard-badge" style="background:rgba(124,111,255,0.15);border:1px solid #7c6fff44;color:#a78bff">MBTI TYPE</span>
+    <div class="mbti-type">${type}</div>
+    <div class="mbti-name">${data.name}</div>
+    <div class="mbti-nickname">${data.nick}</div>
+    <div class="mbti-axes">${axHtml}</div>
+    <div class="mbti-desc">${data.desc}</div>
+  `;
+}
+
+// ============ 五行 / 四柱推命 MAPPING ============
+function calcGogyo(raw) {
+  // 五行スコア算出
+  // 木(もく): 成長・柔軟・創造 → flex高・metacog高
+  const moku  = (raw.flex + raw.metacog) / 2;
+  // 火(か): 情熱・直感・スピード → speed高・riskTake高
+  const ka    = (raw.speed + raw.riskTake) / 2;
+  // 土(ど): 安定・調和・慎重 → stability高・lossAv高
+  const do_   = (raw.stability + raw.lossAv) / 2;
+  // 金(きん): 論理・決断・精密 → anchor高・overconf高
+  const kin   = (raw.anchor + raw.overconf) / 2;
+  // 水(すい): 知恵・内省・深さ → metacog高・uncert高
+  const sui   = (raw.metacog + raw.uncert) / 2;
+
+  const gogyoScores = { moku, ka, do_, kin, sui };
+  const top = Object.entries(gogyoScores).sort((a,b) => b[1]-a[1])[0][0];
+
+  const gogyoData = {
+    moku: {
+      symbol: '🌿', name: '木気', type: '成長と創造の人',
+      kanji: 'もっき — WOOD',
+      color: '#4caf50', color2: '#a8ff78',
+      traits: ['柔軟性', '創造力', '共感', '成長志向'],
+      desc: '変化を恐れず、常に新しい可能性を探る思考者。人の意見を取り入れながら独自の道を切り開く。',
+      compat: ['火気と相性◎', '金気に注意'],
+      season: '春', direction: '東', planet: '木星',
+    },
+    ka: {
+      symbol: '🔥', name: '火気', type: '情熱と直感の人',
+      kanji: 'かっき — FIRE',
+      color: '#ff6b35', color2: '#ffb347',
+      traits: ['決断力', '情熱', '直感', 'カリスマ'],
+      desc: '瞬時に状況を読み取り行動に移す力を持つ。感情とロジックを融合させた直感的判断が武器。',
+      compat: ['土気と相性◎', '水気に注意'],
+      season: '夏', direction: '南', planet: '火星',
+    },
+    do_: {
+      symbol: '⛰️', name: '土気', type: '安定と調和の人',
+      kanji: 'どっき — EARTH',
+      color: '#c8a96e', color2: '#ffb347',
+      traits: ['慎重さ', '安定感', '忍耐力', '信頼性'],
+      desc: '長期的視点で物事を捉え、ブレない判断を行う。変化よりも継続と信頼を重視した意思決定スタイル。',
+      compat: ['金気と相性◎', '木気に注意'],
+      season: '土用', direction: '中央', planet: '土星',
+    },
+    kin: {
+      symbol: '⚔️', name: '金気', type: '論理と決断の人',
+      kanji: 'きんき — METAL',
+      color: '#bdc3c7', color2: '#00e5c3',
+      traits: ['論理性', '精密さ', '決断力', '合理主義'],
+      desc: '感情に流されず、データと論理で判断を下す。無駄を嫌い、効率と結果を最優先する戦略家。',
+      compat: ['水気と相性◎', '火気に注意'],
+      season: '秋', direction: '西', planet: '金星',
+    },
+    sui: {
+      symbol: '🌊', name: '水気', type: '知恵と内省の人',
+      kanji: 'すいき — WATER',
+      color: '#0099cc', color2: '#7c6fff',
+      traits: ['洞察力', '内省', '知恵', '適応力'],
+      desc: '深く考え、物事の本質を見抜く洞察力を持つ。表面に現れない情報を読み取り、静かに行動する。',
+      compat: ['木気と相性◎', '土気に注意'],
+      season: '冬', direction: '北', planet: '水星',
+    },
+  };
+
+  return { top, data: gogyoData[top], scores: gogyoScores };
+}
+
+function renderGogyo(raw) {
+  const { top, data, scores } = calcGogyo(raw);
+
+  const traitHtml = data.traits.map(t =>
+    `<span class="gogyo-trait" style="border-color:${data.color}66;color:${data.color2};background:${data.color}11">${t}</span>`
+  ).join('');
+
+  const compatHtml = data.compat.map(c =>
+    `<span>${c}</span>`
+  ).join('<span style="color:var(--border)"> | </span>');
+
+  document.getElementById('gogyo-card').innerHTML = `
+    <span class="pcard-badge" style="background:rgba(255,107,157,0.12);border:1px solid #ff6b9d44;color:#ff9fbe">四柱推命 五行</span>
+    <div class="gogyo-symbol">${data.symbol}</div>
+    <div class="gogyo-name">${data.name}</div>
+    <div class="gogyo-type">${data.type}</div>
+    <div class="gogyo-kanji">${data.kanji}</div>
+    <div class="gogyo-traits">${traitHtml}</div>
+    <div class="gogyo-desc">${data.desc}</div>
+    <div class="compat-row">${compatHtml}</div>
+    <div style="margin-top:10px;font-size:10px;color:var(--muted);font-family:'Space Mono',monospace">
+      ${data.season} ／ ${data.direction} ／ ${data.planet}
+    </div>
+  `;
+}
+
+function generateInsights(raw, scores) {
+  const ins = [];
+
+  if(raw.speed >= 4 && raw.metacog <= 2) {
+    ins.push({ color: '#ff6b9d', text: '直感的判断が速い一方、その判断を振り返るメタ認知力が低めです。決断後に「なぜそう判断したか」を記録する習慣をつけると精度が上がります。' });
+  }
+  if(raw.flex >= 4) {
+    ins.push({ color: '#00e5c3', text: '意見の変更に柔軟なのは強みですが、過度な迎合や意見の一貫性低下につながる可能性があります。自分のコアな判断基準を明文化しておくと良いでしょう。' });
+  }
+  if(raw.lossAv >= 4) {
+    ins.push({ color: '#ffb347', text: '損失に対する感度が高い傾向があります。プロスペクト理論的に、同額の損失は利益の約2倍の感情的インパクトを持ちます。リスクを数値化して冷静に評価するトレーニングが有効です。' });
+  }
+  if(raw.stability >= 4) {
+    ins.push({ color: '#a8ff78', text: 'プレッシャー下でも判断が安定しているのは大きな強みです。複雑なシナリオでのシミュレーション訓練でさらに能力を高められます。' });
+  }
+  if(raw.overconf >= 4 && raw.metacog <= 3) {
+    ins.push({ color: '#7c6fff', text: '自信は高い一方でメタ認知が追いついていない場合、過信バイアスが生じやすくなります。決断前に「この判断が間違っている可能性は何%か」と自問する習慣が有効です。' });
+  }
+  if(ins.length === 0) {
+    ins.push({ color: '#00e5c3', text: 'バランスの取れた意思決定スタイルを持っています。さらなる成長のためには、より複雑なシナリオで自分の思考プロセスを意図的に観察することが推奨されます。' });
+  }
+
+  return ins;
+}
+
+function generateBiasDesc(biases, raw) {
+  const names = biases.map(b => b.name);
+  if(names.includes('アンカリング効果')) return '最初に提示された情報（アンカー）に引きずられる傾向があります。複数の独立した視点から情報を収集する意識を持ちましょう。';
+  if(names.includes('過信バイアス')) return '自分の判断に強い自信を持ちすぎる傾向があります。反証を積極的に探す「悪魔の弁護人」的思考法を実践してみてください。';
+  if(names.includes('損失回避バイアス')) return '損失への敏感さが意思決定を歪めている可能性があります。期待値ベースの客観的評価を判断の補助に使うと改善されます。';
+  return 'バイアス傾向は比較的低く、バランスの良い判断ができています。継続的なメタ認知トレーニングでさらに強化できます。';
+}
+
+function generateTraining(raw, scores) {
+  const t = [];
+  const weakest = Object.entries(scores).sort((a,b)=>a[1]-b[1])[0][0];
+  t.push(`最優先強化領域は「${weakest}」です。この分野に特化したシナリオ練習を週1回以上行うことを推奨します。`);
+  if(raw.metacog <= 3) t.push('決断日誌をつける習慣を始めましょう。毎日1つの判断について「なぜそう決めたか・代替案は何だったか・結果はどうだったか」を記録します。');
+  if(raw.speed >= 4) t.push('STOP法（Stop・Think・Observe・Proceed）を重要な決断前に実践し、直感を検証する癖をつけましょう。');
+  if(raw.flex <= 2) t.push('「反論を3つ考えてから決断する」ルールを取り入れ、固定思考から抜け出すトレーニングを行いましょう。');
+  return t;
+}
+
+function drawRadar(vals) {
+  const svg = document.getElementById('radar-svg');
+  const cx = 100, cy = 100, R = 75;
+  const n = vals.length;
+  const labels = ['速度','柔軟性','リスク','バイアス耐性','認知力'];
+  const colors = ['#7c6fff','#ff6b9d','#00e5c3','#ffb347','#a8ff78'];
+
+  let html = '';
+
+  // Grid circles
+  for(let r = 1; r <= 4; r++) {
+    const pts = Array.from({length:n}, (_,i) => {
+      const a = (Math.PI*2*i/n) - Math.PI/2;
+      return [cx + R*(r/4)*Math.cos(a), cy + R*(r/4)*Math.sin(a)];
+    });
+    html += `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="rgba(124,111,255,0.15)" stroke-width="1"/>`;
+  }
+
+  // Axes
+  for(let i = 0; i < n; i++) {
+    const a = (Math.PI*2*i/n) - Math.PI/2;
+    const x = cx + R*Math.cos(a), y = cy + R*Math.sin(a);
+    html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(124,111,255,0.2)" stroke-width="1"/>`;
+    const lx = cx + (R+18)*Math.cos(a), ly = cy + (R+18)*Math.sin(a);
+    html += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" fill="#6a6a8a" font-size="9" font-family="Space Mono">${labels[i]}</text>`;
+  }
+
+  // Data polygon
+  const pts = vals.map((v, i) => {
+    const a = (Math.PI*2*i/n) - Math.PI/2;
+    const r = R * (v/100);
+    return [cx + r*Math.cos(a), cy + r*Math.sin(a)];
+  });
+  html += `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="rgba(124,111,255,0.2)" stroke="#7c6fff" stroke-width="2"/>`;
+
+  // Points
+  pts.forEach(([x,y], i) => {
+    html += `<circle cx="${x}" cy="${y}" r="4" fill="${colors[i]}" stroke="var(--bg)" stroke-width="2"/>`;
+  });
+
+  svg.innerHTML = html;
+}
+
+function restart() {
+  answers = {};
+  currentPhase = 0;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  renderPhase();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ============ INIT ============
+renderPhase();
+</script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KAITAI DECK｜解体業者のための“動く”営業資料｜株式会社S.K.R</title>
+<meta name="description" content="解体工事の流れを、スマホで動かして見せる。インストール不要のHTML1ファイル。自社ブランドに即着替え。¥29,800〜。株式会社S.K.R。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="KAITAI DECK｜解体業者のための“動く”営業資料">
+<meta property="og:description" content="解体工事の流れを、スマホで動かして見せる。HTML1ファイル完結・自社ブランドに即着替え。¥29,800〜。">
+<meta property="og:image" content="ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;800;900&family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ツール(商品本体)と統一: 深緑ベース＋テラコッタ accent */
+    --void:#0f1a14; --bone:#fafaf7; --red:#f4a261; --grey:#25382e; --crimson:#13261c;
+    --green:#40916c; --green-deep:#1b4332;
+    --jp:"Noto Sans JP",sans-serif;
+    --disp:"Big Shoulders Display","Noto Sans JP",sans-serif;
+    --mono:"Space Mono",monospace;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html{ scroll-behavior:smooth; }
+  body{ background:var(--void); color:var(--bone); font-family:var(--jp); font-weight:500; line-height:1.85; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  .wrap{ max-width:1000px; margin:0 auto; padding:0 24px; }
+  section{ padding:88px 0; border-bottom:1px solid var(--grey); position:relative; }
+  /* classified-dossier eyebrow */
+  .eyebrow{ font-family:var(--mono); font-size:.72rem; letter-spacing:.28em; text-transform:uppercase; color:var(--red); display:block; margin-bottom:20px; }
+  .eyebrow .slash{ color:var(--grey); }
+  h2{ font-family:var(--jp); font-weight:900; font-size:2rem; line-height:1.3; letter-spacing:-.02em; margin-bottom:14px; }
+  h2 .red{ color:var(--red); }
+  .lead{ color:#9a9892; font-size:1rem; max-width:660px; margin-bottom:40px; }
+  .reveal{ opacity:0; transform:translateY(24px); transition:opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1); }
+  .reveal.in{ opacity:1; transform:none; }
+
+  /* hero */
+  .hero{ min-height:620px; display:flex; flex-direction:column; justify-content:center; padding:120px 0 96px; border-bottom:1px solid var(--grey); }
+  .hero::before{ content:""; position:absolute; top:-20%; left:50%; width:900px; height:600px; transform:translateX(-50%); background:radial-gradient(closest-side, var(--crimson), transparent 70%); opacity:.9; pointer-events:none; z-index:0; }
+  .hero .wrap{ position:relative; z-index:1; }
+  .hero h1{ font-family:var(--jp); font-weight:900; font-size:3rem; line-height:1.22; letter-spacing:-.03em; margin-bottom:24px; }
+  .hero h1 .red{ color:var(--red); }
+  .hero p{ color:#b7b5af; font-size:1.1rem; max-width:600px; margin-bottom:40px; }
+  .meta{ font-family:var(--mono); font-size:.8rem; color:#74726c; letter-spacing:.08em; margin-top:22px; }
+  .meta b{ color:var(--bone); font-weight:400; }
+
+  /* buttons — square, hard */
+  .btn{ display:inline-flex; align-items:center; gap:12px; font-family:var(--jp); font-weight:700; font-size:1rem; padding:17px 30px; text-decoration:none; border:1px solid var(--red); background:var(--red); color:var(--bone); transition:background .25s cubic-bezier(.16,1,.3,1), color .25s; }
+  .btn::after{ content:"→"; font-family:var(--mono); }
+  .btn:hover{ background:transparent; color:var(--red); }
+  .btn.line{ background:transparent; color:var(--bone); border-color:var(--grey); }
+  .btn.line::after{ content:""; }
+  .btn.line:hover{ border-color:var(--bone); }
+  .btn-row{ display:flex; gap:14px; flex-wrap:wrap; }
+
+  /* pains — dossier rows */
+  .pain{ border-top:1px solid var(--grey); padding:22px 0 22px 0; display:flex; gap:22px; align-items:baseline; }
+  .pain:last-child{ border-bottom:1px solid var(--grey); }
+  .pain .no{ font-family:var(--mono); color:var(--red); font-size:.8rem; letter-spacing:.1em; flex:0 0 auto; }
+  .pain p{ font-size:1.02rem; }
+  .pain strong{ color:var(--bone); font-weight:900; border-bottom:2px solid var(--red); }
+
+  /* features grid — bordered cells, square */
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--grey); }
+  .cell{ padding:30px; border-right:1px solid var(--grey); border-bottom:1px solid var(--grey); }
+  .cell:nth-child(2n){ border-right:none; }
+  .cell:nth-last-child(-n+2){ border-bottom:none; }
+  .cell .num{ font-family:var(--disp); font-weight:900; font-size:2.2rem; color:var(--red); line-height:1; }
+  .cell h3{ font-family:var(--jp); font-weight:900; font-size:1.12rem; margin:12px 0 8px; }
+  .cell p{ color:#9a9892; font-size:.92rem; }
+
+  /* 3way */
+  .ways{ display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--grey); }
+  .way{ padding:28px 24px; border-right:1px solid var(--grey); }
+  .way:last-child{ border-right:none; }
+  .way .tag{ font-family:var(--mono); font-size:.72rem; color:var(--red); letter-spacing:.18em; }
+  .way h4{ font-family:var(--jp); font-weight:900; font-size:1.08rem; margin:10px 0 6px; }
+  .way p{ color:#9a9892; font-size:.88rem; }
+
+  /* pricing */
+  .plans{ display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:1px solid var(--grey); }
+  .plan{ padding:32px 26px; border-right:1px solid var(--grey); display:flex; flex-direction:column; }
+  .plan:last-child{ border-right:none; }
+  .plan.best{ background:#0d0d0d; border-top:3px solid var(--red); }
+  .plan .ptag{ font-family:var(--mono); font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:#9a9892; }
+  .plan.best .ptag{ color:var(--red); }
+  .plan .price{ font-family:var(--disp); font-weight:900; font-size:2.6rem; line-height:1; margin:14px 0 4px; letter-spacing:-.01em; }
+  .plan .price small{ font-family:var(--mono); font-size:.8rem; color:#74726c; }
+  .plan ul{ list-style:none; margin:20px 0 26px; flex:1; }
+  .plan li{ color:#9a9892; font-size:.9rem; padding:9px 0 9px 22px; position:relative; border-top:1px solid var(--grey); }
+  .plan li::before{ content:"—"; color:var(--red); position:absolute; left:0; }
+  .plan li strong{ color:var(--bone); font-weight:700; }
+  .pbtn{ text-align:center; font-family:var(--jp); font-weight:700; padding:14px; text-decoration:none; border:1px solid var(--grey); color:var(--bone); transition:.25s; }
+  .pbtn:hover{ border-color:var(--bone); }
+  .plan.best .pbtn{ background:var(--red); border-color:var(--red); }
+  .plan.best .pbtn:hover{ background:transparent; color:var(--red); }
+  .note{ font-family:var(--mono); color:#74726c; font-size:.78rem; margin-top:20px; letter-spacing:.04em; }
+
+  /* faq */
+  .faq details{ border-top:1px solid var(--grey); }
+  .faq details:last-of-type{ border-bottom:1px solid var(--grey); }
+  .faq summary{ cursor:pointer; padding:22px 0; font-weight:700; list-style:none; display:flex; gap:16px; align-items:baseline; }
+  .faq summary::-webkit-details-marker{ display:none; }
+  .faq summary .q{ font-family:var(--mono); color:var(--red); font-size:.85rem; }
+  .faq p{ color:#9a9892; padding:0 0 22px 38px; font-size:.93rem; }
+
+  /* final */
+  .final{ text-align:center; }
+  .final::before{ content:""; position:absolute; top:0; left:50%; width:900px; height:500px; transform:translateX(-50%); background:radial-gradient(closest-side, var(--crimson), transparent 70%); pointer-events:none; }
+  .final .wrap{ position:relative; }
+  .final h2{ font-size:2.4rem; }
+  .contacts{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:30px; }
+  footer{ padding:44px 0 64px; color:#56544f; font-family:var(--mono); font-size:.76rem; text-align:center; border:none; letter-spacing:.04em; }
+  footer a{ color:#8a8882; text-decoration:none; }
+
+  /* trust strip */
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--grey); }
+  .stat{ padding:26px 20px; border-right:1px solid var(--grey); text-align:center; }
+  .stat:last-child{ border-right:none; }
+  .stat .v{ font-family:var(--disp); font-weight:900; font-size:2.1rem; color:var(--red); line-height:1; }
+  .stat .v small{ font-family:var(--jp); font-size:.9rem; }
+  .stat .k{ font-family:var(--mono); font-size:.72rem; color:#9a9892; letter-spacing:.12em; margin-top:8px; }
+  @media(max-width:680px){
+    .stats{ grid-template-columns:1fr 1fr; }
+    .stat:nth-child(2){ border-right:none; } .stat:nth-child(-n+2){ border-bottom:1px solid var(--grey); }
+    .hero h1{ font-size:2.1rem; } .hero p{ font-size:1rem; }
+    h2{ font-size:1.55rem; } section{ padding:60px 0; }
+    .grid,.ways,.plans{ grid-template-columns:1fr; }
+    .cell{ border-right:none; }
+    .way{ border-right:none; border-bottom:1px solid var(--grey); } .way:last-child{ border-bottom:none; }
+    .plan{ border-right:none; border-bottom:1px solid var(--grey); } .plan:last-child{ border-bottom:none; }
+    .plan.best{ order:-1; }
+  }
+  /* === ツール(商品本体)と世界観を統一: 角丸＋緑トーン === */
+  .btn,.pbtn{ border-radius:10px; }
+  .grid,.ways,.plans,.stats{ border-radius:16px; overflow:hidden; }
+  .plan.best{ background:#122019; }
+  .hero p{ color:#cfe3d8; }
+  .lead,.cell p,.way p,.plan li,.faq p{ color:#9fb3a8; }
+  .launch{ border:1px solid var(--red); border-radius:12px; padding:18px 22px; margin-bottom:26px; display:flex; gap:18px; align-items:flex-start; background:rgba(244,162,97,.06); }
+  .launch .lb{ font-family:var(--mono); font-size:.72rem; line-height:1.4; letter-spacing:.16em; color:var(--red); white-space:nowrap; padding-top:2px; }
+  .launch p{ color:#cfe3d8; font-size:.96rem; margin:0; }
+  .launch strong{ color:var(--bone); font-weight:900; }
+  @media(max-width:680px){ .launch{ flex-direction:column; gap:8px; } }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow reveal">S.K.R ORIGINAL <span class="slash">/</span> 解体業者向け 営業ツール</span>
+    <h1 class="reveal">解体工事の流れを、<br><span class="red">スマホで動かして見せる。</span></h1>
+    <p class="reveal">紙のコピーでも、重いパワポでもない。HTMLファイル1つを送るだけ。お客様のスマホでそのまま動く、御社の営業資料。アプリ不要・インストール不要。</p>
+    <div class="btn-row reveal">
+      <a class="btn" href="#contact">無料で実機デモを見る</a>
+      <a class="btn line" href="#price">料金を見る</a>
+    </div>
+    <div class="meta reveal">¥29,800〜 <b>/</b> 最短即日納品 <b>/</b> LINE・メールで送るだけ</div>
+  </div>
+</header>
+
+<div class="stats">
+  <div class="stat"><div class="v">2006</div><div class="k">設立（創業18年）</div></div>
+  <div class="stat"><div class="v">30<small>名+</small></div><div class="k">自社スタッフ</div></div>
+  <div class="stat"><div class="v">30<small>台</small></div><div class="k">自社保有 重機</div></div>
+  <div class="stat"><div class="v">20,000<small>坪</small></div><div class="k">自社ヤード</div></div>
+</div>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow reveal">[ 01 <span class="slash">/</span> 課題 ]</span>
+    <h2 class="reveal">その“説明のつまずき”、<br>受注を逃してませんか。</h2>
+    <p class="lead reveal">解体は、お客様にとって一生に一度。流れが伝わらなければ、不安で話は前に進まない。</p>
+    <div class="pain reveal"><span class="no">001</span><p>営業資料が無い。あっても<strong>紙のコピーで古く、見せても伝わらない</strong>。</p></div>
+    <div class="pain reveal"><span class="no">002</span><p>施主が工程を<strong>イメージできず不安がる</strong>。クレームや遅延の火種に。</p></div>
+    <div class="pain reveal"><span class="no">003</span><p>パワポは<strong>重い・スマホで崩れる・編集が面倒</strong>。結局、使わなくなる。</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow reveal">[ 02 <span class="slash">/</span> 解決 ]</span>
+    <h2 class="reveal">答えは、<span class="red">1ファイルで動く</span>解体スライド。</h2>
+    <p class="lead reveal">解体工事の流れを6ステップのアニメーションで図解。見せれば、説明はそれだけで成立する。社名・電話・配色・文章は設定ブロック1か所で、まるごと御社仕様に。</p>
+    <div class="grid">
+      <div class="cell reveal"><div class="num">01</div><h3>インストール不要</h3><p>HTML1ファイル完結。LINEやメールで送るだけで納品完了。お客様は開くだけ。</p></div>
+      <div class="cell reveal"><div class="num">02</div><h3>自社ブランドに即着替え</h3><p>社名・連絡先・色・文章を1か所編集で総入れ替え。コード知識ゼロ。</p></div>
+      <div class="cell reveal"><div class="num">03</div><h3>スマホ完全対応</h3><p>スワイプ操作・縦画面レイアウト・スリープ防止。現場でも待合室でも崩れない。</p></div>
+      <div class="cell reveal"><div class="num">04</div><h3>写真は後入れ</h3><p>御社の現場写真を入れれば御社だけの資料に。第三者素材なしで著作権も安全。</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <span class="eyebrow reveal">[ 03 <span class="slash">/</span> 運用 ]</span>
+    <h2 class="reveal">1つで、<span class="red">3通り</span>に使える。</h2>
+    <p class="lead reveal">買って終わりじゃない。営業から展示会まで、現場の“説明”をまるごとカバー。</p>
+    <div class="ways">
+      <div class="way reveal"><span class="tag">USE — A</span><h4>営業で見せる</h4><p>商談先でスマホ／タブレットを開いてスライド説明。話が早い。</p></div>
+      <div class="way reveal"><span class="tag">USE — B</span><h4>見積りに添付</h4><p>印刷→PDF化して見積書に同梱。提案の説得力が上がる。</p></div>
+      <div class="way reveal"><span class="tag">USE — C</span><h4>流しっぱなし</h4><p>展示会・待合室で自動再生（kioskモード）。無人で集客。</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="price">
+  <div class="wrap">
+    <span class="eyebrow reveal">[ 04 <span class="slash">/</span> 料金 ]</span>
+    <h2 class="reveal">料金プラン</h2>
+    <p class="lead reveal">どのプランも編集代行つき。「自分で触る時間がない」方も大丈夫。</p>
+    <div class="launch reveal">
+      <span class="lb">LAUNCH<br>PRICE</span>
+      <p><strong>今が最安です。</strong>価格は今後<strong>段階的に値上げ</strong>していきます。プロダクトも<strong>継続的にアップグレード</strong>予定。— 早く導入するほど、安く始められて長く得をします。</p>
+    </div>
+    <div class="plans">
+      <div class="plan reveal">
+        <span class="ptag">LIGHT</span>
+        <div class="price">¥29,800</div>
+        <ul><li>テンプレ一式</li><li>設定ブロックを自分で編集</li><li>手順書(README)付き</li><li>EULA(使用許諾)同梱</li></ul>
+        <a class="pbtn" href="#contact">申し込む</a>
+      </div>
+      <div class="plan best reveal">
+        <span class="ptag">★ STANDARD — 人気</span>
+        <div class="price">¥49,800</div>
+        <ul><li>ライトの内容すべて</li><li><strong>社名・連絡先・配色・ロゴ差し替え代行</strong></li><li>PDF書き出し納品</li><li>最短即日納品</li></ul>
+        <a class="pbtn" href="#contact">申し込む</a>
+      </div>
+      <div class="plan reveal">
+        <span class="ptag">PRO</span>
+        <div class="price">¥98,000<small> 〜</small></div>
+        <ul><li>スタンダードの内容すべて</li><li><strong>現場写真の差し込み代行</strong></li><li>文章リライト</li><li>動画(MP4)書き出し</li></ul>
+        <a class="pbtn" href="#contact">相談する</a>
+      </div>
+    </div>
+    <p class="note reveal">表示は税別のローンチ価格です。導入が進み次第、順次値上げします。／ 最初のモニター数社は「事例掲載・ご紹介」を条件に特別対応。／ + 保守プラン（任意）¥9,800/年。</p>
+  </div>
+</section>
+
+<section class="faq">
+  <div class="wrap">
+    <span class="eyebrow reveal">[ 05 <span class="slash">/</span> FAQ ]</span>
+    <h2 class="reveal">よくある質問</h2>
+    <div class="reveal">
+      <details><summary><span class="q">Q.</span>パワポでくれませんか？</summary><p>パワポより軽く、スマホでそのまま動きます。印刷機能でPDFも出せるので、用途はパワポを上回ります。</p></details>
+      <details><summary><span class="q">Q.</span>自分で直せますか？</summary><p>はい。編集するのは設定ブロック（JSON）1か所だけ。手順書付きで、コード知識は不要です。</p></details>
+      <details><summary><span class="q">Q.</span>画像は付いていますか？</summary><p>付きません。御社の現場写真・パースを入れることで“御社だけの資料”になります。差し込み代行プランもあります。</p></details>
+      <details><summary><span class="q">Q.</span>他社と被りませんか？</summary><p>配色・文章・写真が変われば印象は別物。ご希望があれば、地域が被る同業様には販売しない運用も可能です。</p></details>
+    </div>
+  </div>
+</section>
+
+<section id="contact" class="final">
+  <div class="wrap">
+    <span class="eyebrow reveal">[ 06 <span class="slash">/</span> 問い合わせ ]</span>
+    <h2 class="reveal">まずは<span class="red">実機デモ</span>を、無料で。</h2>
+    <p class="lead reveal" style="margin-left:auto;margin-right:auto;">「スマホで動くやつ、ちょっと見たい」だけでも歓迎です。</p>
+    <div class="contacts reveal">
+      <a class="btn" href="tel:08021102821">080-2110-2821 に電話</a>
+      <a class="btn line" href="mailto:plizz4000@gmail.com?subject=KAITAI%20DECK%20デモ希望">メールで問い合わせ</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    株式会社S.K.R <span style="color:#3a3936">/</span> 金属買取・解体・危険木伐採 <span style="color:#3a3936">/</span> <a href="http://www.s-k-r.jp">www.s-k-r.jp</a><br>
+    © 2026 S.K.R — KAITAI DECK
+  </div>
+</footer>
+
+<script>
+  const els=document.querySelectorAll('.reveal');
+  const revealAll=()=>els.forEach(el=>el.classList.add('in'));
+  const noAnim=new URLSearchParams(location.search).has('noanim')||matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(noAnim){ revealAll(); }
+  else{
+    const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.12});
+    els.forEach((el,i)=>{ el.style.transitionDelay=(i%4*70)+'ms'; io.observe(el); });
+    setTimeout(revealAll,4000);
+  }
+</script>
+</body>
+</html>

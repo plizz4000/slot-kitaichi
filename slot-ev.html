@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>スロットEV早見表 | 65機種統合</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:#30363d;
+  --text:#c9d1d9;--text-hi:#e6edf3;--text-dim:#8b949e;--text-dark:#484f58;
+  --blue:#58a6ff;--green:#3fb950;--green-bg:#238636;--red:#f85149;--red-bg:#da3636;
+  --orange:#f0883e;--yellow:#e3b341;--purple:#bc8cff;
+  --rank-s:#f85149;--rank-a:#f0883e;--rank-b:#58a6ff;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP','Hiragino Sans','Segoe UI',sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent;padding-bottom:100px;font-size:14px;line-height:1.5}
+
+/* ==================== HEADER ==================== */
+.header{background:var(--bg2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header h1{font-size:1.05rem;font-weight:700;color:var(--text-hi);letter-spacing:.03em}
+.header .sub{font-size:.62rem;color:var(--text-dim);display:block;margin-top:1px}
+.header-right{display:flex;gap:6px;align-items:center}
+.btn-icon{background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:background .15s}
+.btn-icon:hover{background:var(--border)}
+.btn-icon.active{background:var(--green-bg);border-color:var(--green);color:#fff}
+.btn-add{background:var(--green-bg);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap;height:36px}
+.btn-add:hover{filter:brightness(1.15)}
+
+/* ==================== CONDITION PANEL ==================== */
+.cond-panel{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 12px;position:sticky;top:50px;z-index:99;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.cond-item{display:flex;flex-direction:column;flex:1;min-width:90px;max-width:200px}
+.cond-label{font-size:.62rem;color:var(--text-dim);margin-bottom:2px;font-weight:500}
+.cond-panel select{background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text-hi);font-size:.8rem;padding:8px 10px;outline:none;width:100%;appearance:auto;-webkit-appearance:auto}
+.cond-panel select:focus{border-color:var(--blue)}
+
+/* ==================== FILTER TABS ==================== */
+.filter-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:6px 12px;position:sticky;top:100px;z-index:98;display:flex;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.filter-bar::-webkit-scrollbar{display:none}
+.ftab{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:6px 14px;font-size:.73rem;font-weight:500;color:var(--text-dim);cursor:pointer;white-space:nowrap;transition:all .15s;user-select:none}
+.ftab.active{background:var(--blue);border-color:var(--blue);color:#fff;font-weight:700}
+.ftab[data-tab="S"].active{background:var(--rank-s);border-color:var(--rank-s)}
+.ftab[data-tab="A"].active{background:var(--rank-a);border-color:var(--rank-a)}
+.ftab[data-tab="B"].active{background:var(--rank-b);border-color:var(--rank-b)}
+.ftab[data-tab="reset"].active{background:var(--green-bg);border-color:var(--green)}
+.ftab[data-tab="fav"].active{background:var(--yellow);border-color:var(--yellow);color:#000}
+
+/* ==================== SEARCH ==================== */
+.search-bar{padding:8px 12px;background:var(--bg);position:sticky;top:140px;z-index:97}
+.search-wrap{position:relative}
+.search-wrap input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px 40px 10px 12px;font-size:.85rem;color:var(--text-hi);outline:none;font-family:inherit}
+.search-wrap input:focus{border-color:var(--blue)}
+.search-wrap input::placeholder{color:var(--text-dark)}
+.search-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-dim);font-size:1.2rem;cursor:pointer;padding:4px 8px;display:none}
+.search-wrap input:not(:placeholder-shown) ~ .search-clear{display:block}
+
+/* ==================== MACHINE COUNT ==================== */
+.count-bar{padding:4px 16px;font-size:.68rem;color:var(--text-dim)}
+
+/* ==================== CONTAINER ==================== */
+.container{padding:0 12px}
+
+/* ==================== CARD VIEW ==================== */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;transition:border-color .2s}
+.card.expanded{border-color:var(--blue)}
+.card-head{padding:12px 14px;cursor:pointer;display:flex;align-items:flex-start;gap:10px;user-select:none;-webkit-user-select:none}
+.card-head:active{background:var(--bg3)}
+.card-rank{font-size:.7rem;font-weight:900;color:#fff;padding:2px 8px;border-radius:4px;flex-shrink:0;margin-top:2px;letter-spacing:.05em}
+.card-rank.S{background:var(--rank-s)}
+.card-rank.A{background:var(--rank-a)}
+.card-rank.B{background:var(--rank-b)}
+.card-info{flex:1;min-width:0}
+.card-name{font-size:.92rem;font-weight:700;color:var(--text-hi);line-height:1.3}
+.card-sub{font-size:.68rem;color:var(--text-dim);margin-top:1px}
+.card-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px;align-items:center}
+.card-meta .tag{font-size:.6rem;padding:2px 6px;border-radius:3px;font-weight:500}
+.tag-kikai{background:rgba(88,166,255,.12);color:var(--blue);border:1px solid rgba(88,166,255,.25)}
+.tag-ceil{background:rgba(227,179,65,.1);color:var(--yellow);border:1px solid rgba(227,179,65,.2)}
+.tag-reset{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25)}
+.tag-no-reset{background:rgba(139,148,158,.08);color:var(--text-dark);border:1px solid rgba(139,148,158,.15)}
+.card-actions{display:flex;flex-direction:column;align-items:center;gap:4px;flex-shrink:0}
+.btn-star{background:none;border:none;font-size:1.3rem;cursor:pointer;padding:2px;color:var(--text-dark);transition:color .15s}
+.btn-star.on{color:var(--yellow)}
+.card-chevron{font-size:.7rem;color:var(--text-dark);transition:transform .2s}
+.card.expanded .card-chevron{transform:rotate(180deg)}
+
+/* ==================== EXPANDED DETAIL ==================== */
+.card-detail{display:none;border-top:1px solid var(--border);padding:0}
+.card.expanded .card-detail{display:block}
+.detail-section{padding:12px 14px;border-bottom:1px solid var(--border)}
+.detail-section:last-child{border-bottom:none}
+.detail-title{font-size:.72rem;font-weight:700;color:var(--blue);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.detail-title .icon{font-size:.85rem}
+.detail-text{font-size:.78rem;color:var(--text);line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.detail-text strong{color:var(--text-hi);font-weight:700}
+
+/* ==================== EV CALCULATOR ==================== */
+.ev-calc{background:var(--bg);border-radius:8px;padding:12px}
+.ev-input-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.ev-input-row label{font-size:.72rem;color:var(--text-dim);white-space:nowrap;font-weight:500}
+.ev-input-row input[type="number"]{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:1.1rem;font-weight:700;color:var(--text-hi);width:120px;outline:none;text-align:center;font-family:inherit;-moz-appearance:textfield}
+.ev-input-row input[type="number"]::-webkit-outer-spin-button,
+.ev-input-row input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.ev-input-row input:focus{border-color:var(--blue)}
+.ev-input-row .unit{font-size:.75rem;color:var(--text-dim)}
+
+/* Progress bar */
+.ev-progress{margin:8px 0;position:relative;height:20px;background:var(--bg3);border-radius:10px;overflow:hidden}
+.ev-progress-fill{height:100%;border-radius:10px;transition:width .3s;background:linear-gradient(90deg,var(--green),var(--yellow),var(--orange),var(--red))}
+.ev-progress-marker{position:absolute;top:-2px;width:3px;height:24px;background:var(--text-hi);border-radius:2px;transform:translateX(-50%);transition:left .3s}
+.ev-progress-labels{display:flex;justify-content:space-between;font-size:.6rem;color:var(--text-dark);margin-top:2px}
+
+/* EV result */
+.ev-result{margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ev-value{font-size:1.5rem;font-weight:900;font-family:'Noto Sans JP',monospace}
+.ev-value.positive{color:var(--green)}
+.ev-value.negative{color:var(--red)}
+.ev-badge{font-size:.7rem;font-weight:700;padding:3px 10px;border-radius:12px;color:#fff}
+.ev-badge.GO{background:var(--green-bg)}
+.ev-badge.OK{background:var(--blue)}
+.ev-badge.WAIT{background:var(--orange)}
+.ev-badge.NG{background:var(--red-bg)}
+.ev-wage{font-size:.72rem;color:var(--text-dim);margin-top:4px}
+.ev-time{font-size:.68rem;color:var(--text-dark);margin-top:2px}
+.ev-closing-warn{font-size:.72rem;color:var(--orange);margin-top:4px;font-weight:500}
+
+/* EV Table */
+.ev-table-wrap{margin-top:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ev-table{width:100%;border-collapse:collapse;font-size:.72rem}
+.ev-table th{background:var(--bg3);color:var(--text-dim);padding:6px 8px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);position:sticky;top:0;white-space:nowrap}
+.ev-table td{padding:5px 8px;border-bottom:1px solid var(--border);white-space:nowrap}
+.ev-table tr.highlight{background:rgba(88,166,255,.12)}
+.ev-table tr.highlight td{color:var(--text-hi);font-weight:700}
+.ev-table .ev-pos{color:var(--green);font-weight:600}
+.ev-table .ev-neg{color:var(--red)}
+
+/* ==================== TABLE VIEW ==================== */
+.table-view{display:none;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 12px}
+.table-view table{width:100%;border-collapse:collapse;font-size:.72rem;min-width:600px}
+.table-view th{background:var(--bg3);color:var(--text-dim);padding:8px 6px;text-align:left;font-weight:600;border-bottom:1px solid var(--border);position:sticky;top:140px;z-index:10;white-space:nowrap}
+.table-view td{padding:6px;border-bottom:1px solid var(--border);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis}
+.table-view tr{cursor:pointer;transition:background .1s}
+.table-view tr:hover{background:var(--bg3)}
+.table-view .rank-cell{font-weight:900;font-size:.65rem;text-align:center}
+.table-view .rank-cell.S{color:var(--rank-s)}
+.table-view .rank-cell.A{color:var(--rank-a)}
+.table-view .rank-cell.B{color:var(--rank-b)}
+
+/* ==================== MODAL ==================== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;padding:20px}
+.modal h2{font-size:1rem;font-weight:700;color:var(--text-hi);margin-bottom:16px}
+.modal-field{margin-bottom:12px}
+.modal-field label{display:block;font-size:.72rem;color:var(--text-dim);margin-bottom:4px;font-weight:500}
+.modal-field input,.modal-field textarea,.modal-field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:.82rem;color:var(--text-hi);outline:none;font-family:inherit}
+.modal-field input:focus,.modal-field textarea:focus{border-color:var(--blue)}
+.modal-field textarea{min-height:60px;resize:vertical}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.modal-actions button{padding:8px 18px;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:var(--green-bg);color:#fff}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--red-bg);color:#fff}
+.btn-danger:hover{filter:brightness(1.15)}
+
+/* ==================== GUIDE ==================== */
+.guide-section{margin:24px 12px 0;background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.guide-toggle{width:100%;background:none;border:none;padding:14px;color:var(--text-hi);font-size:.88rem;font-weight:700;text-align:left;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-family:inherit}
+.guide-toggle:hover{background:var(--bg3)}
+.guide-body{display:none;padding:0 14px 14px}
+.guide-body.show{display:block}
+.guide-body h3{font-size:.82rem;font-weight:700;color:var(--blue);margin:14px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.guide-body p{font-size:.75rem;color:var(--text);line-height:1.7;margin-bottom:6px}
+.guide-body ul{margin:4px 0 8px 16px;font-size:.73rem;color:var(--text)}
+.guide-body li{margin-bottom:3px;line-height:1.6}
+
+/* ==================== FOOTER ==================== */
+.footer{text-align:center;padding:24px 16px;font-size:.62rem;color:var(--text-dark);line-height:1.8}
+.footer a{color:var(--blue);text-decoration:none}
+
+/* ==================== RESPONSIVE ==================== */
+@media(min-width:768px){
+  .container{max-width:800px;margin:0 auto}
+  .cond-panel{justify-content:center}
+  .filter-bar{justify-content:center}
+  .search-bar{max-width:800px;margin:0 auto}
+  .table-view{max-width:1000px;margin:0 auto}
+  .guide-section{max-width:800px;margin:24px auto 0}
+}
+@media(max-width:380px){
+  .cond-item{min-width:75px}
+  .card-name{font-size:.85rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== HEADER ==================== -->
+<div class="header">
+  <div>
+    <h1>SLOT EV HUNTER</h1>
+    <span class="sub">65機種統合 期待値早見表</span>
+  </div>
+  <div class="header-right">
+    <button class="btn-icon" id="btnToggleView" title="表示切替">
+      <span id="viewIcon">&#9776;</span>
+    </button>
+    <button class="btn-add" id="btnAddMachine">+ 機種追加</button>
+  </div>
+</div>
+
+<!-- ==================== CONDITION PANEL ==================== -->
+<div class="cond-panel">
+  <div class="cond-item">
+    <span class="cond-label">交換レート</span>
+    <select id="selRate">
+      <option value="5.0" selected>等価 (5.0枚)</option>
+      <option value="5.6">5.6枚</option>
+      <option value="6.0">6.0枚</option>
+      <option value="6.25">6.25枚</option>
+    </select>
+  </div>
+  <div class="cond-item">
+    <span class="cond-label">持ちメダル</span>
+    <select id="selMedals">
+      <option value="0" selected>0枚</option>
+      <option value="500">500枚</option>
+      <option value="1000">1000枚</option>
+      <option value="2000">2000枚</option>
+      <option value="3000">3000枚</option>
+      <option value="99999">無制限</option>
+    </select>
+  </div>
+  <div class="cond-item">
+    <span class="cond-label">閉店時間</span>
+    <select id="selClose">
+      <option value="" selected>指定なし</option>
+      <option value="23">23:00</option>
+      <option value="22">22:00</option>
+      <option value="21">21:00</option>
+      <option value="20">20:00</option>
+    </select>
+  </div>
+</div>
+
+<!-- ==================== FILTER TABS ==================== -->
+<div class="filter-bar">
+  <button class="ftab active" data-tab="all">全機種</button>
+  <button class="ftab" data-tab="S">S級</button>
+  <button class="ftab" data-tab="A">A級</button>
+  <button class="ftab" data-tab="B">B級</button>
+  <button class="ftab" data-tab="reset">朝一</button>
+  <button class="ftab" data-tab="fav">&#9733; お気に入り</button>
+</div>
+
+<!-- ==================== SEARCH ==================== -->
+<div class="search-bar">
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="機種名 / カタカナ / ローマ字で検索...">
+    <button class="search-clear" id="searchClear">&times;</button>
+  </div>
+</div>
+
+<!-- ==================== COUNT ==================== -->
+<div class="count-bar" id="countBar">65機種</div>
+
+<!-- ==================== CARD VIEW ==================== -->
+<div class="container" id="cardContainer"></div>
+
+<!-- ==================== TABLE VIEW ==================== -->
+<div class="table-view" id="tableContainer"></div>
+
+<!-- ==================== GUIDE ==================== -->
+<div class="guide-section">
+  <button class="guide-toggle" id="guideToggle">
+    <span>立ち回りガイド</span>
+    <span class="card-chevron" id="guideChevron">&#9660;</span>
+  </button>
+  <div class="guide-body" id="guideBody">
+    <h3>天井狙いの基本</h3>
+    <p>天井とは、規定G数(またはポイント/周期)到達でボーナスやATが確定する救済機能。ハマった台を拾い、天井までの投資と期待リターンの差(期待値)がプラスになるG数から打ち始める。</p>
+    <ul>
+      <li>等価交換と持ちメダルありで狙い目が変わる(持ちメダル=投資コスト減=ボーダー下がる)</li>
+      <li>5.6枚交換以上は狙い目G数を+50〜100G上げる</li>
+      <li>時給3,000円以上を「GO」、1,000円以上を「OK」として色分け</li>
+    </ul>
+    <h3>リセット判別</h3>
+    <p>設定変更(リセット)されると天井が短縮される機種が多い。朝一はリセ判別が収益の鍵。</p>
+    <ul>
+      <li>ガックン判別:1G回してリールのブレを見る(一部機種のみ)</li>
+      <li>宵越し:前日閉店G数+当日G数で天井到達を狙う(据え置き前提)</li>
+      <li>朝一高確移行やステージ変化でリセ推測</li>
+    </ul>
+    <h3>差枚管理</h3>
+    <p>有利区間内の差枚数(獲得枚数-投資枚数)が上限(多くは+2400枚)に近づくと有利区間がリセットされ、エンディング後に上位ATや特殊モードへ移行する機種がある。</p>
+    <ul>
+      <li>前回AT獲得枚数が大きい台は差枚上限に近い=次回ATで切断の恩恵を受けやすい</li>
+      <li>差枚マイナスが大きい台は天井ボーダーを下げられる機種もある(北斗/バジ天膳)</li>
+    </ul>
+    <h3>ゾーン狙い</h3>
+    <p>特定G数帯でボーナス/CZ当選率が上がるゾーンを持つ機種は、ゾーン手前から打ち始めてゾーン抜けでやめることで効率的にプラスを積める。</p>
+    <ul>
+      <li>仮天井(沖ドキDUO 301-400G)やモード天井(範馬刃牙 通常C 300G)が代表例</li>
+      <li>ゾーン狙いは天井狙いより投資が少なく短時間で回せるが、単発利益は小さい</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ==================== FOOTER ==================== -->
+<div class="footer">
+  <div>情報出典: ちょんぼりすた / 期待値見える化 / なな徹 / フリック7 / DMMぱちタウン / 各機種メーカー公式</div>
+  <div style="margin-top:4px">本ツールは個人利用目的です。設定値/期待値は理論値であり実際の結果を保証しません。</div>
+</div>
+
+<!-- ==================== ADD/EDIT MODAL ==================== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalContent">
+    <h2 id="modalTitle">機種を追加</h2>
+    <div class="modal-field"><label>機種名 *</label><input type="text" id="mName" placeholder="例: 新台スロット"></div>
+    <div class="modal-field"><label>サブタイトル</label><input type="text" id="mSub" placeholder="例: G数天井+スルー天井"></div>
+    <div class="modal-field"><label>ランク</label>
+      <select id="mRank"><option value="S">S</option><option value="A" selected>A</option><option value="B">B</option></select>
+    </div>
+    <div class="modal-field"><label>機械割</label><input type="text" id="mKikai" placeholder="例: 97.5〜113.0"></div>
+    <div class="modal-field"><label>天井</label><textarea id="mCeil" placeholder="例: 999G+α / リセ650G"></textarea></div>
+    <div class="modal-field"><label>狙い目(等価)</label><textarea id="mAim" placeholder="例: 500G〜"></textarea></div>
+    <div class="modal-field"><label>狙い目(5.6枚)</label><input type="text" id="mAim56" placeholder="例: 600G〜"></div>
+    <div class="modal-field"><label>ボーナス</label><textarea id="mBonus" placeholder="例: AT当選"></textarea></div>
+    <div class="modal-field"><label>期待値(EVテーブル)</label><textarea id="mEv" placeholder="例: 等価:400G+1,000円/600G+3,000円"></textarea></div>
+    <div class="modal-field"><label>やめ時</label><textarea id="mQuit" placeholder="例: AT後即やめ"></textarea></div>
+    <div class="modal-field"><label>リセットあり</label>
+      <select id="mReset"><option value="true">あり</option><option value="false">なし</option></select>
+    </div>
+    <div class="modal-field"><label>リセット備考</label><textarea id="mResetNote" placeholder="例: 天井650Gに短縮"></textarea></div>
+    <div class="modal-field"><label>ゾーン</label><textarea id="mZone"></textarea></div>
+    <div class="modal-field"><label>モード</label><textarea id="mMode"></textarea></div>
+    <div class="modal-field"><label>差枚狙い</label><textarea id="mSamai"></textarea></div>
+    <div class="modal-field"><label>全ツッパ</label><textarea id="mZentu"></textarea></div>
+    <div class="modal-field"><label>示唆</label><textarea id="mShisa"></textarea></div>
+    <div class="modal-field"><label>メモ</label><textarea id="mNote"></textarea></div>
+    <div class="modal-field"><label>検索キーワード</label><input type="text" id="mKw" placeholder="例: ひらがな カタカナ ROMAJI"></div>
+    <input type="hidden" id="mEditIdx" value="-1">
+    <div class="modal-actions">
+      <button class="btn-danger" id="btnModalDelete" style="display:none;margin-right:auto">削除</button>
+      <button class="btn-secondary" id="btnModalCancel">キャンセル</button>
+      <button class="btn-primary" id="btnModalSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===========================
+// MACHINE DATABASE (65 machines)
+// ===========================
+const machines = [
+  // === S rank ===
+  {name:"攻殻機動隊 SAC_2045",sub:"AT間+CZ間天井",rank:"S",kikai:"97.7〜114.0",ceil:"AT:999G(リセ699G) / CZ:通常A550G/B450G/C250G/D150G(リセ350G)",aim:"等価:CZ間290G〜/AT間600G〜 / リセ0G〜(200Gタチコマまで) / 白の境界失敗後即打ち",aim56:"CZ間380G〜/AT間700G〜",bonus:"S.A.C.モード(差枚管理初期200枚) / ENDLESS GIG(初期300枚・継続75%) / 電脳RUSH / 電脳モード(平均210枚上乗せ)",ev:"等価:400G+224円/550G+1,317円/700G+2,979円/800G+4,544円/950G+8,491円 / リセ:0G-1,087円/200G+102円/400G+2,180円/600G+5,816円",quit:"AT後→1G回しタチコマ看板上げ確認 / 白の境界失敗後→CZ天井400Gに短縮=続行 / 通常C/D濃厚→CZ当選まで / 看板上げ赤→殲滅ptMAXまで",reset:true,resetNote:"CZ天井350G+AT天井699Gに短縮。設定1でも機械割100%超=0G〜即打ち。タチコマ200G到達で30%(設1)→48%(設6)CZ当選",zone:"200G:タチコマの家出CZ(設1で30%/設6で48%当選) / 400G:同確率 / CZ天井550G:S.A.M.確定",mode:"殲滅ptテーブル7段階 / CZ失敗後:設1=モードB↑50%/設6=B↑80% / AT後:全設定D50%",samai:"差枚+2200枚→エンディング(+2400完走) / 切断後→白の境界Lv3(最上位AT) / +1500~2200枚の即ヤメ台狙い目 / マイナス差枚は救済なし",shisa:"トロフィー:銅→銀→金→虹(設定示唆) / AT終了画面キャラ / エンディングランプ色 / マス色:青3.8%/緑20%/赤55% / S.A.M.視覚フラグ:設1=5.7%→設6=10.6%",note:"50枚約32G/コイン単価3.3円。CZ1/238〜1/210。スルー狙い:0スルー200G〜/1スルー350G〜/2スルー290G〜/3スルー0G〜",kw:"こうかく コウカク SAC 攻殻 タチコマ"},
+  {name:"東京グール",sub:"AT間+CZ間天井(6モード)",rank:"S",kikai:"97.5〜113.5",ceil:"CZ間:600G+α(液晶) / AT間:1200G+α(実G) / リセCZ間:200G+α / 通常C:500G+α / 天国:100G+α",aim:"等価:CZ間360G〜/AT間650G〜 / リセ30G〜(+268円) / スルー:0スルーCZ間300G〜/3スルー0G〜",aim56:"CZ間440G〜/AT間800G〜 / リセ55G〜",bonus:"差枚管理AT(初期約150枚・純増約4.0枚) / 上位:百足覚醒(平均300枚)/隻眼の梟(平均500枚)/CCGの死神(平均500枚)",ev:"等価:AT間200G+779円/500G+2,720円/800G+4,843円/1100G+9,805円 / CZ間:300G+1,274円/500G+3,328円/550G+3,625円 / リセ:0G+268円/100G+2,058円",quit:"AT後14-16Gで引き戻し前兆確認後やめ / 有馬ジャッジメント失敗→天国濃厚(100G以内CZ)=必ず続行 / AT駆け抜け→モードB↑濃厚=引き戻し確認まで / CZ画面:神代利世(紫)→天国濃厚 / 月山(赤)→天国準備↑ / 喰pt9-12蓄積→機械割107%↑",reset:true,resetNote:"CZ天井600G→200Gに大幅短縮。0G+268円=即打ち推奨。有馬ジャッジメント突入(成功率61%→CCGの死神)",zone:"100G(天国/通常B・C) / 200G(通常A・C) / 300G(通常B・天国準備天井) / 400G(通常A・C) / 500G(通常C天井) / 600G(天井)",mode:"通常A(天井600G)/B(600G・100/500G強め)/C(500G)/チャンス(600G・300G強め)/天国準備(300G)/天国(100G)/特殊(リセ限定200G)",samai:"差枚+2200枚→エンディング(+2400完走) / 切断後→有馬ジャッジメント(61%成功・300~2000枚) / マイナス差枚→天井ボーダー50~100G引き下げ程度(単体狙い非推奨)",shisa:"CZ終了画面:金木(白)=デフォ/亜門(黄)=モードB↑/月山(赤)=天国準備↑/利世(紫)=天国濃厚/有馬(虹)=設6 / トロフィー:銅→銀→金→喰→虹 / 招待状:「3時まで」=残300G/「今すぐ」=残100G / 456OVER=設4↑/666OVER=設6",note:"擬似G数≠実G数→メニューで実G確認。50枚約31G/コイン単価4.1円。CZ後100G内CZ当選率:設1=19.6%→設6=36%",kw:"とうきょう トウキョウ グール 東京喰種 金木 有馬"},
+  {name:"カバネリ2 海門決戦",sub:"周期天井+短縮天井",rank:"S",kikai:"97.5〜113.1",ceil:"通常:996G/6周期 / 短縮:596G/4周期(リセ/駆け抜け/景之ST後)",aim:"等価:通常400G〜(+1,000円) / リセ0G〜(+1,000円) / 駆け抜け後120G〜",aim56:"通常500G〜(+203円) / リセ100G〜",bonus:"ST型AT(純増約6.0枚) / 通常ST継続76%/景之ST83%/真・景之ST89%/裏・景之ST89%↑(期待3,600枚)",ev:"等価:通常400G+1,000円/600G+3,333円/800G+6,861円/950G+10,648円 / 短縮:0G+1,000円/200G+3,333円/400G+6,861円/550G+10,648円",quit:"ST後→CZアイコン&サブ液晶確認→30Gキリ番+おみくじ確認→1周期目(最大150G)まで / 150G以内ボナ期待度52% / 海門城背景→4周期内EP濃厚+天井短縮=必続行 / 桜背景→4周期内EP濃厚 / 前回AT1250枚↑→景之STループ期待=0G〜続行",reset:true,resetNote:"天井596G/4周期に短縮。設定1でも機械割100%超=0G即打ち",zone:"1周期目約150G(33%↑) / 2周期目約300G(33%↑) / 3周期目約450G(設1=18%→設6=37%) / 4周期目約600G(設1=34%→設6=47%) / 150G以内ボナ52%↑/300G以内77%↑",zentu:"リセ後0G〜(短縮適用+1,000円) / 駆け抜け後(同) / 海門城背景(天井短縮) / 黒煙ptMAX示唆→初当りまで / 前回AT1250枚↑(景之STループ)",samai:"差枚+2200枚ボナ→エンディング(+2400完走) / 切断後→海門回想→景之ST(継続83%) / +1700枚~が完走待ち狙い目 / マイナス救済なし",shisa:"トロフィー:銅(設2↑)/銀(設3↑)/金(設4↑)/キリン(設5↑)/虹(設6) / ST終了:無名&菖蒲水着=設6確定 / 連打表示:44枚=設4↑/66枚=設6 / 獲得456枚=設4↑/666枚=設6 / おみくじ金=設6確定 / サブ液晶:桜=EP濃厚/海門城=天井短縮",note:"50枚約31G/コイン単価3.1円。短縮条件:設定変更/ST突破/景之ST終了。3周期以降はG数でなくカバネpt到達で進む",kw:"かばねり うなと 甲鉄城 カバネリ2 海門 無名 生駒"},
+  {name:"範馬刃牙",sub:"G数天井(5モード)+スルー天井",rank:"S",kikai:"97.6〜113.5",ceil:"通常A:700G/B:500G/C:300G/チャンス:200G/天国:100G / スルー:6スルー→7回目AT / リセ:天国62%+チャンス38%(実質200G以内99%)",aim:"等価:360-400G〜(+1,192円) / ゾーン:85G〜/160G〜 / スルー:4-5スルー〜 / リセ:100G〜",aim56:"450G〜(+1,052円) / リセ:120G〜",bonus:"範馬ボーナス→AT「地上最強の親子喧嘩」 / 仮天井500G+αでボーナス+CZ/AT",ev:"等価:300G+227円/400G+1,192円/500G+2,544円/600G+4,436円/650G+5,650円 / リセ:0G-707円/180G+3,231円",quit:"ボナ後CZ前兆確認→やめ / AT後引き戻しステージ確認→やめ / 終了画面マリア→天国濃厚=100Gフォロー / エンドルフィン(左ランプ点灯)→続行",reset:true,resetNote:"天国62%+チャンス38%(全設定共通)=99%で200G以内ボナ。等価100G〜で+",zone:"100G(天国天井) / 200G(チャンス天井) / 300G(通常C25%) / 500G(通常A天井89%) / 700G(通常B天井94%)",mode:"通常A(700G)/B(500G)/C(300G)/チャンス(200G)/天国(100G)",samai:"差枚+2400枚→ピクルED発生。+2001枚↑→継続バトル100%当選",zentu:"スルー6スルー(7回目AT)到達時 / エンドルフィン(左ランプ)点灯時 / マリア終了画面(天国濃厚)時",shisa:"終了画面:マリア=天国濃厚/ピクル正面=AT告知/オリバ=CZ告知 / AT枚数:456枚=設4↑/666枚=設6 / PUSHボタン色:紫=設4↑/虹=設6 / 極スタンプ=設6",note:"50枚約35G。仮天井500G+α(通常B天井)あり。投資目安:天井到達約24,000円",kw:"バキ はんま 範馬 刃牙 ピクル"},
+  {name:"モンキーターン5",sub:"G数天井+周期天井(ライバルモード)",rank:"S",kikai:"97.8〜114.9",ceil:"795G+α/6周期 / リセ・青島後:495G+α/4周期 / モード別:A=6周期/B=3周期/天国=1周期",aim:"等価:400G〜(+1,000円超) / 350G〜(+1,000円ライン) / リセ:50G〜(0G〜で出玉率100%超) / 周期:5周期〜",aim56:"500G〜 / リセ:150G〜",bonus:"AT「SGラッシュ」/ 上位AT「青島SG」(純増約4.0枚・継続約83%)",ev:"等価:350G+703円/450G+863円/550G+2,174円/650G+4,426円/750G+6,423円 / リセ:450G+6,419円",quit:"AT後→優出モード前兆確認→やめ / ライバルモード示唆(ヘルメット)→続行 / 青島SG後→天井495Gに短縮=有利 / 差枚+1400↑→1周期様子見",reset:true,resetNote:"天井495G+α/4周期に短縮。等価0G〜で機械割100%超。ガックンあり",zone:"周期切替:1周期末~80G/2周期末~230G/3周期末~380G/4周期末~530G/5周期末~680G/6周期末~795G",mode:"通常A(6周期)/B(3周期)/天国(1周期) / ライバルモード7種(榎木/洞口/蒲生/浜岡/青島/モノクロ波多野/非ライバル)",samai:"差枚+1500-1600枚↑→AT終了時「青島VS波多野」移行(有利区間リセット推定)",zentu:"ライバルモード滞在時 / リセ時0G〜 / モードB↑滞在確認時 / EXアイテム所持時",shisa:"トロフィー:銅=設2↑/金=設4↑/ケロット=設5↑/虹=設6 / ヘルメット:ロゴ+キラキラ=モードB↑/ありさメット=復活濃厚/ライバルヘルメット=ライバルモード / 予想屋:紫「努力と~」=当該周期濃厚 / 激走チャージ澄「憲ちゃん頑張って！」=当該周期AT濃厚 / 即優出:設1=1.6%→設6=3.7%",note:"投資目安:天井約24,000円。機械割97.9%~114.9%。ライバルモード選択率:設1=30%→設6=44%",kw:"もんきー モンキー ターン SGラッシュ 青島"},
+  {name:"リゼロ Season2",sub:"ポイント天井+G数天井",rank:"S",kikai:"96.0〜114.9",ceil:"pt天井:1400pt(≒930G) / G数天井:AT間1300G消化→ロングフリーズ(EP+上位AT直行) / リセ:400/600/800/1000ptに短縮",aim:"等価:400G〜(550pt〜・+700円) / 駆け抜け後:200G〜(300pt〜) / 前回800G↑+AT600枚未満:100G〜 / リセ:100G〜(+2,000円)",aim56:"950pt〜(現金) / 1000pt〜",bonus:"AT「殲滅RUSH」(純増約9.0枚) / AT間1300G天井=ロングフリーズ+EP+上位AT",ev:"等価:400G+700円/600G+3,800円/800G+9,500円/900G+14,000円 / リセ:100G〜+2,000円 / 駆け抜け後:100G〜+1,000円",quit:"AT後→死に戻り区間32G必ず消化→夕方背景+液晶上部ランプ明滅中はやめ禁止(引き戻し抽選中)→明滅止まったらやめ / エキドナモード示唆→続行",reset:true,resetNote:"天井400/600/800/1000ptに短縮(4段階振分)。100G〜で+2,000円=非常に甘い。駆け抜け後も50%で1000pt短縮",zone:"pt制のため明確なG数ゾーンなし / 偶数百pt(200/400/600)でAT期待度約25% / 100pt毎にAT抽選",mode:"エキドナモード(高期待値):蝶エフェクト大/パンドラセリフ/リプレイ時リールフラッシュで示唆",samai:"差枚+2400枚→超強欲MAX(エンディング) / 切断後→確定強欲ゾーン→上位AT確定 / +2100枚~がエンディング狙い目 / 駆け抜け後1/2天井短縮(100G~で狙い可)",shisa:"AT終了画面:温泉(夜)女性6人=設6確定 / ウサギコスプレ=設4↑ / ティータイム=設5↑ / 扉:赤背景スバル=継続確定級 / 菜月家時計:6時6分=設6確定 / エキドナ蝶エフェクト大=モード濃厚 / 死に戻り率:設1=10.2%→設6=20%",note:"投資目安:天井1400pt約29,000円/リセ約21,000円/AT間1300G約40,000円。AT純増約9.0枚。上位AT後は大幅ボーダー低下",kw:"りぜろ レム ラム re:zero リゼロ2 殲滅 エキドナ"},
+  // === A rank ===
+  {name:"北斗の拳",sub:"無想転生バトル",rank:"A",kikai:"97.6〜113.0",ceil:"1,268G+α（リセ 800G+α）",aim:"等価:差枚-1000以下400G〜/±0で500G〜/+1000以上600G〜/通常700G〜 / リセ:100G〜",aim56:"750G〜 / リセ:350G〜",bonus:"AT(バトルボーナス)確定+北斗揃い期待度UP",ev:"等価:400G+141円/700G+1,591円/1000G+4,482円/1200G+8,150円 / リセ:0G-723円/250G+786円/500G+3,615円",quit:"AT後数G回しモード確認→天国否定で即やめ。差枚+750以上→1G回転後やめ(有利区間リセット接近)",reset:true,resetNote:"天井800G+αに短縮。高確スタート50%。100G〜で+",zone:"300G/777G/800Gで天井短縮抽選(最大32G前兆経由AT)",mode:"地獄/通常/天国/本前兆の4モード。リセ時:天国17.6%(設1)→27.9%(設6)",samai:"差枚-1000以下→400G〜(冷遇なし) / 差枚+750以上→有利区間切れ接近=1G回転後やめ",shisa:"トロフィー:金=設4↑/キリン=設5↑/虹=設6濃厚 / ボイス「待ち続ける~」=設5↑ / 断末魔「ヘブン!」「あぢぢ~」=天国以上 / 666枚獲得=設6確定 / ジャギステージ=天国示唆",note:"50枚約35G/コイン単価3.3円。人気機種で空き台少ない。スイカ6枚取りこぼし注意",kw:"ほくと ホクト 拳 ケンシロウ ラオウ"},
+  {name:"ミリオンゴッド 神々の軌跡",sub:"",rank:"A",kikai:"97.5〜113.0",ceil:"GG間 1,480G+α",aim:"550G〜（1,000円超）",aim56:"750G〜",bonus:"GG(ゴッドゲーム)+ループストック",ev:"800Gで+3,000円〜 / 1200Gで+5,000円〜",quit:"GG後 36G引き戻し否定でやめ",reset:false,resetNote:"0G〜(微+)。5.6枚は250G〜",samai:"差枚+2000~2400付近でGG終了時切断(未確定) / マイナスでも切断報告あり / 切断後→G-ZONE経由で高継続GG+ループST(高ループ優遇)",shisa:"天国・超天国示唆あれば続行。GG後36G引き戻し否定でやめ",note:"天井深いが恩恵が強い",kw:"みりおん ゴッド GOD 神"},
+  {name:"ゴールデンカムイ",sub:"ピュウ☆天井+スルー天井",rank:"A",kikai:"97.9〜113.3",ceil:"1,800ピュウ(≒720G) / リセ1,600ピュウ / スルー天井:6回(7回目AT)",aim:"等価:0スルー900ピュウ〜/3スルー700ピュウ〜/6スルー不問 / リセ:700ピュウ〜",aim56:"1,000ピュウ〜",bonus:"ボーナス+砂金ポイント蓄積→AT当選",ev:"0スルー900ピュウ+500円/1200ピュウ+2,000円/1600ピュウ+5,000円 / 6スルー0ピュウ+3,000円超",quit:"AT後→200ピュウゾーン(100G)まで追う→抜けたらやめ / 砂金pt示唆出たらフォロー",zone:"200ピュウ(≒100G):ゾーン狙い / 600ピュウ(≒300G):当選期待度UP",mode:"砂金ポイント蓄積制:高ポイント時AT期待度UP",samai:"差枚+1900超or表示2000超→ED→ゴールデンロード(50G)→上位AT真・黄金神威 / +1000枚↑の台は100~200Gまで追う / AT後100G以内再当選で獲得引継ぎ→ED接近",zentu:"6スルー→0ピュウ〜全ツッパ(AT確定) / 砂金ポイント高蓄積→AT当選まで",shisa:"砂金ポイント蓄積示唆→フォロー / スルー回数=メニューで確認 / AT後200ピュウゾーン到達前やめ厳禁",note:"天井効率指数6位(フリック7)。ピュウ制(1ピュウ≒0.4G)。機械割97.9〜113.3%",kw:"きんかむ ゴールデン カムイ 金カム"},
+  {name:"虚構推理",sub:"2026年5月導入",rank:"A",kikai:"97.5〜112.0",ceil:"1,000G（リセ 700G / 300G抽選あり）",aim:"500G〜（+1,197円）",aim56:"600G〜（+2,231円）",bonus:"ボーナス+雪女ストック1個以上",ev:"600Gで+2,200円 / 800Gで+4,000円〜",quit:"虚構連モード→CZ失敗後(引き戻し15-20%待ち)",reset:true,resetNote:"250G〜。天井300G当選時は大チャンス",samai:"ED到達で有利区間リセット(具体的差枚数値は未解析) / 恩恵=雪女ST2個+虚構連ロング(95%ループ) / 1ボナ500枚↑→雪女ST+虚構連ミドル / 1000枚↑→雪女ST2個+虚構連ロング",note:"新台で空き台見つけやすい",kw:"きょこう 虚構 推理 雪女"},
+  {name:"ヴァルヴレイヴ2",sub:"三重天井(ボナAT間/CZ間/周期)",rank:"A",kikai:"97.8〜114.9",ceil:"ボナAT間:1500G+α(リセ1000G) / CZ間:999G+α / 周期:6(リセ3) / 決戦ボナ3スルー",aim:"等価:750G〜(+1,206円) / CZ間600G〜 / 5周期目〜 / 決戦3連スルー後0G〜",aim56:"950G〜(800G〜で+) / リセ:550G〜",bonus:"天井:決戦ボナ/革命ボナ/AT均等1:1:1 / 3スルーで革命ボナ確定",ev:"等価:550G+78円/750G+1,206円/1000G+3,425円/1200G+6,197円/1450G+11,648円 / リセ:400G+1,221円/550G+2,836円",quit:"革命RUSH後66G引き戻し必ずフォロー(20%・超革命後25%) / 決戦ボナ後即やめ / ソウイチ紫セリフ+引き戻し否定→天国濃厚=1周期フォロー",reset:true,resetNote:"天井1000G+3周期に二重短縮。400G〜で+。1周期目=最大200pt(約66G)",zone:"2周期目:モード不問でゾーン高い / マギウスマーク点灯周期→CZ以上期待度50%",mode:"周期pt:1周期=最大600pt(約200G) / リセ後1周期目=最大200pt(約66G)",zentu:"決戦3スルー後→0G〜革命ボナ濃厚で全ツッパ / マリエ覚醒モード→当選まで",samai:"差枚上限2400枚 / 超革命中+900~1000枚で有利区間切断→ハラキリドライブ発生率UP / 10連以上超革命後は差枚不問で切断可能性 / 切断後ハラキリ(100G純増9枚≒900枚)連続発動",shisa:"終了画面枠色(紫/銀/金=高設定) / マギウスマーク4個=設4↑+天国/5個=設5↑/6個=設6確定 / BAR揃いAT直撃率(設1:3%⇔設6:7%) / ハラキリドライブ発生率",note:"超革命RUSH継続率約90%。CZ確率1/324(全設定共通)",kw:"ヴヴヴ VVV バルブ 革命機 ヴァルヴレイヴ"},
+  {name:"沖ドキ！DUOアンコール",sub:"モード天井+仮天井+スルー天井",rank:"S",kikai:"97.5〜113.5",ceil:"本天井800G / 仮天井301-400G(当選率80%超・0スルー時94.77%) / スルー天井:10回目で天国以上濃厚",aim:"等価:450G〜(+1,169円) / 仮天井:210G〜(0スルー前提+350円) / スルー別:0スルー34G〜/2スルー100G〜/4スルー不問/奇数250G〜",aim56:"550G〜(+1,050円)",bonus:"ボーナス+のるカナチャンス濃厚",ev:"等価:450G+1,169円/550G+1,550円/700G+2,400円/800G+3,200円 / 5.6枚:550G+1,050円/700G+1,750円/800G+2,300円",quit:"32Gやめ。ドキハナ発生時34Gまで",reset:true,resetNote:"0G〜で+1,800円以上(仮天井0スルー94.77%=最高益)。リセ狙い0G〜仮天井抜けまで",zone:"仮天井301-400G:当選率80%超(0スルー94.77%・期待枚数約900枚) / リセ280G〜400G / 奇数スルー250G〜380G抜け",zentu:"4スルー(リセ)→ボナ当選まで / 6スルー→天国当選まで",samai:"差枚+2400枚 or 一撃3000枚→有利区間切断→アンコールモード確定+ドキハナモードG確定(天国+追加2000枚↑) / +1100~1500枚↑の台は32G抜け後からでも狙い可 / 切断成功時機械割108%↑",shisa:"ドキハナ発生時34Gまで確認 / 32-33Gやめ台は打たない / 1G連はスルーにカウントされない / バックライトフラッシュ:リプレイ時→右から左=モードB示唆・上から下=モードD示唆(強) / ベル時→下から上(全リール)=モードB以上濃厚・左から右+上から下=モードD以上濃厚",note:"履歴の34G当選有無が最重要。天国2連落ち後は不問。リセ32G回し不可。投資目安:天井到達約32,000円。50枚約25.3G",kw:"おきどき 沖ドキ DUO デュオ アンコール"},
+  {name:"エウレカセブン4",sub:"二重天井(G数+WAVE数)",rank:"A",kikai:"97.5〜113.0",ceil:"G数:999G+α / WAVE:モードA1550W(≒775G)/B950W(≒475G)/C550W(≒275G)/天国250W(≒125G) / リセ:950W",aim:"等価:550G〜(+2,078円) / 400G〜で+",aim56:"650G〜(+1,019円)",bonus:"G数天井:AT コーラリアンモード / WAVE天井:エピソードボーナス(AT+エアリアルチャンス)",ev:"等価:400G+100円/550G+2,078円/700G+3,782円/900G+8,000円",quit:"AT後250WAVEまで必ずフォロー(高確確定・250W以内AT当選率40%↑) / 404G:EX LFOモード突入抽選→フォロー / 808G:LFOモード→フォロー",reset:true,resetNote:"WAVE天井950Wに短縮。250W以内の初当り期待度UP。高確以上スタート",zone:"WAVE:250/550/950/1250/1450 / 404G:EX LFOモード突入抽選 / 808G:LFOモード",mode:"モードA天井1550W(≒775G)/B950W(≒475G)/C550W(≒275G)/天国250W(≒125G)",samai:"差枚1750~2000枚付近でリセット→EX LFOモード(引き戻しAT濃厚) / 前回AT1000枚↑=優遇→400WAVE~狙い / 前回AT1000枚↓=冷遇→1000WAVE~狙い",shisa:"獲得331/666枚=設6確定 / エンディング中入賞ランプ虹=設6確定 / サミートロフィー虹=設6確定",note:"二重天井構造。1450Wストッパーあり。AT後250Wフォローが最重要(やめ厳禁)",kw:"エウレカ 交響詩篇 EUREKA ハイエボ HI-EVOLUTION"},
+  {name:"戦国乙女5",sub:"2026年6月導入",rank:"A",kikai:"97.5〜113.0",ceil:"999G+α / 6周期（リセ 650G / 4周期）",aim:"天井1周期前〜",aim56:"—",bonus:"AT当選",ev:"時給+2,000円",quit:"AT後 即やめ（1周期目40%で引き戻し）",reset:true,resetNote:"250G〜。天井350G短縮",samai:"差枚上限+2400枚(予想) / ED後→剣聖チャンス(成功70%→真強カワRUSH) / +1800枚~で1周期(暫定) / 新台で解析途上",note:"新台。周期天井狙いがG数狙いより安定。リセット甘め",kw:"おとめ 乙女 戦国 業火"},
+  {name:"バジリスク絆2 天膳",sub:"BC間+スルー天井+差枚管理",rank:"A",kikai:"97.7〜113.8",ceil:"BC間:333G / スルー:7スルー(8回目でBT確定)",aim:"等価:BC間0スルー250G〜/1スルー200G〜/2スルー160G〜 / BT狙い:差枚+or差枚-3000→3スルー0G〜 / その他4スルー〜BTまで / 宿怨pt蓄積台0G〜",aim56:"BC間:200G〜",bonus:"BT確定(8回目) / BC当選",ev:"30G刻み:0G-188円/90G+143円/150G+618円/210G+1,264円/270G+2,384円/300G+3,205円 / 有利区間差枚で期待値最大18%差",quit:"BT後即やめ / LED虹=設6のみ=即やめ(続行しない) / BT後ボイス「今宵も月が綺麗ですね」=設4↑",reset:false,resetNote:"リセ恩恵なし(据え置き狙い推奨)",samai:"差枚+or差枚-3000(宿怨未発動)→3スルー0G〜全ツッパ / 差枚+500→切断狙い(上級者) / 差枚マイナス大→BT当選時の期待枚数UP(有利区間補正)",mode:"朧BCでモード判別(半月=偶数設定/満月=高設定/流れ星=設6) / 天膳BCでLEDランプ4段階目解放まで打つ",shisa:"LED5段階:白→青→黄→緑→赤(設4↑)/虹(設6) / 赤LED+BT非当選=設4↑濃厚 / ユニバプレート:弦之介&朧=デフォ/天膳=設2↑/響八郎=設4↑/陽炎=設5↑/朧(単独)=設6 / 朧BC画面:流星群=設2↑/月食=設3↑/赤満月=設4↑ / サブ液晶左下G数/PUSHでスルー回数確認",note:"差枚マイナスは甘い。宿怨pt:有利区間4500G以上で蓄積→BT突入率UP。50枚約34G",kw:"バジリスク 絆 天膳 てんぜん 甲賀"},
+  {name:"鉄拳6",sub:"ポイント天井+スルー天井",rank:"A",kikai:"97.5〜113.0",ceil:"900pt+α（リセ 500pt） / 3スルー(リセ2スルー)",aim:"660pt〜",aim56:"720pt〜",bonus:"ボーナス当選 / 3スルー後AT濃厚",ev:"リセ0スルー180pt〜で+",quit:"ボーナス後 前兆確認でやめ。赤/紫画面なら続行",reset:true,resetNote:"150G〜。天井500ptに短縮、スルー2回に短縮",samai:"差枚上限+2400枚(確定) / ED後→デビルロード(勝率50%↑→デビルラッシュ覚醒=期待3500枚) / 獲得3000枚でED確定 / +2000枚AT中が狙い目",zone:"290pt〜300pt濃厚ゾーン(液晶右下でpt確認)",note:"",kw:"てっけん テッケン 鉄拳"},
+  {name:"からくりサーカス",sub:"三重天井(CZ間/AT間/CZスルー)",rank:"A",kikai:"97.5〜113.0",ceil:"CZ間:液晶1200G(実質約730G) / AT間:2500G+α / CZスルー:4回失敗→5回目AT直撃 / モード別:通常A液晶1200G/通常B800G/通常C1200G(AT当選)/天国100G",aim:"等価:CZ間450G〜(+72円)/実質200G〜で+ / CZスルー3スルー〜 / AT間1300G〜",aim56:"CZ間600G〜",bonus:"CZ間天井:CZ/AT当選 / AT間天井:AT+激情ジャッジ確定 / CZスルー:5回目AT直撃 / 通常C到達:AT当選",ev:"等価:200G+72円/500G+2,070円/700G+4,692円/1100G+13,043円",quit:"AT後幕間チャンス失敗→即やめ / 上位AT後→運命の一劇失敗→即やめ / PUSH:コロンビーヌ→天国フォロー / 勝セリフ「うん、殺しちゃうんだ…」→通常C濃厚=次CZまで必続行 / ピエロ画面→通常C/天国濃厚",reset:true,resetNote:"通常Cの選択率優遇。1G目強レア小役→特殊モード濃厚(天国50%)",zone:"しろがねシルエット=規定G数まで200G以内濃厚 / しろがねアップ=100G以内濃厚 / CZ間1100G超え台→0G〜(300GでCZ確定)",samai:"差枚+2400枚→エンディング発生条件→運命の一劇突入",zentu:"CZ4スルー後→0G〜AT直撃(5回目書換え) / 赤ステップアップハズレ→200G以内85%",shisa:"スポットライト:しろがね=次前兆 / スイカ+幕間煽り→残3回以内 / 終了画面ピエロ=通常C/天国濃厚 / 勝セリフ=モード示唆",note:"液晶G数≠実G数(液晶1200G=実質約730G)。天国3スルー→残2回以内天国選択されやすい",kw:"からくり カラクリ サーカス"},
+  {name:"ビッグドリーム",sub:"THE GOLDEN PUSHER",rank:"A",kikai:"97.5〜113.0",ceil:"1,499G+α",aim:"1,000G〜(通常) / リセ200G〜",aim56:"1,200G〜 / リセ400G〜",bonus:"AT当選",ev:"リセ200Gで+1,000円超",quit:"AT後77G引き戻しゾーンを回してやめ",samai:"差枚上限+2400枚(推測) / ED後→上位AT確定 / 差枚-2000枚以下→0G~(ボール天井優遇狙い) / 解析途上",zone:"77G引き戻しゾーン(AT後必ずフォロー)",reset:true,resetNote:"150G〜(+1,000円超)。天井999Gに短縮",note:"天井効率指数1位(フリック7)。天井到達率10.89%・平均獲得966枚",kw:"びっぐ ビッグ ドリーム GOLDEN"},
+  {name:"マクロスF4",sub:"液晶P数天井+スルー天井",rank:"A",kikai:"97.5〜113.0",ceil:"液晶1500P(≒1000G) / 6スルー(7すめAT確定)",aim:"0す850P〜 / 5す750P〜",aim56:"750G〜",bonus:"歌姫ボーナス以上濃厚",ev:"450G〜で+。650Gで+1,000円超",quit:"15G歌姫前兆確認後やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚 / ED後→最終決戦(成功50%→超時空バルキリータイム=期待2500枚) / +2400枚近い台で次回AT狙い / プラス時モード冷遇の可能性あり",zone:"450P〜500P前兆確認",zentu:"6スルー→0G〜AT確定",note:"5スルーはそのまま6スルー狙い可。やめ:15G歌姫前兆確認",kw:"マクロス MACROSS フロンティア 歌姫"},
+  {name:"バイオハザード RE:3",sub:"2026年5月導入",rank:"A",kikai:"97.5〜113.1",ceil:"1,000G+α（リセ 650G+α）",aim:"400G〜",aim56:"500G〜",bonus:"AT当選",ev:"リセ150G〜で+",quit:"AT後 即やめ",reset:true,resetNote:"150G〜。天井650Gに短縮",samai:"差枚上限+2400枚(推定) / ED後→フェイトオアフォーチュン+純増4.5枚(通常1.0枚)→ハザードRUSHインフェルノ / 差枚ボーダー未公開(リセ天狙い主流)",note:"新台。設定6機械割113.1%。朝一ランキング8位",kw:"バイオ ハザード BIOHAZARD RE3"},
+  {name:"ガンダムSEED",sub:"AT間+CZ間天井",rank:"A",kikai:"97.5〜113.0",ceil:"AT間1280G(リセ750G) / CZ間777G",aim:"ST間750G〜 / ST駆け抜け後300G〜 / CZ間480G〜",aim56:"—",bonus:"AT当選",ev:"天井効率9位(フリック7)",quit:"AT後 即やめ",reset:true,resetNote:"250G〜。天井750Gに短縮+CZ優遇",samai:"差枚上限+1000~1800枚(他機種より低め・早期切断) / ED後→ラストフェーズミッション(3G)→成功43-58%→フリーダムハイパー(期待3300-3600枚) / +1500枚~が狙い目(恩恵最強級)",zone:"天国:99G以内連続当選4-5回→天国モード狙い",note:"ST駆け抜け後は大幅ボーダー低下",kw:"ガンダム GUNDAM シード SEED"},
+  {name:"真打吉宗",sub:"2026年4月導入",rank:"A",kikai:"97.5〜113.0",ceil:"1,000G / 1,500G天井搭載",aim:"400G〜（+1,000円超）",aim56:"550G〜",bonus:"AT当選",ev:"200G〜で+。400Gで+1,000円超",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚 / ED後→月下ノ花道→真BB(2000枚確定・50%ループで4000枚超も) / ただし到達率0.26%=差枚狙い非現実的→天井狙い推奨",note:"1950万Gサンプルベースの実践値。天井恩恵が厚い",kw:"よしむね ヨシムネ 吉宗 真打"},
+  {name:"番長4",sub:"ボーナス間+特訓間+スルー天井",rank:"A",kikai:"97.6〜113.5",ceil:"ボナ間:699G+α / 特訓間:249G+α / スルー:9回(リセ6回)",aim:"等価:0スルー460G〜/1スルー430G〜/3スルー320G〜/4スルー210G〜/5スルー↑不問 / リセ:0スルー400G〜/1スルー170G〜/2スルー↑0G〜 / 特訓間190G〜 / 押忍モード70G〜",aim56:"300G〜(+56円ボーダー) / 350G+460円 / 450G+1,516円",bonus:"AT「頂ROAD」(純増約2.7枚) / エンブレムモード(約4.5枚)",ev:"等価:0G-351円/100G+437円/300G+843円/450G+2,303円/600G+4,842円/650G+5,990円 / スルー別:5スルー149G+860円/9スルー149G+14,476円",quit:"ボナ後→ステージ+ステチェンモード確認→やめ(差枚+1200↑なら特訓まで) / AT後→即やめ(差枚+1200↑&ボナ間400G↑なら特訓まで) / 引き戻しモード:AT後99G+α対決勝利でAT復帰→フォロー",reset:true,resetNote:"押忍モードスタート(天井149G) / スルー天井9→6短縮。朝一149G以内特訓=リセ濃厚。リセ0スルー330G〜",zone:"特訓天井モード依存:天国49G/押忍149G/チャンス149G/通常B199G/通常A249G / 特訓間200G〜ゾーン狙い可",mode:"押忍/通常A/B/チャンス/AT引き戻し/天国の6モード。夕方/夜ステージ=当選期待度高",samai:"差枚+1200↑=有利切れ接近→ボナまで継続",zentu:"5スルー↑→全ツッパ(149G+860円→9スルー+14,476円) / リセ2スルー↑→0G全ツッパ",shisa:"宗次郎pt示唆:掃除機/掃除ロボ / ステージ:夕方/夜=高期待度 / 700G超え履歴→スルー狙いボーダー大幅引下げ / REG判別:40枚REG/80枚BIG",note:"50枚約33G/コイン単価3.1円。スルー別:0スルー149G+623円/7スルー149G+2,437円",kw:"ばんちょう バンチョウ 番長 頂 押忍"},
+  {name:"転生したら剣でした",sub:"AT間+ボーナス間天井",rank:"A",kikai:"97.5〜113.0",ceil:"AT間:970G(リセ600G) / ボナ間:1280G(リセ980G)",aim:"AT間:550G〜 / ボナ間:1000G〜",aim56:"AT間:600G〜",bonus:"AT当選CZ確定 / 擬似ボナ当選",ev:"+2,000円〜",quit:"天国当選後100G前兆抜け。その他前兆確認後やめ",reset:true,resetNote:"50G〜(推奨)。AT天井600G+ボナ天井980Gに短縮。ガックン判別可",zone:"290G〜夜ステージ(超高確)抜けまで / 天国:前回天国当選台0G〜前兆抜け",zentu:"赤タイトルハズレ→CZ当選まで(見逃し厳禁) / 黒赤アイキャッチ→モードB以上AT当選まで",samai:"差枚上限+1000~1500枚(低め) / NOエンディングAT(シームレス継続) / 外部から切断タイミング判別困難→差枚狙い困難 / 天井・魔石・ボナ間狙い推奨",shisa:"黒/赤アイキャッチ→モードB以上200G〜AT当選まで / 赤タイトルハズレ→CZ当選まで(見逃し厳禁) / 白魔石80個以上→CZ当選まで",note:"",kw:"てんけん 転生 剣 テンケン"},
+  {name:"スマスロ吉宗",sub:"G数天井+1G連狙い",rank:"A",kikai:"97.5〜113.0",ceil:"999G",aim:"600G〜(推奨) / 1G連後0G〜",aim56:"—",bonus:"ボーナス確定",ev:"+3,000円〜",quit:"193Gやめ",reset:false,resetNote:"",zone:"モードB:390G〜465G前兆抜け / 1G連後天国193抜け台→0G〜",mode:"鷹狩りモード:障子に鷹全体出現台→当選まで",samai:"差枚+1689枚→ED(711枚固定獲得で計+2400枚)→裏鷹狩り(期待枚数3600枚・全BIG) / +1000枚以上で狙い目 / 裏鷹狩り抜け後天国濃厚→193G+αまでフォロー",zentu:"鷹狩りモード(障子に鷹全体)→ボナ当選まで / 1G連後天国193抜け台→0G〜当選まで",note:"",kw:"よしむね ヨシムネ 吉宗 スマスロ"},
+  {name:"コードギアス 復活のルルーシュ",sub:"5モード天井(ボナ当選でG数非リセット)",rank:"A",kikai:"97.5〜113.0",ceil:"モードA:1000G/B:700G/C:950G/天国:100G/リセ:700G+前兆",aim:"等価:300G〜(+488円) / 400G+1,188円 / 500G+2,146円 / 700G+5,098円 / 履歴150-200/300-400ゾーン当選→モードA濃厚=0スルー150G〜",aim56:"550G〜",bonus:"ボーナス当選(ボナ当選でG数リセットされない=重要)",ev:"等価:300G+488円/400G+1,188円/500G+2,146円/600G+3,430円/700G+5,098円/900G+10,000円↑",quit:"AT後40G紫発光中レア役で引き戻し確認→否定でやめ / エピBONUS後→G数引き継ぎ=深ければ続行",reset:true,resetNote:"60G〜。天井700G短縮+ゾーン振り分け多い。モードCスタート率高め",zone:"モードA:150-200G/300-400G/600-700G/950-1000G / モードB:150-200G/350-400G/650-700G / モードC:全域(AT当選モード)",mode:"A(天井1000G)/B(天井700G)/C(天井950G・AT当選)/天国(100G)/リセ(700G)。ボナ当選でG数リセットされない=ゾーン抜けても続行価値あり",samai:"差枚+2200枚→ED50G→有利区間切断→アラムの門(64%ギアスラッシュ) / AT20連↑転落時も切断 / +1000枚↑で250Gゾーンまで追う価値あり",shisa:"AT後40G紫発光中レア役→引き戻し / 4/7/ラウンド15以上→引き戻しカバー / エピBONUS(初当り1/4)→G数引継ぎ確認",note:"最重要:ボナ当選でG数リセットされない。ボナ後もG数を見て狙い目判断。50枚約33G",kw:"ギアス コードギアス ルルーシュ GEASS"},
+  {name:"犬夜叉",sub:"四魂ボーナス+スルー天井",rank:"A",kikai:"97.5〜113.0",ceil:"四魂ボナ:666G / スルー:8回目 / 有利区間:3000G",aim:"四魂ボナ:400G〜 / スルー:3スルー+250G〜",aim56:"—",bonus:"ボーナス/AT当選",ev:"四魂400Gで+1,600円 / 有利2100G〜で+4,400円",quit:"アイキャッチ確認してやめ",reset:true,resetNote:"スルー天井8→4に短縮。リセ後2スルー〜",zone:"月下ステージ+桜+半月以上→狙い / アイキャッチ:りん・かごめ→0G〜AT / 白童子→0G〜四魂ボナ",zentu:"有利区間2100G〜→ぶった斬りゾーン出るまで / りん・かごめアイキャッチ→0G〜AT / 白童子→0G〜四魂ボナ",samai:"差枚+2400枚→リセット→BGZ(STストック特化最大8個)→上位AT奈落決戦(期待2000枚・勝利82%) / マイナス時AT→2400枚突破で平均+790枚恩恵 / 有利区間1750G+0スルー+差枚±0で機械割105%超",shisa:"PUSHボタン:りん・かごめ→0G〜AT / 白童子→0G〜四魂ボナ / 月下+桜+半月以上→狙い / 50G示唆:緑札=四魂3回以内AT / 赤札=次回AT確定",note:"有利区間天井:2100G〜ぶった斬りゾーン出るまでツッパ。奇数スルー(1/3/5)が熱い",kw:"いぬやしゃ イヌヤシャ 犬夜叉"},
+  {name:"モンハンライズ",sub:"G数天井+クエストスルー",rank:"A",kikai:"97.5〜113.0",ceil:"999G+前兆 / クエスト6スルー(7回目ボナ確定)",aim:"630G〜 / 5スルー〜 / 500P〜",aim56:"700G〜",bonus:"赤7ボナ以上確定(天井時)",ev:"+2,500円〜",quit:"1G回しレア役確認。天国フォロー時1クエストやめ",reset:true,resetNote:"天国準備以上75%。初回金冠50%。4スルー〜狙い可",zone:"カムラポイント500P〜クエスト抜けまで",zentu:"クエスト5スルー〜→AT当選まで",samai:"差枚+2100枚→ED(保証300枚で計+2400枚) / 10頭討伐で抽選(15頭以上100%) / 恩恵=百竜ノ淵源チャレンジ(成功67%→百竜ノ淵源ボナ)",shisa:"1G目レア役→AT濃厚 / カムラ祓え歌サマーver.変化→天国フォロー / アイルーだるま落とし/直撃AT→次回天国濃厚",note:"天国テーブル移行まで転落なし",kw:"もんはん モンハン ライズ RISE"},
+  {name:"七つの魔剣が支配する",sub:"ST間天井(カバネリ系)",rank:"A",kikai:"97.5〜113.0",ceil:"ST間:1000G(リセ650G) / キンバリー4スルー(5回目ST)",aim:"連チャン後:550G〜 / 駆け抜け:290G〜",aim56:"600G〜",bonus:"プロローグボーナス(ST確定)",ev:"+2,500円〜",quit:"ST後即やめ",reset:true,resetNote:"200G〜。天井650Gに短縮。ガックン判別可",zone:"70G〜100G前兆抜け / 七つの支配トリガー後0G〜",samai:"差枚+2400枚→有利区間リセット→支配トリガー1個獲得(期待約1000枚x77%ループ) / 前回AT1900枚↑→85%で0スルーAT / 前回AT中300枚以上x3回→94%↑で0スルーAT",zentu:"七つの支配トリガー発動後→0G〜ST突入まで / キンバリー4スルー→5回目ST確定",note:"キンバリーボナではG数天井リセットされない(打ち切り注意)。3スルー以上/0スルーが強い(1-2スルー弱い)",kw:"ななつ 七つ 魔剣 ナナツノマケン"},
+  {name:"わたしの幸せな結婚",sub:"ボーナス間+スルー+CZ天井",rank:"A",kikai:"97.5〜113.0",ceil:"ボナ間:800G(リセ350G) / スルー:6回(7回目AT) / CZ:350G",aim:"0スルー:400G〜 / 1スルー+:450G〜 / 5スルー〜",aim56:"500G〜",bonus:"ボーナス / EPボーナス(AT確定)",ev:"+2,000円〜",quit:"ボナ後1G。桜終了画面→天国確定100Gフォロー。AT後夢屋敷抜け",reset:true,resetNote:"90G〜。天井350G短縮。スルー5回でAT濃厚。通常C94.9%",zone:"280G〜350G前兆抜け / 超天国:天国2連以上→抜けまで",mode:"モードC:わた婚ボナ→AT→駆け抜け後100G〜(AT中ボナ引きはNG)",zentu:"5スルー〜→EP/AT当選まで / 超天国(天国2連以上)→天国抜けまで",samai:"エンディング非搭載(NOエンディング仕様)→差枚狙い非対応。有利区間は差枚+2200~2400付近でリセット推測",shisa:"桜終了画面→天国確定100Gフォロー / 赤タイトル/赤セリフハズレ→100G+αで本前兆濃厚",note:"",kw:"わたしあ ワタシア 幸せ 結婚 わた婚"},
+  {name:"シン・エヴァンゲリオン",sub:"G数天井+ボーナス間天井",rank:"A",kikai:"97.5〜113.0",ceil:"G数:800G+前兆 / ボナ間:1200G+前兆(ST非リセ)",aim:"G数:500G〜 / ボナ間:700G〜",aim56:"600G〜",bonus:"作戦ST / ボーナス確定",ev:"+2,000円〜",quit:"作戦ST終了後やめ。駆け抜け後ボナ間天井チェック必須",reset:true,resetNote:"200G〜。G数天井650Gに短縮",zone:"130-150G抜けまで / ナビポイント14P〜",samai:"差枚+2400枚付近→エンディング→三機殲滅(8G+α ST式・Vストック変換) / 差枚プラス台が有効",shisa:"夜ステージ(高確)→抜けまでフォロー / リセ判別:宵越しゾーンで液晶G青=リセ",note:"",kw:"シンエヴァ エヴァ EVANGELION エヴァンゲリオン"},
+  {name:"デビルメイクライ5",sub:"ST間天井+周期天井",rank:"A",kikai:"97.5〜113.0",ceil:"ST間:1000G(短縮800G) / 周期:10周期",aim:"通常:650G〜 / 短縮時:450G〜",aim56:"700G〜",bonus:"エピソードボーナス(ST確定)",ev:"+2,500円〜",quit:"即やめ(液晶下部の周期数確認)",reset:true,resetNote:"350G〜。天井1000→800G短縮(リセ/ST駆け抜け/上位ST後)",zone:"1/4/7周期200pt〜前兆抜け / 100G:70G〜 / 200G:170G〜",samai:"差枚+2400枚付近→ED(レバーオン暗転フリーズ→青7揃い)→上位ST「デビルズネバークライ」(継続89%・最大1000枚上乗せ)",shisa:"メニューのトランプ示唆で周期間の押し引き判断",note:"カバネリ/ゴッドイーター系(ST間天井=DMCボナでリセされない)",kw:"デビルメイクライ DMC デビル DEVIL"},
+  {name:"今日から俺は!!",sub:"G数天井+スルー天井",rank:"A",kikai:"97.5〜113.0",ceil:"1280G+前兆(リセ768G) / REGスルー:3スルー(4回目勲章ボナ確定)",aim:"0-1スルー:710G〜 / 2スルー:670G〜 / 3スルー:380G〜",aim56:"750G〜",bonus:"ボーナス(勲章ボーナス濃厚)",ev:"+2,000円〜",quit:"128G天国抜け+コナミコマンド示唆確認",reset:true,resetNote:"200G〜。天井768Gに短縮。ガックン判別可",zone:"128G天国抜け",zentu:"コマンド「俺たちは無敵だー」→天国濃厚+次回次次回80% / 「見せてくれよ」→勲章到達濃厚",samai:"差枚+1800枚手前で有利区間切断→最強ツッパリロード(具体的ボーダー未解明・データ蓄積中)",shisa:"コナミコマンド(↑↑↓↓←→←→+CHANCE):キック/俺たちは強い=天国濃厚 / 大声出すわよ=勲章残1回 / 見せてくれよ=勲章到達濃厚",note:"純増6枚の高速機",kw:"きょうから 今日から俺は コナミ"},
+  {name:"スマスロ イニシャルD",sub:"G数天井+スルー天井",rank:"A",kikai:"97.5〜113.0",ceil:"599G+前兆(天井後299Gに短縮) / スルー:6スルー(7回目AT)",aim:"0-1スルー:400G〜 / 3-4スルー:430G〜 / 5スルー〜",aim56:"450G〜",bonus:"CZレジェンドバトル / AT(スルー天井)",ev:"+2,000円〜",quit:"高確フォローしてやめ",reset:true,resetNote:"180G〜299G前兆抜け。50%で天井299G短縮",zone:"100G高確:90G〜 / 短縮天井:前回599G以上→90G〜299G抜け",zentu:"レジェンドバトル5スルー〜→AT当選まで",samai:"差枚上限+2400枚 / 残り300枚切りでED→覚醒ゾーン(AT60%・成功時LB対戦相手が高橋涼介確定) / AT中1000枚↑→LB一部で有利区間リセット(天井299G短縮+ランクシナリオ3↑)",shisa:"AT間1-2回目CZは期待度高い相手選択されやすい / 高確フォローしてやめ",note:"",kw:"イニシャル イニD 頭文字 INITIAL"},
+  {name:"新鬼武者3",sub:"G数天井+周期天井",rank:"A",kikai:"97.5〜113.0",ceil:"1000G or 6周期(早い方)",aim:"650G〜 / 5周期〜",aim56:"700G〜",bonus:"AT当選",ev:"+2,000円〜",quit:"AT後即やめ or 1周期フォロー",reset:true,resetNote:"2周期+300pt〜。天井周期最大4に短縮",zone:"1周期+100P〜 / 3周期+300P〜",zentu:"秀吉最終決戦失敗後→1周期目AT濃厚(超狙い目) / 鬼斬りカード赤→AT濃厚",samai:"差枚+2200枚→ED(200枚獲得で計+2400枚)→秀吉最終決戦(6G・成功73%→上位AT真蒼剣RUSH・失敗時天国) / +1800枚↑→次回ATまでフォロー推奨",shisa:"鬼斬りカード:緑(蒼鬼&茜)→当該周期80%/赤→AT濃厚 / 555pt超→次回222pt短縮 / 水晶玉色付き→フォロー",note:"秀吉最終決戦失敗後→1周期目AT濃厚(超狙い目)",kw:"おにむしゃ 鬼武者 オニムシャ"},
+  {name:"東京リベンジャーズ",sub:"G数天井+スルー+周期天井",rank:"A",kikai:"97.5〜113.0",ceil:"1190G / 東卍チャンス4スルー(5回目AT) / 6周期",aim:"700G〜 / 3スルー〜 / 5周期〜",aim56:"750G〜",bonus:"AT東卍RUSH(即告知)",ev:"+2,000円〜",quit:"即やめ(リベンジゾーン:右下ノイズ表示中約50Gフォロー)",reset:true,resetNote:"300G〜。天井900G短縮+AT突入率UP",zone:"3周期+200pt〜決戦前夜確認",mode:"モードB:300pt以内にCZ(超え→B否定)",zentu:"東卍チャンス3スルー〜→AT当選まで",samai:"差枚上限+2400枚 / AT中残り差枚300枚未満→ED / 残り差枚1400枚以下→フリーズ不発ED直行 / 恩恵=リベンジチャンス(50%)or天上天下唯我独尊 / 成功一部で「黒い衝動」(期待約3000枚)",shisa:"サブ液晶タッチでモード示唆(セリフ色・キャラ) / リベンジゾーン:液晶右下ノイズ表示中約50Gフォロー",note:"3周期以内当選期待度約72%",kw:"リベンジャーズ 東リベ 東卍 トーマン"},
+  {name:"スマスロカイジ",sub:"G数天井+CZ間天井",rank:"A",kikai:"97.5〜113.0",ceil:"G数:1000G / CZ間:モードA650G/B450G/C250G",aim:"連チャン後:520G〜 / 単発後:560G〜",aim56:"600G〜",bonus:"利根川RUSH+BB(G数天井)",ev:"+2,000円〜",quit:"ざわ高確レート抜け後数G確認",reset:true,resetNote:"リセ推奨330G〜。天井800G短縮+内部G数加算",zone:"250CZ:単発後200G〜 / 連チャン後230G〜",mode:"CZ間天井モード依存:A650G/B450G/C250G",zentu:"穢れ大示唆→沼ボーナス発動まで",samai:"差枚上限+2400枚(スマスロ共通) / 具体的な差枚狙いボーダーは未解析",shisa:"レート高確:2-5倍ランプ点灯台→消灯まで / 穢れ大示唆→沼ボーナスまで",note:"",kw:"カイジ KAIJI 利根川"},
+  // === B rank ===
+  {name:"ガンダムユニコーン 覚醒",sub:"CZ天井+AT天井+スルー天井",rank:"B",kikai:"97.5〜113.0",ceil:"CZ:800G+α / AT:1400G+α / スルー:6回(7回目AT)",aim:"CZ間:550G〜",aim56:"CZ間:650G〜",bonus:"CZ当選 / 7スルーでAT",ev:"+1,500円〜",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚 / 切断後→覚醒の光(上位AT引き戻しCZ・可能性レベルMAX) / ボーダー情報不足",note:"擬似G数採用だがCZ天井は実G数基準→データランプで確認",kw:"ユニコーン UNICORN 覚醒 ガンダム"},
+  {name:"銭形5",sub:"主役は銭形",rank:"B",kikai:"97.5〜113.0",ceil:"1,250G+α（銭形BONUSで約50%不二子デカタイム）",aim:"650G〜(AT後) / 全モード平均720G〜で104%",aim56:"700G〜",bonus:"銭形BONUS+約50%で不二子デカタイム",ev:"720G付近で機械割104%ライン",quit:"AT後 即やめ",reset:true,resetNote:"0G〜で+",samai:"差枚上限+1900~2000枚(BIG当選時) / +1900枚付近で500枚↑出玉あり / 切断後→BIG BONUS(700枚↑)保証",zone:"301-400Gゾーン発動あり(通常A/B)",note:"モードで天井変動",kw:"ぜにがた ゼニガタ 銭形 不二子 ルパン"},
+  {name:"アクダマドライブ",sub:"G数+スルー天井",rank:"B",kikai:"97.5〜113.0",ceil:"G数天井+スルー天井搭載",aim:"—",aim56:"—",bonus:"スルー天井でエピソードボーナス→AT濃厚",ev:"+1,500円〜",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚(予想) / 切断後→超S級デッドオアアライブ(成功80%→上位AT) / ボーダー未判明",note:"2026年4月導入。スルー天井の恩恵が強い",kw:"アクダマ ドライブ AKUDAMA"},
+  {name:"ヨルムンガンド",sub:"2026年4月導入",rank:"B",kikai:"97.5〜113.0",ceil:"AT間 999G+α（リセ/上位CZ後 450G+α）",aim:"760G〜",aim56:"770G〜",bonus:"AT当選",ev:"リセ時200G〜で+",quit:"AT後 ココポイント確認でやめ",reset:true,resetNote:"200G〜。天井450Gに短縮",zone:"100G/300G超高確ゾーン",samai:"差枚上限+2400枚 / +1500~1600枚↑で「恥の世紀」トリガー / 切断後→上位CZ恥の世紀突入濃厚",zentu:"紫カード出現 or ストーリーアイコン所持→AT当選まで",note:"朝一ランキング5位",kw:"ヨルムンガンド JORMUNGAND"},
+  {name:"SAO ソードアートオンラインII",sub:"2026年6月導入",rank:"B",kikai:"97.5〜113.0",ceil:"CZ間天井（リセ 256G+αに短縮）",aim:"—(解析待ち)",aim56:"—",bonus:"CZ当選",ev:"リセ時50G〜で+",quit:"AT後 即やめ",reset:true,resetNote:"50G〜。CZ天井256Gに短縮",samai:"差枚上限+2400枚 / プラス差枚+50~100枚↑でボナ当選時切断 / 切断後→ビーターモード(当選率0.4%→10%に上昇)",note:"新台。朝一ランキング7位。解析進行中",kw:"ソードアート SAO キリト アスナ"},
+  {name:"炎炎ノ消防隊2",sub:"3つの天井搭載",rank:"B",kikai:"97.5〜113.0",ceil:"ボーナス間:850G(リセ650G) / ループ:2000G / スルー:5回",aim:"500G〜",aim56:"600G〜",bonus:"ボーナス / SPボーナス(スルー天井)",ev:"リセ350G〜で+",quit:"AT後 即やめ",reset:true,resetNote:"350G〜。天井650Gに短縮+88Gゾーン強化",samai:"差枚上限+2400枚付近(予想) / +2000枚付近が目安 / 切断後→ST炎炎激闘複数ストック+炎炎大戦・紅J大戦チャンス",zone:"88Gゾーン:天国移行35%(朝一0G打ち可)",note:"スルー天井との複合狙いが強い",kw:"えんえん エンエン 消防隊 炎炎"},
+  {name:"化物語",sub:"G数天井+CZループ(解呪連)",rank:"A",kikai:"97.5〜113.0",ceil:"1000G(リセ600G短縮)",aim:"等価:600G〜(+1,321円) / リセ:250G〜",aim56:"700G〜 / リセ:350G〜",bonus:"倖時間+倍倍チャンス濃厚(天井時)",ev:"等価:600G+1,321円/800G+5,222円/950G+10,873円 / リセ:50G+59円/150G+480円/200G+1,080円",quit:"AT後51-100GはモードBのHIGH濃厚→100Gゾーンと被るので注意。解呪連モード滞在中は転落確認まで続行",reset:true,resetNote:"天井600Gに短縮。50G消化でモードBのHIGH移行濃厚。250G〜で+1,080円",zone:"30G〜100G前兆確認(CZ期待) / 260G〜300G前兆確認(300GでCZ当選率約40%)",mode:"解呪連モード(CZループ):ショート平均2回/ミドル平均4回/ロング平均10回ループ。移行条件=モードB(HIGH)中CZ当選で50%/強ベルB契機で100%/AT終了時10-15%",shisa:"解呪連判別:ルーレット第3停止「好機」=ショート以上/「***」=ミドル以上 / 怪異始動:右中左=ショート以上・左中右=ミドル以上 / 怪異文字:小60%以上・中ショート以上・大ロング濃厚 / 強レア役で怪異文字非発生=CZ+解呪連濃厚",samai:"差枚上限+2400枚(スマスロ共通) / AT後50G以内再当選で枚数引継ぎ→1000枚到達で怪逅ノ儀高確 / 解呪連ロング中の大量獲得→ED接近",note:"解呪連ロング滞在中は最高期待値。AT後50G以内AT当選で枚数引継ぎ→1000枚到達で怪逅ノ儀高確",kw:"ばけもの バケモノ 化物語 物語 解呪連"},
+  {name:"秘宝伝",sub:"リセット狙い専用",rank:"B",kikai:"97.5〜113.0",ceil:"REG後G数天井",aim:"350G〜",aim56:"400G〜",bonus:"ボーナス当選",ev:"リセ350Gで+1,000円超",quit:"ボーナス後 即やめ",reset:true,resetNote:"250G〜(+1,000円超)",samai:"差枚上限+2400枚 / +2100~2200枚超ボナ終了時切断 / 切断後→クレア高確率(成功で伝説STロング高確)",note:"朝一リセット時が最も有効。通常時は天井深い",kw:"ひほう ヒホウ 秘宝"},
+  {name:"ゴジラVSエヴァンゲリオン",sub:"G数+スルー天井",rank:"B",kikai:"97.5〜113.0",ceil:"G数:1000G(リセ700G) / スルー:8(リセ5短縮)",aim:"6スルー+230G〜 / 630G〜(ボナ間)",aim56:"850G〜",bonus:"AT当選",ev:"+2,500円〜",quit:"AT後 即やめ",reset:true,resetNote:"リセ判別:当日6スルー/前日G数でモスラステージ",zone:"上位AT後70G以内捨て台→赤オーラ消えるまで",samai:"差枚上限+2400枚 / +1300枚↑(上位AT後)が狙い目 / 切断後→決戦キングギドラ勝利でG覚醒ラッシュ(期待3313枚・ループ77%)",shisa:"筐体上部赤オーラ→消えるまでフォロー / モスラステージ→リセ判別に利用",note:"前兆は宵越し依存",kw:"ゴジラ エヴァ ゴジエヴァ"},
+  {name:"北斗の拳 転生の章2",sub:"あべし天井",rank:"B",kikai:"97.7〜114.0",ceil:"あべし数で管理（G数≠あべし数）",aim:"780あべし〜",aim56:"840あべし〜",bonus:"AT当選",ev:"+2,000円〜",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚(予想) / +2300枚付近で切断 / 切断後→上位CZ突破で天撃(上位AT)チャンス",note:"あべし数は液晶確認可。G数と1:1ではないので注意",kw:"ほくと 転生 てんせい あべし"},
+  {name:"スーパーリオエース2",sub:"2026年5月導入",rank:"B",kikai:"97.5〜113.0",ceil:"750G+α（モードで300G/500G天井あり）/ スルー:7回(8回目AT)",aim:"100G・300Gゾーン付近",aim56:"—",bonus:"ノワールルーム(CZ)→AT / スルーでAT",ev:"100G/300G付近で当選期待度50%超",quit:"AT後 即やめ",reset:false,resetNote:"",zone:"100G/300Gゾーン:当選期待度50%超",samai:"差枚上限+2400枚付近(予想) / 切断後→ノワールクライシス→成功でリオラッシュEX / ボーダー未判明",note:"ノワールルーム当選期待度が高い",kw:"リオ RIO エース"},
+  {name:"ToLOVEるダークネス",sub:"ST間天井",rank:"B",kikai:"97.5〜113.0",ceil:"ST間999G(リセ650G)",aim:"450G〜 / ST駆け抜け後215G〜 / 連チャン後230G〜",aim56:"—",bonus:"AT当選",ev:"リセ50G〜で+",quit:"AT後 即やめ",reset:true,resetNote:"130G〜",zone:"ST駆け抜け後215G〜 / 連チャン後230G〜 / 天井×単発→180G〜",samai:"差枚上限+2400枚 / +1500~2000枚付近が目安 / 切断後→もぐもぐたい焼きタイム(32G)→ボナ(平均650枚)→上位STハーレムモード",note:"ゾーン狙いが有効で期待値が高い",kw:"とらぶる トラブル ToLOVE ダークネス"},
+  {name:"吉宗ライジング",sub:"",rank:"B",kikai:"97.5〜113.0",ceil:"—",aim:"—",aim56:"—",bonus:"AT当選",ev:"天井効率7位(フリック7)",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚(スマスロ共通) / 詳細ボーダー未判明",note:"天井効率指数7位。天井到達率10.1%・平均獲得733枚",kw:"よしむね ヨシムネ ライジング"},
+  {name:"スカイラブ",sub:"Sky Love",rank:"B",kikai:"97.5〜113.0",ceil:"—",aim:"—",aim56:"—",bonus:"AT当選",ev:"天井効率2位(フリック7)",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚(スマスロ共通) / 詳細ボーダー未判明",note:"天井効率指数2位。天井到達率12.6%・平均獲得730枚",kw:"スカイ ラブ SKY LOVE"},
+  {name:"スーパービンゴネオ",sub:"",rank:"B",kikai:"97.5〜113.0",ceil:"—",aim:"—",aim56:"—",bonus:"AT当選",ev:"天井効率3位(フリック7)",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚(スマスロ共通) / 詳細ボーダー未判明",note:"天井効率指数3位。天井到達率12.9%・平均獲得660枚",kw:"ビンゴ BINGO ネオ"},
+  {name:"アイマス ミリオンライブ",sub:"NEXT PROLOGUE",rank:"B",kikai:"97.5〜113.0",ceil:"—",aim:"—",aim56:"—",bonus:"AT当選",ev:"天井効率5位(フリック7)",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚(スマスロ共通) / 詳細ボーダー未判明",note:"天井効率指数5位。天井到達率16.0%・平均獲得487枚",kw:"アイマス アイドル ミリオン IDOLMASTER"},
+  {name:"赤目が斬る2",sub:"",rank:"B",kikai:"97.5〜113.0",ceil:"—",aim:"—",aim56:"—",bonus:"AT当選",ev:"天井効率12位(フリック7)",quit:"AT後 即やめ",reset:false,resetNote:"",samai:"差枚上限+2400枚(スマスロ共通) / 詳細ボーダー未判明",note:"天井効率指数12位",kw:"あかめ アカメ 赤目 斬る"},
+  {name:"防振りしたいと思います",sub:"G数天井",rank:"B",kikai:"97.5〜113.0",ceil:"950G+前兆(リセ650G)",aim:"680G〜(破壊神あり-50G)",aim56:"720G〜",bonus:"無限高確ZONE(実質ボナ濃厚)",ev:"+1,500円〜",quit:"防御状態転落確認後やめ(即やめ厳禁)",reset:true,resetNote:"200G〜。天井650G短縮",zone:"130G〜 / 270G〜前兆抜け",samai:"差枚-2000以上→630G〜",shisa:"ボナ後防御状態移行→約1/12高確ZONE or 転落まで(示唆演出とG数で見極め/即やめ厳禁)",note:"",kw:"ぼうふり 防振り 防御力 極振り"},
+  {name:"聖戦士ダンバイン",sub:"G数天井+周期天井",rank:"B",kikai:"97.5〜113.0",ceil:"763G+前兆 / 周期:8周期(リセ5)",aim:"420G〜 / 6周期〜",aim56:"500G〜",bonus:"ボーナス当選",ev:"+1,500円〜",quit:"1G復活確認 or ST後引き戻し(下パネル点滅63G+α)抜け",reset:true,resetNote:"3周期〜ボーナス当選まで",zone:"オーラカウンター:6-7pt / 15-16pt / 25-32pt前兆抜け / 紫周期→0pt〜",samai:"差枚上限+2400枚(予想) / 切断後→上位STビルバインラッシュ(継続率94%) / ボーダー未判明",note:"全リールフリー打ちOK",kw:"ダンバイン 聖戦士 DUNBINE"},
+  {name:"ガールズ&パンツァー最終章",sub:"AT間天井+CZ間+スルー天井",rank:"B",kikai:"97.5〜113.0",ceil:"AT間:500G(65%)/1111G(35%) / CZ間:300G / スルー:7スルー(8回目AT)",aim:"680G〜 / CZ不問180G〜 / 5スルー〜",aim56:"750G〜",bonus:"AT当選",ev:"+1,500円〜",quit:"AT後即やめ。CZ後PUSH示唆確認",reset:true,resetNote:"200G〜500G前兆抜け。リセ500G選択率65%優遇",zentu:"5スルー〜→AT当選まで",samai:"差枚上限+2400枚 / 切断後→上位AT戦車道無限軌道(期待1292枚) / ボーダー未判明(上級者向け)",shisa:"CZ後PUSH示唆確認 / 前回AT単発後の+1スルーCZ間→0G〜CZまで(超狙い目)",note:"リセ振分500G/65% vs AT後500G/10%の差が重要",kw:"ガルパン ガールズ パンツァー GARUPAN"},
+  {name:"シャーマンキング",sub:"G数天井+ポイント+巫門遁甲pt",rank:"B",kikai:"97.5〜113.0",ceil:"800G+前兆(リセ500G) / pt:最大1000pt / 巫門遁甲:10pt",aim:"500G〜 / pt600P〜 / 巫門遁甲7スルー〜",aim56:"550G〜",bonus:"シャーマンボーナス / AT(巫門遁甲11pt)",ev:"+1,500円〜",quit:"ボナ後/AT後即やめ",reset:true,resetNote:"リセG数200G〜/巫門遁甲5スルー〜。天井500G短縮+憑依pt100以上+巫門遁甲1pt以上",zone:"夜ステージ(ボナ高確)→期待度50%以上必ずフォロー",samai:"差枚上限+2400枚 / +2300枚付近で切断抽選 / 切断後→グレートスピリッツ移行",shisa:"小鬼レベル色でptボーダー調整:赤550P〜/紫500P〜。約40%で300pt以上スタート",note:"",kw:"シャーマン SHAMAN シャーマンキング"},
+  {name:"スマスロ真・北斗無双",sub:"宿命天井",rank:"B",kikai:"97.5〜113.0",ceil:"1536宿命(≒770G) / リセ最大1024宿命(≒512G)",aim:"700カルマ(≒360G)〜 / 駆け抜け後600カルマ(≒300G)〜",aim56:"—",bonus:"AT当選",ev:"+2,000円〜",quit:"Pushで示唆確認。余剰カルマゾーン近ければフォロー",reset:true,resetNote:"90G(180カルマ)〜。モードC以上確定+天井短縮",zone:"200カルマ〜激闘ロード抜け",mode:"ユリアポイント:ST単発3連続台→0G〜 / 激闘ロード発生箇所でモード推測",zentu:"ユリアポイント(ST単発3連続台)→0G〜AT当選まで",samai:"差枚上限+2000枚(他機種より低め) / +1500枚で256ゾーンまで続行推奨 / 切断後→ED(300~350枚)→極強幻闘ラッシュ(継続96%)",shisa:"Push示唆確認。余剰カルマゾーン近ければフォロー",note:"",kw:"ほくとむそう 北斗無双 ムソウ"},
+  {name:"バイオハザード ヴェンデッタ",sub:"G数天井+天国",rank:"B",kikai:"97.5〜113.0",ceil:"999G(リセ666G)",aim:"推奨550G〜 / 一般500G〜",aim56:"600G〜",bonus:"AT確定+次回天国確定(天井時)",ev:"+2,000円〜",quit:"ステージチェンジ1回確認。始祖ウイルスハウス以下やめ。シェバアイコン→天国フォロー",reset:true,resetNote:"推奨350G〜。天井666G短縮",zone:"天国:前回999G当選/シェバアイコン→0-99G抜け / ステージ7以上→150Gまで",samai:"差枚+1600以上→切断狙い",mode:"高モード:始祖ウイルスハウス/地下坑道→パニックゾーン当選まで",zentu:"差枚+1600以上→天国/パニックゾーン/AT当選まで",shisa:"心電図右上シェバアイコン→天国フォロー / ATステージ引継ぎ:STAGE7以上→150G(10でウェスカーゾーン)",note:"",kw:"バイオ5 バイオハザード BIOHAZARD ヴェンデッタ"},
+  {name:"乃木坂46",sub:"G数天井",rank:"B",kikai:"97.5〜113.0",ceil:"999G(リセ50%で333G短縮)",aim:"510G〜",aim56:"600G〜",bonus:"AT当選",ev:"+1,500円〜",quit:"AT後1G+レジェンドピース示唆確認",reset:true,resetNote:"150G〜。50%で天井333G短縮",samai:"差枚上限+2150枚↑ or 一撃3000枚↑ / 切断後→ED40G→降臨チャンス(引き戻し可能)",shisa:"AT後1G+レジェンドピース示唆確認してやめ",note:"リセット時の50%天井333G短縮が強い。リセ恩恵がメインの狙い方",kw:"のぎざか ノギザカ 乃木坂 46"},
+  {name:"ありふれた職業で世界最強",sub:"G数天井+スルー天井",rank:"B",kikai:"97.5〜113.0",ceil:"1000G+前兆(リセ700G) / ミュウボナ4スルー(5回目AT)",aim:"580G〜 / 3スルー〜AT当選まで",aim56:"650G〜",bonus:"AT大迷宮RUSH",ev:"+1,500円〜",quit:"AT後即やめ",reset:true,resetNote:"280G〜。天井700G短縮。リセ1G目強レア役→次回AT濃厚",samai:"差枚上限+2400枚付近(予想) / 切断後→覚醒チャレンジ→成功で上位AT神大迷宮ラッシュ / ボーダー未判明",zentu:"ミュウボナ3スルー〜→AT当選まで",shisa:"リセ1G目の強チェリー/強チャンス目→次回AT濃厚(超チャンス)",note:"ミュウボナスルーが多いほど期待値UP",kw:"ありふれた 職業 世界最強"},
+  {name:"うしおととら",sub:"CZ間天井+AT間天井",rank:"B",kikai:"97.5〜113.0",ceil:"CZ間:600G(リセ300G) / AT間:2500G",aim:"CZ:不問480G〜 / 4スルー+350G〜 / AT間:1800G〜",aim56:"—",bonus:"CZ当選 / AT当選",ev:"+1,500円〜",quit:"CZ失敗→クリームパン以外やめ。AT後→激槍慟哭ゾーン抜け",reset:true,resetNote:"130G〜CZ当選まで。天井300G短縮+1回目CZ AT濃厚優遇",samai:"差枚上限+2150枚付近 / +2000枚↑が目安 / 切断後→択当て不要で最終決戦ボーナス直接突入",shisa:"CZ失敗終了画面:クリームパン→再度CZ当選まで続行 / それ以外→やめ",note:"リセ時は機械割100%超え。高確スタートの可能性あり",kw:"うしおととら ウシオトトラ うしとら"},
+  {name:"バベル",sub:"G数天井+サソリ天井",rank:"B",kikai:"97.5〜113.0",ceil:"1280G+前兆(リセ900G) / サソリ10回",aim:"650G〜 / サソリ8個〜",aim56:"700G〜",bonus:"ボーナス当選",ev:"+2,000円〜",quit:"144Gまで回してやめ",reset:true,resetNote:"推奨350G〜。天井900G短縮。約1/3で天国準備",zone:"144G天国ループ(必ずフォロー) / 200G:180G〜前兆抜け",shisa:"サブ液晶にサソリ回数表示→8個〜ボナまで / 140G前後捨て台=超チャンス(天国ループ型)",samai:"差枚狙い非対応(情報不足) / ストック機型モード管理ATで差枚管理型と設計が異なる可能性",note:"レア役取りこぼし超痛い(必ず赤7/青7で打つ)",kw:"バベル BABEL"},
+  {name:"とある科学の超電磁砲",sub:"AT間+CZ間+スルー天井",rank:"B",kikai:"97.5〜113.0",ceil:"AT間:1290G / CZ間:700G / スルー:7回目AT",aim:"AT間:750G〜 (安定800G〜) / CZ間:450G〜 / 5スルー〜",aim56:"AT間:800G〜",bonus:"AT当選 / CZ当選",ev:"AT800G〜+3,500円 / CZ450G〜+1,400円 / 5スルー〜+5,500円(119%)",quit:"温泉ステージ抜けやめ",reset:false,resetNote:"",zone:"パネル狙い:赤/金/虹3枚以上→CZまで(音量ボタン確認)",zentu:"5スルー〜→AT当選まで(119%/+5,500円)",samai:"差枚上限+2400枚(有利区間4000G制限あり) / リセット条件=AT間450G↑or3スルー↑or前回2000枚↑ / 切断後→もう1度頑張ってみよ!(70%突入・成功時期待1400枚)",shisa:"CZ消化中G数は天井に含まれない(20G×回数分ズレ注意) / 音量ボタンでパネル確認",note:"状況で期待値が大きく変動",kw:"とある 超電磁砲 レールガン RAILGUN"},
+];
+
+// ===========================
+// STATE
+// ===========================
+const STORAGE_KEY = 'slot-ev-prefs-v3';
+let state = loadState();
+let expandedIdx = -1;
+
+function defaultState() {
+  return { exchangeRate: '5.0', heldMedals: '0', closingTime: '', favorites: [], view: 'card', userMachines: [] };
+}
+function loadState() {
+  try { return Object.assign(defaultState(), JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')); }
+  catch { return defaultState(); }
+}
+function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+// ===========================
+// ALL MACHINES (built-in + user)
+// ===========================
+function allMachines() {
+  return [...machines, ...state.userMachines.map(m => Object.assign({}, m, { isUser: true }))];
+}
+
+// ===========================
+// INIT
+// ===========================
+document.addEventListener('DOMContentLoaded', () => {
+  // Restore condition panel
+  document.getElementById('selRate').value = state.exchangeRate;
+  document.getElementById('selMedals').value = state.heldMedals;
+  document.getElementById('selClose').value = state.closingTime;
+
+  // Condition panel events
+  document.getElementById('selRate').addEventListener('change', e => { state.exchangeRate = e.target.value; saveState(); render(); });
+  document.getElementById('selMedals').addEventListener('change', e => { state.heldMedals = e.target.value; saveState(); });
+  document.getElementById('selClose').addEventListener('change', e => { state.closingTime = e.target.value; saveState(); render(); });
+
+  // Filter tabs
+  document.querySelectorAll('.ftab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+  });
+
+  // Search
+  const si = document.getElementById('searchInput');
+  si.addEventListener('input', () => render());
+  document.getElementById('searchClear').addEventListener('click', () => { si.value = ''; render(); si.focus(); });
+
+  // View toggle
+  document.getElementById('btnToggleView').addEventListener('click', () => {
+    state.view = state.view === 'card' ? 'table' : 'card';
+    saveState();
+    render();
+  });
+
+  // Add machine
+  document.getElementById('btnAddMachine').addEventListener('click', () => openModal(-1));
+  document.getElementById('btnModalCancel').addEventListener('click', closeModal);
+  document.getElementById('btnModalSave').addEventListener('click', saveModal);
+  document.getElementById('btnModalDelete').addEventListener('click', deleteModal);
+  document.getElementById('modalOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+  // Guide toggle
+  document.getElementById('guideToggle').addEventListener('click', () => {
+    const body = document.getElementById('guideBody');
+    body.classList.toggle('show');
+    document.getElementById('guideChevron').style.transform = body.classList.contains('show') ? 'rotate(180deg)' : '';
+  });
+
+  render();
+});
+
+// ===========================
+// FILTER & RENDER
+// ===========================
+function getActiveTab() {
+  const a = document.querySelector('.ftab.active');
+  return a ? a.dataset.tab : 'all';
+}
+
+function getFilteredMachines() {
+  const tab = getActiveTab();
+  const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  let list = allMachines();
+
+  // Tab filter
+  if (tab === 'S' || tab === 'A' || tab === 'B') list = list.filter(m => m.rank === tab);
+  else if (tab === 'reset') list = list.filter(m => m.reset);
+  else if (tab === 'fav') list = list.filter(m => state.favorites.includes(m.name));
+
+  // Search filter
+  if (q) {
+    list = list.filter(m => {
+      const haystack = (m.name + ' ' + (m.sub || '') + ' ' + (m.kw || '')).toLowerCase();
+      return q.split(/\s+/).every(w => haystack.includes(w));
+    });
+  }
+
+  return list;
+}
+
+function render() {
+  const list = getFilteredMachines();
+  document.getElementById('countBar').textContent = list.length + '機種' + (list.length < allMachines().length ? ' / ' + allMachines().length + '機種中' : '');
+
+  // View icon
+  const isTable = state.view === 'table';
+  document.getElementById('viewIcon').innerHTML = isTable ? '&#9638;' : '&#9776;';
+
+  if (isTable) {
+    document.getElementById('cardContainer').style.display = 'none';
+    document.getElementById('tableContainer').style.display = 'block';
+    renderTable(list);
+  } else {
+    document.getElementById('cardContainer').style.display = 'block';
+    document.getElementById('tableContainer').style.display = 'none';
+    renderCards(list);
+  }
+}
+
+// ===========================
+// CARD RENDERING
+// ===========================
+function renderCards(list) {
+  const c = document.getElementById('cardContainer');
+  c.innerHTML = list.map((m, fi) => {
+    const idx = allMachines().indexOf(m);
+    const isFav = state.favorites.includes(m.name);
+    const isExp = expandedIdx === idx;
+    const ceilShort = (m.ceil || '—').split('/')[0].trim().substring(0, 30);
+    return `<div class="card${isExp ? ' expanded' : ''}" data-idx="${idx}">
+      <div class="card-head" onclick="toggleCard(${idx})">
+        <span class="card-rank ${m.rank}">${m.rank}</span>
+        <div class="card-info">
+          <div class="card-name">${esc(m.name)}</div>
+          ${m.sub ? `<div class="card-sub">${esc(m.sub)}</div>` : ''}
+          <div class="card-meta">
+            <span class="tag tag-kikai">${esc(m.kikai || '—')}</span>
+            <span class="tag tag-ceil">${esc(ceilShort)}</span>
+            ${m.reset ? '<span class="tag tag-reset">リセ有</span>' : '<span class="tag tag-no-reset">リセ無</span>'}
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn-star${isFav ? ' on' : ''}" onclick="event.stopPropagation();toggleFav('${esc(m.name)}')" title="お気に入り">${isFav ? '★' : '☆'}</button>
+          <span class="card-chevron">▼</span>
+        </div>
+      </div>
+      <div class="card-detail">${isExp ? buildDetail(m, idx) : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(idx) {
+  expandedIdx = expandedIdx === idx ? -1 : idx;
+  render();
+  if (expandedIdx >= 0) {
+    setTimeout(() => {
+      const el = document.querySelector(`.card[data-idx="${idx}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+  }
+}
+
+function toggleFav(name) {
+  const i = state.favorites.indexOf(name);
+  if (i >= 0) state.favorites.splice(i, 1);
+  else state.favorites.push(name);
+  saveState();
+  render();
+}
+
+// ===========================
+// TABLE RENDERING
+// ===========================
+function renderTable(list) {
+  const tc = document.getElementById('tableContainer');
+  tc.innerHTML = `<table>
+    <thead><tr>
+      <th>R</th><th>機種名</th><th>天井</th><th>狙い目</th><th>リセ</th><th>EV</th>
+    </tr></thead>
+    <tbody>${list.map(m => {
+      const idx = allMachines().indexOf(m);
+      const ceilShort = (m.ceil || '—').split('/')[0].trim().substring(0, 20);
+      const aimShort = (m.aim || '—').split('/')[0].trim().substring(0, 20);
+      return `<tr onclick="state.view='card';expandedIdx=${idx};saveState();render();">
+        <td class="rank-cell ${m.rank}">${m.rank}</td>
+        <td><strong>${esc(m.name)}</strong></td>
+        <td>${esc(ceilShort)}</td>
+        <td>${esc(aimShort)}</td>
+        <td>${m.reset ? '○' : '—'}</td>
+        <td>${esc((m.ev || '—').substring(0, 20))}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+// ===========================
+// DETAIL BUILDER
+// ===========================
+function buildDetail(m, idx) {
+  let html = '';
+
+  // --- EV Calculator ---
+  html += `<div class="detail-section">
+    <div class="detail-title"><span class="icon">&#128200;</span> EV計算機</div>
+    <div class="ev-calc">
+      <div class="ev-input-row">
+        <label>現在G数</label>
+        <input type="number" id="evInput_${idx}" min="0" max="9999" value="0" oninput="updateEV(${idx})" placeholder="0">
+        <span class="unit">G</span>
+      </div>
+      <div class="ev-progress">
+        <div class="ev-progress-fill" id="evFill_${idx}" style="width:0%"></div>
+        <div class="ev-progress-marker" id="evMarker_${idx}" style="left:0%"></div>
+      </div>
+      <div class="ev-progress-labels"><span>0G</span><span id="evCeilLabel_${idx}">${getCeilG(m)}G</span></div>
+      <div class="ev-result" id="evResult_${idx}"><span style="font-size:.75rem;color:var(--text-dim)">G数を入力してください</span></div>
+      ${buildEvTable(m, idx)}
+    </div>
+  </div>`;
+
+  // --- Detail sections ---
+  const sections = [
+    { title: '狙い目・やめ時', icon: '🎯', fields: [
+      { label: '狙い目(等価)', val: m.aim },
+      { label: '狙い目(5.6枚)', val: m.aim56 },
+      { label: 'やめ時', val: m.quit }
+    ]},
+    { title: '天井・リセット', icon: '📊', fields: [
+      { label: '天井', val: m.ceil },
+      { label: 'リセット', val: m.reset ? 'あり' : 'なし' },
+      { label: 'リセット備考', val: m.resetNote }
+    ]},
+    { title: 'ゾーン・モード', icon: '🗺', fields: [
+      { label: 'ゾーン', val: m.zone },
+      { label: 'モード', val: m.mode }
+    ]},
+    { title: '差枚狙い', icon: '💰', fields: [{ label: '', val: m.samai }] },
+  ];
+  if (m.zentu) sections.push({ title: '全ツッパ', icon: '🔥', fields: [{ label: '', val: m.zentu }] });
+  if (m.shisa) sections.push({ title: '示唆', icon: '💡', fields: [{ label: '', val: m.shisa }] });
+  sections.push({ title: 'ボーナス', icon: '🎰', fields: [{ label: '', val: m.bonus }] });
+  if (m.note) sections.push({ title: 'メモ', icon: '📝', fields: [{ label: '', val: m.note }] });
+
+  for (const sec of sections) {
+    const content = sec.fields.filter(f => f.val && f.val !== '—').map(f =>
+      (f.label ? `<strong>${esc(f.label)}:</strong> ` : '') + formatDetail(f.val)
+    ).join('\n');
+    if (!content) continue;
+    html += `<div class="detail-section">
+      <div class="detail-title"><span class="icon">${sec.icon}</span> ${sec.title}</div>
+      <div class="detail-text">${content}</div>
+    </div>`;
+  }
+
+  // Edit button for user machines
+  if (m.isUser) {
+    const uIdx = state.userMachines.findIndex(u => u.name === m.name);
+    html += `<div class="detail-section" style="text-align:right">
+      <button class="btn-secondary" onclick="openModal(${uIdx})" style="font-size:.75rem;padding:6px 14px">編集</button>
+    </div>`;
+  }
+
+  return html;
+}
+
+function formatDetail(val) {
+  if (typeof val === 'boolean') return val ? 'あり' : 'なし';
+  return esc(String(val)).replace(/ \/ /g, '\n').replace(/\//g, ' / ');
+}
+
+// ===========================
+// EV CALCULATION
+// ===========================
+function parseEvDataPoints(evStr) {
+  if (!evStr) return [];
+  // Take the first section (等価 or primary)
+  let section = evStr;
+  const secs = evStr.split(/ \/ (?=[^\d])/);
+  for (const s of secs) {
+    if (s.includes('等価') || secs.indexOf(s) === 0) {
+      section = s.replace(/^等価[：:]?\s*/, '');
+      break;
+    }
+  }
+  // Parse "400G+224円" or "400G+1,317円" or "0G-1,087円"
+  const points = [];
+  const re = /(\d[\d,]*)\s*G?\s*(?:で)?\s*([+\-])\s*([\d,]+)\s*円/g;
+  let match;
+  while ((match = re.exec(section)) !== null) {
+    const g = parseInt(match[1].replace(/,/g, ''), 10);
+    const sign = match[2] === '-' ? -1 : 1;
+    const val = parseInt(match[3].replace(/,/g, ''), 10) * sign;
+    points.push({ g, ev: val });
+  }
+  // Also handle "+2,000円〜" without G prefix (skip these for interpolation)
+  points.sort((a, b) => a.g - b.g);
+  return points;
+}
+
+function getCeilG(m) {
+  if (!m.ceil) return 999;
+  // Extract first number that looks like a ceiling
+  const match = m.ceil.match(/(\d[\d,]*)\s*G/);
+  if (match) return parseInt(match[1].replace(/,/g, ''), 10);
+  // Try just a leading number
+  const m2 = m.ceil.match(/(\d[\d,]*)/);
+  if (m2) return parseInt(m2[1].replace(/,/g, ''), 10);
+  return 999;
+}
+
+function interpolateEV(points, g) {
+  if (!points.length) return null;
+  if (g <= points[0].g) {
+    if (points.length >= 2) {
+      const slope = (points[1].ev - points[0].ev) / (points[1].g - points[0].g);
+      return points[0].ev + slope * (g - points[0].g);
+    }
+    return points[0].ev;
+  }
+  if (g >= points[points.length - 1].g) {
+    if (points.length >= 2) {
+      const a = points[points.length - 2], b = points[points.length - 1];
+      const slope = (b.ev - a.ev) / (b.g - a.g);
+      return b.ev + slope * (g - b.g);
+    }
+    return points[points.length - 1].ev;
+  }
+  for (let i = 0; i < points.length - 1; i++) {
+    if (g >= points[i].g && g <= points[i + 1].g) {
+      const ratio = (g - points[i].g) / (points[i + 1].g - points[i].g);
+      return points[i].ev + ratio * (points[i + 1].ev - points[i].ev);
+    }
+  }
+  return null;
+}
+
+function calcEV(m, currentG) {
+  const points = parseEvDataPoints(m.ev);
+  if (!points.length) return null;
+
+  const rate = parseFloat(state.exchangeRate);
+  let ev = interpolateEV(points, currentG);
+  if (ev === null) return null;
+
+  // Exchange rate correction
+  if (rate !== 5.0) ev *= (5.0 / rate);
+
+  const ceilG = getCeilG(m);
+  const remainG = Math.max(0, ceilG - currentG);
+  const timeMin = remainG / 13.3; // ~13.3G per minute (800G/hr average)
+  const hourlyWage = timeMin > 0 ? (ev / (timeMin / 60)) : 0;
+
+  let badge = 'NG';
+  if (hourlyWage >= 3000) badge = 'GO';
+  else if (hourlyWage >= 1000) badge = 'OK';
+  else if (ev >= 0) badge = 'WAIT';
+
+  return { ev: Math.round(ev), hourlyWage: Math.round(hourlyWage), timeMin: Math.round(timeMin), badge, ceilG, remainG };
+}
+
+function updateEV(idx) {
+  const m = allMachines()[idx];
+  const input = document.getElementById('evInput_' + idx);
+  const result = document.getElementById('evResult_' + idx);
+  const fill = document.getElementById('evFill_' + idx);
+  const marker = document.getElementById('evMarker_' + idx);
+  if (!input || !result) return;
+
+  const g = parseInt(input.value, 10) || 0;
+  const ceilG = getCeilG(m);
+  const pct = Math.min(100, (g / ceilG) * 100);
+
+  fill.style.width = pct + '%';
+  marker.style.left = pct + '%';
+
+  const r = calcEV(m, g);
+  if (!r) {
+    result.innerHTML = '<span style="font-size:.75rem;color:var(--text-dim)">EVデータなし(手動確認)</span>';
+    // Highlight table row
+    highlightEvRow(idx, g);
+    return;
+  }
+
+  const evClass = r.ev >= 0 ? 'positive' : 'negative';
+  const evSign = r.ev >= 0 ? '+' : '';
+  let closingWarn = '';
+  if (state.closingTime) {
+    const now = new Date();
+    const closeH = parseInt(state.closingTime, 10);
+    const closeTime = new Date(now);
+    closeTime.setHours(closeH, 0, 0, 0);
+    if (closeTime <= now) closeTime.setDate(closeTime.getDate() + 1);
+    const remainMin = (closeTime - now) / 60000;
+    if (r.timeMin > remainMin) {
+      closingWarn = `<div class="ev-closing-warn">&#9888; 閉店まで約${Math.round(remainMin)}分 / 天井到達まで約${r.timeMin}分 - 時間切れリスクあり</div>`;
+    }
+  }
+
+  result.innerHTML = `
+    <span class="ev-value ${evClass}">${evSign}${r.ev.toLocaleString()}円</span>
+    <span class="ev-badge ${r.badge}">${r.badge}</span>
+    <div style="width:100%">
+      <div class="ev-wage">時給換算: ${r.hourlyWage >= 0 ? '+' : ''}${r.hourlyWage.toLocaleString()}円/時</div>
+      <div class="ev-time">天井まで残り${r.remainG}G / 約${r.timeMin}分</div>
+      ${closingWarn}
+    </div>`;
+
+  highlightEvRow(idx, g);
+}
+
+function highlightEvRow(idx, g) {
+  const tbody = document.getElementById('evTbody_' + idx);
+  if (!tbody) return;
+  const rows = tbody.querySelectorAll('tr');
+  let closest = -1, minDist = Infinity;
+  rows.forEach((row, i) => {
+    const gVal = parseInt(row.dataset.g, 10);
+    const dist = Math.abs(gVal - g);
+    if (dist < minDist) { minDist = dist; closest = i; }
+    row.classList.remove('highlight');
+  });
+  if (closest >= 0 && rows[closest]) rows[closest].classList.add('highlight');
+}
+
+function buildEvTable(m, idx) {
+  const points = parseEvDataPoints(m.ev);
+  if (!points.length) return '';
+  const rate = parseFloat(state.exchangeRate);
+  return `<div class="ev-table-wrap"><table class="ev-table">
+    <thead><tr><th>G数</th><th>期待値</th><th>時給</th></tr></thead>
+    <tbody id="evTbody_${idx}">${points.map(p => {
+      let ev = p.ev;
+      if (rate !== 5.0) ev = Math.round(ev * (5.0 / rate));
+      const ceilG = getCeilG(m);
+      const remain = Math.max(0, ceilG - p.g);
+      const timeMin = remain / 13.3;
+      const wage = timeMin > 0 ? Math.round(ev / (timeMin / 60)) : 0;
+      const evCls = ev >= 0 ? 'ev-pos' : 'ev-neg';
+      return `<tr data-g="${p.g}">
+        <td>${p.g}G</td>
+        <td class="${evCls}">${ev >= 0 ? '+' : ''}${ev.toLocaleString()}円</td>
+        <td>${wage >= 0 ? '+' : ''}${wage.toLocaleString()}円/h</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+// ===========================
+// MODAL (Add/Edit/Delete)
+// ===========================
+function openModal(userIdx) {
+  const overlay = document.getElementById('modalOverlay');
+  const del = document.getElementById('btnModalDelete');
+  document.getElementById('mEditIdx').value = userIdx;
+
+  if (userIdx >= 0 && state.userMachines[userIdx]) {
+    const m = state.userMachines[userIdx];
+    document.getElementById('modalTitle').textContent = '機種を編集';
+    document.getElementById('mName').value = m.name || '';
+    document.getElementById('mSub').value = m.sub || '';
+    document.getElementById('mRank').value = m.rank || 'A';
+    document.getElementById('mKikai').value = m.kikai || '';
+    document.getElementById('mCeil').value = m.ceil || '';
+    document.getElementById('mAim').value = m.aim || '';
+    document.getElementById('mAim56').value = m.aim56 || '';
+    document.getElementById('mBonus').value = m.bonus || '';
+    document.getElementById('mEv').value = m.ev || '';
+    document.getElementById('mQuit').value = m.quit || '';
+    document.getElementById('mReset').value = m.reset ? 'true' : 'false';
+    document.getElementById('mResetNote').value = m.resetNote || '';
+    document.getElementById('mZone').value = m.zone || '';
+    document.getElementById('mMode').value = m.mode || '';
+    document.getElementById('mSamai').value = m.samai || '';
+    document.getElementById('mZentu').value = m.zentu || '';
+    document.getElementById('mShisa').value = m.shisa || '';
+    document.getElementById('mNote').value = m.note || '';
+    document.getElementById('mKw').value = m.kw || '';
+    del.style.display = 'inline-block';
+  } else {
+    document.getElementById('modalTitle').textContent = '機種を追加';
+    ['mName','mSub','mKikai','mCeil','mAim','mAim56','mBonus','mEv','mQuit','mResetNote','mZone','mMode','mSamai','mZentu','mShisa','mNote','mKw'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('mRank').value = 'A';
+    document.getElementById('mReset').value = 'true';
+    del.style.display = 'none';
+  }
+
+  overlay.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function saveModal() {
+  const name = document.getElementById('mName').value.trim();
+  if (!name) { alert('機種名を入力してください'); return; }
+
+  const m = {
+    name,
+    sub: document.getElementById('mSub').value.trim(),
+    rank: document.getElementById('mRank').value,
+    kikai: document.getElementById('mKikai').value.trim(),
+    ceil: document.getElementById('mCeil').value.trim(),
+    aim: document.getElementById('mAim').value.trim(),
+    aim56: document.getElementById('mAim56').value.trim(),
+    bonus: document.getElementById('mBonus').value.trim(),
+    ev: document.getElementById('mEv').value.trim(),
+    quit: document.getElementById('mQuit').value.trim(),
+    reset: document.getElementById('mReset').value === 'true',
+    resetNote: document.getElementById('mResetNote').value.trim(),
+    zone: document.getElementById('mZone').value.trim(),
+    mode: document.getElementById('mMode').value.trim(),
+    samai: document.getElementById('mSamai').value.trim(),
+    zentu: document.getElementById('mZentu').value.trim(),
+    shisa: document.getElementById('mShisa').value.trim(),
+    note: document.getElementById('mNote').value.trim(),
+    kw: document.getElementById('mKw').value.trim(),
+  };
+
+  const editIdx = parseInt(document.getElementById('mEditIdx').value, 10);
+  if (editIdx >= 0) {
+    state.userMachines[editIdx] = m;
+  } else {
+    state.userMachines.push(m);
+  }
+  saveState();
+  closeModal();
+  render();
+}
+
+function deleteModal() {
+  const editIdx = parseInt(document.getElementById('mEditIdx').value, 10);
+  if (editIdx >= 0 && confirm('この機種を削除しますか？')) {
+    const name = state.userMachines[editIdx]?.name;
+    state.userMachines.splice(editIdx, 1);
+    // Remove from favorites if present
+    const fi = state.favorites.indexOf(name);
+    if (fi >= 0) state.favorites.splice(fi, 1);
+    saveState();
+    closeModal();
+    expandedIdx = -1;
+    render();
+  }
+}
+
+// ===========================
+// UTILITIES
+// ===========================
+function esc(s) {
+  if (!s) return '';
+  const d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+</script>
+</body>
+</html>

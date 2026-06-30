@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKR 相場ウォッチ → メルマガ生成</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2b313c;
+    --ink:#e6edf3; --sub:#9aa7b4; --gn:#3fb950; --rd:#f85149; --yl:#d29922;
+    --ac:#58a6ff; --cu:#c97b4a;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"Cascadia Code",Consolas,"Yu Gothic UI",Meiryo,system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;padding:18px 14px 60px}
+  h1{font-size:19px;margin:0 0 2px;letter-spacing:.04em}
+  .sub{color:var(--sub);font-size:12px;margin:0 0 16px}
+  .wrap{max-width:920px;margin:0 auto}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:0 0 14px}
+  .panel h2{font-size:13px;margin:0 0 12px;color:var(--ac);letter-spacing:.06em;text-transform:uppercase}
+  label{font-size:11px;color:var(--sub);display:block;margin:0 0 3px}
+  input,textarea,select{background:var(--panel2);border:1px solid var(--line);color:var(--ink);
+    border-radius:8px;padding:7px 9px;font:inherit;font-size:13px;width:100%}
+  input:focus,textarea:focus{outline:none;border-color:var(--ac)}
+  textarea{resize:vertical;line-height:1.6}
+  /* market cards */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 11px}
+  .card .nm{font-size:11px;color:var(--sub);margin-bottom:6px;min-height:28px}
+  .card .vrow{display:flex;align-items:baseline;gap:6px}
+  .card .val{font-size:18px;font-weight:700}
+  .card .un{font-size:10px;color:var(--sub)}
+  .card .trend{font-size:11px;margin-top:5px}
+  .up{color:var(--gn)} .dn{color:var(--rd)} .fl{color:var(--sub)}
+  .miniin{display:flex;gap:6px;margin-top:8px}
+  .miniin input{padding:4px 6px;font-size:12px;text-align:right}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--sub);font-size:11px;font-weight:500}
+  td input{padding:5px 7px;font-size:13px}
+  /* buttons */
+  button{background:var(--ac);color:#06101f;border:0;border-radius:8px;padding:9px 16px;
+    font:inherit;font-weight:700;font-size:13px;cursor:pointer}
+  button.ghost{background:transparent;color:var(--ac);border:1px solid var(--ac)}
+  button:active{transform:translateY(1px)}
+  .hint{font-size:11px;color:var(--sub);margin-top:8px;line-height:1.6}
+  .pill{display:inline-block;background:var(--panel2);border:1px solid var(--line);
+    border-radius:999px;padding:2px 9px;font-size:11px;color:var(--sub);margin-left:8px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--gn);color:#06101f;padding:9px 18px;border-radius:999px;font-weight:700;
+    font-size:13px;opacity:0;transition:.25s;pointer-events:none}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .stance{font-size:13px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📊 SKR 相場ウォッチ → メルマガ生成<span class="pill" id="datePill"></span></h1>
+  <p class="sub">今週の金属相場を入力 → 見立てと「公式LINE/SNSメルマガ」原稿を自動生成。数字を直すだけ。保存は自動（この端末）。</p>
+
+  <!-- 相場 -->
+  <div class="panel">
+    <h2>① 今週の相場（編集可・前回比は自動）</h2>
+    <div class="cards" id="cards"></div>
+    <div class="hint">※ 値（今）と前回を入れると矢印と変化率が出ます。前回が空なら矢印なし。出典は下のメモへ。</div>
+  </div>
+
+  <!-- 自社単価 -->
+  <div class="panel">
+    <h2>② 自社買取単価表（編集可）</h2>
+    <table id="priceTbl">
+      <thead><tr><th style="width:34%">品目</th><th style="width:33%">買取単価</th><th>ひとこと</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="row" style="margin-top:10px">
+      <button class="ghost" onclick="addPriceRow()">＋ 行を追加</button>
+    </div>
+  </div>
+
+  <!-- 見立て -->
+  <div class="panel">
+    <h2>③ 見立て・集荷トーク（編集可）</h2>
+    <textarea id="stance" rows="4"></textarea>
+    <label style="margin-top:10px">出典メモ</label>
+    <textarea id="sources" rows="2"></textarea>
+  </div>
+
+  <!-- メルマガ生成 -->
+  <div class="panel">
+    <h2>④ メルマガ／SNS原稿 生成</h2>
+    <div class="row" style="margin-bottom:10px">
+      <label style="margin:0">媒体トーン</label>
+      <select id="tone" style="width:auto">
+        <option value="line">公式LINE（売り手へ配信）</option>
+        <option value="sns">SNS（TikTok/IG/ジモティー）</option>
+      </select>
+      <button onclick="genDraft()">原稿を生成</button>
+      <button class="ghost" onclick="copyDraft()">📋 コピー</button>
+    </div>
+    <textarea id="draft" rows="12" placeholder="「原稿を生成」を押すと、相場と単価から配信文を作ります。"></textarea>
+    <div class="hint">この原稿が <b>line-harness-oss のブロードキャスト</b> にそのまま流せる発信ネタです。相場が動く限りネタは尽きません。</div>
+  </div>
+
+  <div class="row">
+    <button class="ghost" onclick="resetAll()">初期データに戻す</button>
+    <span class="hint" style="margin:0">連絡先・社名は原稿テンプレ内で固定（下で編集可）。</span>
+  </div>
+</div>
+<div class="toast" id="toast">コピーしました</div>
+
+<script>
+const LS = 'skr.soba.v1';
+const todayISO = () => new Date().toISOString().slice(0,10);
+
+const DEFAULT = {
+  date: '',
+  contact: '000-0000-0000',
+  company: '株式会社S.K.R',
+  metals: [
+    {key:'cu',    nm:'銅建値（JX金属）',        un:'円/kg', val:0,  prev:0},
+    {key:'lme',   nm:'LME銅',                  un:'$/t',  val:0, prev:''},
+    {key:'fe',    nm:'鉄スクラップ（関東輸出）', un:'円/t', val:0, prev:0},
+    {key:'al',    nm:'アルミ（LME 3M）',        un:'$/t',  val:0,  prev:0},
+    {key:'compcu',nm:'競合 並銅（参考）',        un:'円/kg', val:0,  prev:''},
+  ],
+  prices: [
+    {item:'銅（ピカ線）', price:'',  note:'要確認'},
+    {item:'並銅',         price:'',  note:'競合価格を確認'},
+    {item:'真鍮',         price:'',  note:''},
+    {item:'アルミ',       price:'',  note:''},
+    {item:'ステンレス',   price:'',  note:''},
+    {item:'雑線',         price:'',  note:''},
+    {item:'鉄',           price:'',  note:'高値掴み注意'},
+  ],
+  stance: '銅は高値圏キープだが上値重い。鉄は反落の初動。買取単価は据え置き〜小幅調整が無難、鉄の新規高値掴みは慎重に。集荷トークは「今なお高値圏＝売り時」で押せる。',
+  sources: 'JX金属 銅建値 / 日経(関東鉄スクラップ入札) / 業界各社 / ScrapMonster・IndexBox(LME・COMEX)',
+};
+
+let D = load();
+function load(){
+  try{ const s = JSON.parse(localStorage.getItem(LS)); if(s) return s; }catch(e){}
+  const d = JSON.parse(JSON.stringify(DEFAULT)); d.date = todayISO(); return d;
+}
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(D)); }catch(e){} }
+
+/* ---- render market cards ---- */
+function fmt(n){ if(n===''||n==null||isNaN(n)) return '—'; return Number(n).toLocaleString('ja-JP'); }
+function trendHTML(val,prev){
+  if(prev===''||prev==null||val===''||val==null||isNaN(val)||isNaN(prev)) return '<span class="fl">前回比 —</span>';
+  const d = Number(val)-Number(prev);
+  const pct = prev!=0 ? (d/Number(prev)*100) : 0;
+  if(d>0) return `<span class="up">▲ +${fmt(d)}（+${pct.toFixed(1)}%）</span>`;
+  if(d<0) return `<span class="dn">▼ ${fmt(d)}（${pct.toFixed(1)}%）</span>`;
+  return '<span class="fl">± 横ばい</span>';
+}
+function renderCards(){
+  const el = document.getElementById('cards'); el.innerHTML='';
+  D.metals.forEach((m,i)=>{
+    const c = document.createElement('div'); c.className='card';
+    c.innerHTML = `<div class="nm">${m.nm}</div>
+      <div class="vrow"><span class="val">${fmt(m.val)}</span><span class="un">${m.un}</span></div>
+      <div class="trend">${trendHTML(m.val,m.prev)}</div>
+      <div class="miniin">
+        <input type="number" value="${m.val}" data-i="${i}" data-f="val" aria-label="今">
+        <input type="number" value="${m.prev}" data-i="${i}" data-f="prev" placeholder="前回" aria-label="前回">
+      </div>`;
+    el.appendChild(c);
+  });
+  el.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{
+    const {i,f}=e.target.dataset; D.metals[i][f]= e.target.value===''?'':Number(e.target.value); save(); renderCards();
+  }));
+}
+
+/* ---- price table ---- */
+function renderPrices(){
+  const tb = document.querySelector('#priceTbl tbody'); tb.innerHTML='';
+  D.prices.forEach((p,i)=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><input value="${esc(p.item)}" data-i="${i}" data-f="item"></td>
+      <td><input value="${esc(p.price)}" data-i="${i}" data-f="price" placeholder="例: ¥---/kg"></td>
+      <td><input value="${esc(p.note)}" data-i="${i}" data-f="note"></td>`;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',e=>{
+    const {i,f}=e.target.dataset; D.prices[i][f]=e.target.value; save();
+  }));
+}
+function addPriceRow(){ D.prices.push({item:'',price:'',note:''}); save(); renderPrices(); }
+function esc(s){ return String(s==null?'':s).replace(/"/g,'&quot;'); }
+
+/* ---- stance ---- */
+function bindArea(id,key){
+  const el=document.getElementById(id); el.value=D[key]||'';
+  el.addEventListener('input',()=>{ D[key]=el.value; save(); });
+}
+
+/* ---- draft generation ---- */
+function arrowWord(m){
+  if(m.prev===''||m.prev==null) return '';
+  const d=Number(m.val)-Number(m.prev);
+  if(d>0) return '↑上昇'; if(d<0) return '↓下落'; return '→横ばい';
+}
+function genDraft(){
+  const cu = D.metals.find(m=>m.key==='cu')||{};
+  const fe = D.metals.find(m=>m.key==='fe')||{};
+  const tone = document.getElementById('tone').value;
+  const priced = D.prices.filter(p=>p.price && p.price.trim());
+  const priceLines = priced.length
+    ? priced.map(p=>`・${p.item}：${p.price}`).join('\n')
+    : '・銅／真鍮／アルミ／ステン／雑線／鉄 ほか全般';
+  let t;
+  if(tone==='line'){
+    t =
+`【今週の買取相場】${D.date}\n\n`+
+`銅建値 ${fmt(cu.val)}円/kg（${arrowWord(cu)||'高値圏'}）／鉄スクラップ ${fmt(fe.val)}円/t（${arrowWord(fe)||'高水準'}）。\n`+
+`${D.stance}\n\n`+
+`▼今週の買取単価（一部）\n${priceLines}\n\n`+
+`ご自宅・現場に眠っている金属、今が売り時かもしれません。\n`+
+`査定無料・その場で現金。写真を送っていただければ概算もお出しします。\n`+
+`まずはこのトークにお気軽にどうぞ。\n\n`+
+`${D.company}／${D.contact}\n`+
+`※買取単価は変動します。最新はお問い合わせを。`;
+  }else{
+    t =
+`【今週の買取相場】${D.date}\n`+
+`銅は${arrowWord(cu)||'高値圏キープ'}（建値${fmt(cu.val)}円/kg前後）。鉄も依然高水準です。\n\n`+
+`ご自宅・現場に眠ってる金属、今が売り時かも。査定無料・その場で現金。\n`+
+`銅/真鍮/アルミ/ステン/雑線/鉄、何でもご相談ください。\n`+
+`※買取単価は変動します。最新はお問い合わせを。\n`+
+`（連絡先：${D.contact}）`;
+  }
+  document.getElementById('draft').value = t;
+}
+function copyDraft(){
+  const v=document.getElementById('draft').value;
+  if(!v){ genDraft(); }
+  const text=document.getElementById('draft').value;
+  navigator.clipboard.writeText(text).then(()=>toast('コピーしました')).catch(()=>{
+    const ta=document.getElementById('draft'); ta.select(); document.execCommand('copy'); toast('コピーしました');
+  });
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1400); }
+
+function resetAll(){
+  if(!confirm('入力を初期データに戻します。よろしいですか？')) return;
+  D=JSON.parse(JSON.stringify(DEFAULT)); D.date=todayISO(); save(); renderAll();
+}
+function renderAll(){
+  document.getElementById('datePill').textContent='更新 '+(D.date||todayISO());
+  renderCards(); renderPrices(); bindArea('stance','stance'); bindArea('sources','sources');
+}
+renderAll();
+</script>
+</body>
+</html>

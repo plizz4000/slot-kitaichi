@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIM回線 管理｜S.K.R</title>
+<style>
+  :root{--bg:#0b0f16;--card:#141c28;--line:#22304a;--txt:#e6edf6;--sub:#90a2b8;--accent:#4f9dff;--ok:#34d399;--warn:#f5b53a;--bad:#f87171}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:-apple-system,"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;background:var(--bg);color:var(--txt);padding:14px;font-size:14px}
+  h1{font-size:18px;font-weight:800;margin-bottom:3px}
+  .sub{color:var(--sub);font-size:12px;margin-bottom:14px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .kpi .n{font-size:22px;font-weight:800}
+  .kpi .l{font-size:11px;color:var(--sub);margin-top:2px}
+  .kpi.ok .n{color:var(--ok)} .kpi.warn .n{color:var(--warn)} .kpi.acc .n{color:var(--accent)}
+  .bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  button{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer}
+  button.ghost{background:var(--card);border:1px solid var(--line);color:var(--txt)}
+  .wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;min-width:880px;font-size:12.5px}
+  th,td{padding:8px 9px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+  th{background:#0f1722;color:var(--sub);font-weight:700;position:sticky;top:0}
+  td input,td select{background:#0e1622;border:1px solid var(--line);color:var(--txt);border-radius:6px;padding:5px 6px;font-size:12.5px;width:100%;min-width:80px}
+  td.num input{min-width:70px}
+  .pill{padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+  .s-hold{background:rgba(79,157,255,.15);color:var(--accent)}
+  .s-ready{background:rgba(52,211,153,.18);color:var(--ok)}
+  .s-proc{background:rgba(245,181,58,.18);color:var(--warn)}
+  .s-done{background:rgba(144,162,184,.2);color:var(--sub)}
+  .ready td{box-shadow:inset 3px 0 0 var(--ok)}
+  .act{font-size:11.5px}
+  .del{background:transparent;border:0;color:var(--bad);cursor:pointer;font-size:16px;padding:0 4px}
+  .note{color:var(--sub);font-size:11px;margin-top:10px;line-height:1.6}
+</style>
+</head>
+<body>
+  <h1>📶 SIM回線 管理（法人）</h1>
+  <div class="sub">S.K.R ／ キャッシュバック回線ポイ活 管理ツール · データはこの端末に保存（CSVで書き出し推奨）</div>
+
+  <div class="cards">
+    <div class="kpi acc"><div class="n" id="k-total">0</div><div class="l">総回線</div></div>
+    <div class="kpi ok"><div class="n" id="k-ready">0</div><div class="l">解約可能（転がせる）</div></div>
+    <div class="kpi warn"><div class="n" id="k-soon">0</div><div class="l">30日以内に解約可</div></div>
+    <div class="kpi"><div class="n" id="k-cb">¥0</div><div class="l">CB合計（受取済）</div></div>
+    <div class="kpi"><div class="n" id="k-cbun">¥0</div><div class="l">CB未受取</div></div>
+    <div class="kpi"><div class="n" id="k-mo">¥0</div><div class="l">月額合計</div></div>
+  </div>
+
+  <div class="bar">
+    <button onclick="addRow()">＋ 回線を追加</button>
+    <button class="ghost" onclick="seed20()">20回線ぶん枠を作る</button>
+    <button class="ghost" onclick="exportCSV()">CSV書き出し</button>
+    <label class="ghost" style="padding:9px 14px;border-radius:9px;cursor:pointer">CSV読み込み<input type="file" accept=".csv" onchange="importCSV(event)" hidden></label>
+  </div>
+
+  <div class="wrap">
+    <table>
+      <thead><tr>
+        <th>#</th><th>電話番号</th><th>キャリア</th><th>プラン</th><th>契約日</th>
+        <th>最低保有(日)</th><th>解約可能日</th><th>残り</th><th>状態</th>
+        <th>CB額</th><th>受取</th><th>月額</th><th>紐づき/メモ</th><th>次アクション</th><th></th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    ⚠️ 注意：短期解約はブラックリスト入りリスク。各回線「最低保有日数（既定180日）」を守ると安全。名義貸し・SIM転売は違法（NG）。<br>
+    💾 データはブラウザ保存。端末間で共有したい時はCSV書き出し→別端末で読み込み。
+  </div>
+
+<script>
+const KEY='skr_sim_v1';
+let rows=[];
+const CARRIERS=['','docomo','au','SoftBank','楽天','ahamo','povo','LINEMO','UQ','ワイモバ','MVNO他'];
+const STATES=['保有中','解約手続中','解約済'];
+
+function load(){ try{rows=JSON.parse(localStorage.getItem(KEY))||[]}catch(e){rows=[]} }
+function save(){ localStorage.setItem(KEY,JSON.stringify(rows)); render(); }
+function today(){ const d=new Date(); d.setHours(0,0,0,0); return d; }
+function addDays(dateStr,n){ if(!dateStr)return null; const d=new Date(dateStr); d.setDate(d.getDate()+(+n||0)); return d; }
+function fmt(d){ if(!d)return '—'; return d.toISOString().slice(0,10); }
+function yen(n){ return '¥'+(Number(n)||0).toLocaleString(); }
+
+function addRow(data){ rows.push(Object.assign({tel:'',carrier:'',plan:'',start:'',hold:180,cb:'',got:false,mo:'',memo:'',state:'保有中'},data||{})); save(); }
+function seed20(){ const need=Math.max(0,20-rows.length); for(let i=0;i<need;i++) rows.push({tel:'',carrier:'',plan:'',start:'',hold:180,cb:'',got:false,mo:'',memo:'',state:'保有中'}); save(); }
+function del(i){ rows.splice(i,1); save(); }
+
+function calc(r){
+  const can=addDays(r.start,r.hold);
+  let rem=null, status='保有中', act='—';
+  if(r.state==='解約済'){ status='解約済'; act='完了'; }
+  else if(r.state==='解約手続中'){ status='解約手続中'; act='手続き進行中'; }
+  else if(can){
+    rem=Math.ceil((can-today())/86400000);
+    if(rem<=0){ status='解約可'; act='🔁 今が転がし時（MNP/解約OK）'; }
+    else if(rem<=30){ status='保有中'; act=`あと${rem}日で解約可`; }
+    else { status='保有中'; act=`保有継続（残${rem}日）`; }
+  } else { act='契約日を入力'; }
+  return {can,rem,status,act};
+}
+
+function render(){
+  const tb=document.getElementById('tb'); tb.innerHTML='';
+  let ready=0,soon=0,cbGot=0,cbUn=0,mo=0;
+  rows.forEach((r,i)=>{
+    const c=calc(r);
+    if(c.status==='解約可') ready++;
+    if(c.rem!=null && c.rem>0 && c.rem<=30) soon++;
+    if(r.got) cbGot+=Number(r.cb)||0; else cbUn+=Number(r.cb)||0;
+    mo+=Number(r.mo)||0;
+    const sc={'保有中':'s-hold','解約可':'s-ready','解約手続中':'s-proc','解約済':'s-done'}[c.status];
+    const tr=document.createElement('tr');
+    if(c.status==='解約可') tr.className='ready';
+    tr.innerHTML=`<td>${i+1}</td>
+      <td><input value="${r.tel||''}" oninput="upd(${i},'tel',this.value)" placeholder="090-…"></td>
+      <td><select onchange="upd(${i},'carrier',this.value)">${CARRIERS.map(c2=>`<option ${c2===r.carrier?'selected':''}>${c2}</option>`).join('')}</select></td>
+      <td><input value="${r.plan||''}" oninput="upd(${i},'plan',this.value)" placeholder="プラン"></td>
+      <td><input type="date" value="${r.start||''}" oninput="upd(${i},'start',this.value)"></td>
+      <td class="num"><input type="number" value="${r.hold}" oninput="upd(${i},'hold',this.value)"></td>
+      <td>${fmt(c.can)}</td>
+      <td>${c.rem==null?'—':(c.rem<=0?'<b style=color:#34d399>可</b>':c.rem+'日')}</td>
+      <td><span class="pill ${sc}">${c.status}</span></td>
+      <td class="num"><input type="number" value="${r.cb||''}" oninput="upd(${i},'cb',this.value)" placeholder="0"></td>
+      <td style="text-align:center"><input type="checkbox" ${r.got?'checked':''} onchange="upd(${i},'got',this.checked)"></td>
+      <td class="num"><input type="number" value="${r.mo||''}" oninput="upd(${i},'mo',this.value)" placeholder="0"></td>
+      <td><input value="${r.memo||''}" oninput="upd(${i},'memo',this.value)" placeholder="アカウント/メモ"></td>
+      <td class="act">${c.act}<br><select style="margin-top:3px" onchange="upd(${i},'state',this.value)">${STATES.map(s=>`<option ${s===r.state?'selected':''}>${s}</option>`).join('')}</select></td>
+      <td><button class="del" onclick="del(${i})">×</button></td>`;
+    tb.appendChild(tr);
+  });
+  document.getElementById('k-total').textContent=rows.length;
+  document.getElementById('k-ready').textContent=ready;
+  document.getElementById('k-soon').textContent=soon;
+  document.getElementById('k-cb').textContent=yen(cbGot);
+  document.getElementById('k-cbun').textContent=yen(cbUn);
+  document.getElementById('k-mo').textContent=yen(mo);
+}
+function upd(i,k,v){ rows[i][k]=v; localStorage.setItem(KEY,JSON.stringify(rows)); if(['start','hold','got','cb','mo','state'].includes(k)) render(); }
+
+function exportCSV(){
+  const head=['電話番号','キャリア','プラン','契約日','最低保有日','CB額','受取','月額','メモ','状態'];
+  const lines=[head.join(',')].concat(rows.map(r=>[r.tel,r.carrier,r.plan,r.start,r.hold,r.cb,r.got?'1':'0',r.mo,(r.memo||'').replace(/,/g,'、'),r.state].join(',')));
+  const blob=new Blob(['﻿'+lines.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='sim-lines.csv'; a.click();
+}
+function importCSV(e){
+  const f=e.target.files[0]; if(!f)return; const rd=new FileReader();
+  rd.onload=()=>{ const ls=rd.result.replace(/^﻿/,'').split(/\r?\n/).filter(x=>x.trim()); ls.shift();
+    rows=ls.map(l=>{const c=l.split(','); return {tel:c[0]||'',carrier:c[1]||'',plan:c[2]||'',start:c[3]||'',hold:+c[4]||180,cb:c[5]||'',got:c[6]==='1',mo:c[7]||'',memo:c[8]||'',state:c[9]||'保有中'}}); save(); };
+  rd.readAsText(f);
+}
+load(); if(rows.length===0) seed20(); else render();
+</script>
+</body>
+</html>

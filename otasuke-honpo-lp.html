@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>おうち丸ごと おたすけ本舗｜解体・片付け・買取までワンストップ</title>
+<meta name="description" content="解体・不用品回収・生前整理/遺品整理・金属買取を“おうち丸ごと”おたすけ。松戸・我孫子など千葉北西部対応。LINEで写真を送るだけで無料お見積り。運営：株式会社S.K.R">
+<meta property="og:title" content="おうち丸ごと おたすけ本舗">
+<meta property="og:description" content="解体・片付け・買取まで、おうちのことぜんぶワンストップ。LINEで無料見積り。">
+<meta property="og:type" content="website">
+<meta property="og:image" content="photos/hero.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FBF6EE; --bg2:#F4ECDE; --card:#FFFFFF;
+  --ink:#3A2E22; --sub:#8B7C68; --line:#EBE0CE;
+  --accent:#E86F4E; --accent-soft:#FCEAE2; --accent-deep:#C9512F;
+  --green:#22B14C; --green-deep:#06A23C;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:"Zen Maru Gothic","Noto Sans JP",sans-serif;line-height:1.8;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:480px;margin:0 auto;position:relative;background:var(--bg)}
+.accent{color:var(--accent-deep)}
+img{display:block;max-width:100%}
+section{padding:50px 22px}
+.eyebrow{display:inline-block;font-weight:700;font-size:12px;letter-spacing:.06em;color:var(--accent-deep);background:var(--accent-soft);padding:5px 13px;border-radius:999px;margin-bottom:16px}
+h2{font-weight:900;font-size:25px;line-height:1.45;letter-spacing:.01em}
+h2 .small{display:block;font-size:13.5px;color:var(--sub);font-weight:500;margin-top:9px}
+
+/* HERO */
+.hero{padding:0 0 44px;position:relative;background:var(--bg)}
+.hero-top{position:absolute;top:0;left:0;right:0;z-index:3;padding:16px 22px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:700;font-size:13px;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.badge-area{font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.3);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.4);padding:5px 11px;border-radius:999px}
+.hero-photo{position:relative;height:340px;overflow:hidden}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:center 50%}
+.hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(58,46,34,.32) 0%,rgba(58,46,34,0) 32%,rgba(251,246,238,.15) 78%,var(--bg) 100%)}
+.hero-photo .ptag{position:absolute;left:22px;bottom:18px;z-index:2;font-size:11px;font-weight:700;color:#fff;background:rgba(58,46,34,.55);backdrop-filter:blur(4px);padding:5px 11px;border-radius:999px}
+.hero-body{padding:0 22px;margin-top:-12px;position:relative;z-index:2}
+.hero h1{font-weight:900;font-size:42px;line-height:1.2;margin:14px 0 18px}
+.hero h1 .ln1{display:block;color:var(--ink)}
+.hero h1 .ln2{display:block;color:var(--accent-deep)}
+.hero h1 .ln3{display:block;font-size:17px;font-weight:700;color:var(--sub);margin-top:14px}
+.hero-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.tag{font-size:12.5px;font-weight:700;color:var(--ink);background:var(--card);border:1px solid var(--line);padding:7px 13px;border-radius:999px}
+.tag.acc{background:var(--accent-soft);border-color:var(--accent-soft);color:var(--accent-deep)}
+
+/* CTA */
+.cta-line{display:flex;align-items:center;justify-content:center;gap:11px;background:var(--green);color:#fff;font-weight:900;font-size:17px;padding:18px 20px;text-decoration:none;border-radius:18px;box-shadow:0 12px 26px rgba(34,177,76,.26)}
+.cta-line small{display:block;font-size:11.5px;font-weight:500;opacity:.95;margin-top:2px}
+.cta-line .ico{font-size:22px}
+.cta-sub{text-align:center;font-size:12.5px;color:var(--sub);margin-top:13px;font-weight:500}
+.cta-tel{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:11px;padding:15px 18px;border:2px solid var(--accent);background:var(--card);color:var(--accent-deep);font-weight:900;font-size:17px;border-radius:18px;text-decoration:none}
+.cta-tel .ico{font-size:20px}
+.cta-tel small{display:block;font-size:11px;font-weight:500;color:var(--sub);margin-top:1px}
+.pay-note{text-align:center;font-size:12px;color:var(--sub);margin-top:12px;font-weight:500}
+.pay-note b{color:var(--ink)}
+
+/* TRUST STRIP */
+.tstrip{background:var(--ink);padding:20px 16px}
+.tstrip-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-width:440px;margin:0 auto}
+.tcell{text-align:center;color:#F4ECDE;padding:4px 4px}
+.tcell .tn{display:block;font-weight:900;font-size:14.5px;color:#FFD9A8;line-height:1.3;margin-bottom:4px}
+.tcell .tl{display:block;font-size:10.5px;font-weight:500;color:#cbbca6;line-height:1.4}
+.tcell + .tcell{border-left:1px solid rgba(255,255,255,.12)}
+
+/* PROBLEMS */
+.prob{background:var(--bg2)}
+.prob ul{list-style:none;margin-top:22px;display:grid;gap:11px}
+.prob li{display:flex;gap:12px;align-items:flex-start;font-size:15px;color:var(--ink);font-weight:500;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 15px}
+.prob li .q{font-size:19px;line-height:1.2;flex-shrink:0}
+.prob .turn{margin-top:30px;text-align:center;font-weight:900;font-size:20px;line-height:1.55}
+.prob .turn .accent{font-size:27px;display:inline-block;margin-top:4px}
+
+/* SERVICES */
+.svc-grid{display:grid;gap:16px;margin-top:24px}
+.svc{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:0 6px 18px rgba(58,46,34,.05)}
+.svc .ph{height:150px;position:relative;overflow:hidden}
+.svc .ph img{width:100%;height:100%;object-fit:cover}
+.svc .ph .no{position:absolute;top:10px;left:12px;font-weight:900;font-size:12px;color:#fff;background:rgba(58,46,34,.55);backdrop-filter:blur(3px);padding:3px 9px;border-radius:999px}
+.svc .tx{padding:18px 18px 20px}
+.svc .tx h3{font-size:18px;font-weight:900;margin-bottom:7px}
+.svc .tx p{font-size:13.5px;color:var(--sub);line-height:1.75}
+.svc.hl{border-color:var(--accent)}
+.svc.hl .tx{background:var(--accent-soft)}
+.svc .pill{display:inline-block;margin-top:12px;font-size:11px;font-weight:700;color:#fff;background:var(--accent);padding:5px 12px;border-radius:999px}
+
+/* WHY */
+.why{background:var(--bg2)}
+.why-list{display:grid;gap:14px;margin-top:24px}
+.why-item{display:flex;gap:15px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
+.why-num{font-weight:900;font-size:15px;color:#fff;background:var(--accent);min-width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0}
+.why-item h4{font-size:16px;font-weight:900;margin-bottom:4px}
+.why-item p{font-size:13.5px;color:var(--sub)}
+
+/* GALLERY */
+.gal{background:var(--bg)}
+.gal-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:24px}
+.gal-grid figure{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:1/1;background:var(--bg2)}
+.gal-grid img{width:100%;height:100%;object-fit:cover}
+.gal-grid figure.big{grid-column:span 2;aspect-ratio:16/9}
+.gal-note{text-align:center;font-size:12px;color:var(--sub);margin-top:16px}
+
+/* FLOW */
+.flow{display:grid;gap:0;margin-top:24px}
+.step{display:flex;gap:16px;padding-bottom:24px;position:relative}
+.step:not(:last-child)::before{content:"";position:absolute;left:18px;top:40px;bottom:0;width:2px;background:var(--line)}
+.step-n{min-width:38px;height:38px;background:var(--accent);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;z-index:1;box-shadow:0 4px 10px rgba(232,111,78,.3)}
+.step h4{font-size:16px;font-weight:900;margin-bottom:4px}
+.step p{font-size:13.5px;color:var(--sub)}
+
+/* AREA */
+.area{background:var(--bg2);text-align:center}
+.area-tags{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin-top:22px}
+.area-tags span{font-size:13.5px;font-weight:700;background:var(--card);border:1px solid var(--line);padding:9px 16px;border-radius:999px}
+.area-note{font-size:12.5px;color:var(--sub);margin-top:18px}
+
+/* TRUST / LICENSE */
+.trust{text-align:center}
+.trust .lead{font-size:14px;color:var(--sub);margin-top:14px}
+.lic-photo{margin:22px 0 8px;border-radius:16px;overflow:hidden;border:1px solid var(--line);box-shadow:0 6px 18px rgba(58,46,34,.06)}
+.lic-cap{font-size:11px;color:var(--sub);margin-bottom:22px}
+.lic-list{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:8px 18px;margin-top:24px}
+.lic-list .li{display:flex;gap:10px;padding:13px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.lic-list .li:last-child{border-bottom:none}
+.lic-list .li .ck{color:var(--green-deep);font-weight:900;flex-shrink:0}
+.lic-list .li b{font-weight:900;color:var(--ink)}
+.lic-list .li span{color:var(--sub);font-size:12.5px;display:block;margin-top:2px}
+.lic-no{font-family:"Noto Sans JP";font-weight:500;color:var(--sub);font-size:12px}
+
+/* FINAL */
+.final{text-align:center;padding-bottom:60px;background:radial-gradient(120% 80% at 50% 0%,#FFE3D4 0%,rgba(255,227,212,0) 60%),var(--bg)}
+.final h2{font-size:27px;margin-bottom:10px}
+.final p{font-size:14px;color:var(--sub);margin-bottom:26px}
+.final .cta-line{max-width:360px;margin:0 auto}
+footer{padding:26px 22px;border-top:1px solid var(--line);text-align:center;background:var(--bg)}
+footer .fb{font-size:12px;color:var(--sub);line-height:1.9}
+footer .fb b{color:var(--ink)}
+footer .copy{font-size:11px;color:var(--line);margin-top:10px}
+
+.rv{opacity:1;transform:none}
+@media (prefers-reduced-motion:no-preference){
+  .anim .rv{opacity:0;transform:translateY(20px);transition:all .7s cubic-bezier(.16,1,.3,1)}
+  .anim .rv.in{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-top">
+      <div class="brand">株式会社 S.K.R</div>
+      <div class="badge-area">1都4県・対応中</div>
+    </div>
+    <div class="hero-photo">
+      <img src="photos/hero.jpg" alt="S.K.R 解体・買取の現場">
+      <span class="ptag">📍 実際の施工現場より</span>
+    </div>
+    <div class="hero-body rv">
+      <span class="eyebrow">公式LINE｜無料相談・無料見積</span>
+      <h1>
+        <span class="ln1">おうちのこと、</span>
+        <span class="ln2">丸ごとおたすけ。</span>
+        <span class="ln3">解体・片付け・買取まで、ぜんぶ一社で。</span>
+      </h1>
+      <div class="hero-tags">
+        <span class="tag">解体</span>
+        <span class="tag">不用品回収</span>
+        <span class="tag">生前整理・遺品整理</span>
+        <span class="tag acc">金属買取</span>
+      </div>
+      <a class="cta-line" href="https://line.me/R/ti/p/@414fnird" target="_blank" rel="noopener">
+        <span class="ico">💬</span>
+        <span>LINEで友だち追加<small>写真を送るだけ・無料お見積り</small></span>
+      </a>
+      <div class="cta-sub">相談・見積もり ぜんぶ無料です😊</div>
+    </div>
+  </header>
+
+  <!-- TRUST STRIP -->
+  <div class="tstrip">
+    <div class="tstrip-grid">
+      <div class="tcell"><span class="tn">建設業許可<br>般-30</span><span class="tl">千葉県知事許可<br>（解体含む）</span></div>
+      <div class="tcell"><span class="tn">各種許可<br>完備</span><span class="tl">古物商・産廃<br>収集運搬 ほか</span></div>
+      <div class="tcell"><span class="tn">見積<br>無料</span><span class="tl">追加料金なしの<br>明朗会計</span></div>
+    </div>
+  </div>
+
+  <!-- PROBLEMS -->
+  <section class="prob rv">
+    <span class="eyebrow">こんなこと、ありませんか？</span>
+    <h2>「どこに頼めばいいの？」<span class="small">業者を何社も探すの、大変ですよね。</span></h2>
+    <ul>
+      <li><span class="q">🤔</span>実家を解体したいけど、中の荷物がそのまま残っている</li>
+      <li><span class="q">😣</span>遺品整理と不用品回収、別々の業者に頼むのが大変</li>
+      <li><span class="q">💸</span>大量の金属・家電・家具…捨てるとお金がかかる</li>
+      <li><span class="q">😰</span>見積もりの相場が分からず、ぼったくられないか不安</li>
+    </ul>
+    <div class="turn">そのお悩み、<br><span class="accent">まとめて1社で解決</span>します。</div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="rv">
+    <span class="eyebrow">4つのおたすけ</span>
+    <h2>おうちの「困った」を<br>ぜんぶカバー</h2>
+    <div class="svc-grid">
+      <div class="svc">
+        <div class="ph"><span class="no">01 解体</span><img src="photos/svc-kaitai.jpg" alt="解体工事の現場"></div>
+        <div class="tx"><h3>🏚️ 解体工事</h3><p>家屋・小屋・ブロック塀・残置物の撤去まで。手続き・近隣への配慮もおまかせ。</p></div>
+      </div>
+      <div class="svc">
+        <div class="ph"><span class="no">02 回収</span><img src="photos/svc-kaishu.jpg" alt="不用品回収の現場"></div>
+        <div class="tx"><h3>🚚 不用品回収・片付け</h3><p>家具・家電・粗大ごみから一軒丸ごとまで即日スピード回収。少量のご依頼も承ります（出張・最低料金あり）。</p></div>
+      </div>
+      <div class="svc">
+        <div class="ph"><span class="no">03 整理</span><img src="photos/svc-seiri.jpg" alt="生前整理・遺品整理の現場"></div>
+        <div class="tx"><h3>🕊️ 生前整理・遺品整理</h3><p>大切なお品は丁寧に、不要なものはきれいに。ご家族の負担を最小限に。</p></div>
+      </div>
+      <div class="svc hl">
+        <div class="ph"><span class="no">04 買取</span><img src="photos/svc-kaitori.jpg" alt="金属・スクラップ買取の現場"></div>
+        <div class="tx"><h3>♻️ 金属・スクラップ買取</h3><p>鉄・銅・アルミ・真鍮など高価買取。<b class="accent">作業費とその場で相殺</b>できます。</p><span class="pill">★ 費用が安くなる強み</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section class="why rv">
+    <span class="eyebrow">選ばれる理由</span>
+    <h2>“おうち丸ごと”だから、<br>安く・早く・ラク。</h2>
+    <div class="why-list">
+      <div class="why-item"><div class="why-num">1</div><div><h4>ワンストップで丸投げOK</h4><p>解体も片付けも買取も窓口は1つ。何社も探して連絡する手間がゼロに。</p></div></div>
+      <div class="why-item"><div class="why-num">2</div><div><h4>買取で作業費を圧縮</h4><p>金属・有価物は買い取って費用と相殺。「捨てる」を「お金に換える」へ。</p></div></div>
+      <div class="why-item"><div class="why-num">3</div><div><h4>地域密着でスピード対応</h4><p>松戸・我孫子など千葉北西部に密着。最短即日でお見積り・お伺い。</p></div></div>
+      <div class="why-item"><div class="why-num">4</div><div><h4>LINEで完結、明朗会計</h4><p>写真を送るだけで概算がわかる。追加料金なしの事前見積で安心。</p></div></div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section class="gal rv">
+    <span class="eyebrow">施工の様子</span>
+    <h2>すべて、自社の現場です</h2>
+    <div class="gal-grid">
+      <figure class="big"><img src="photos/g1.jpg" alt="解体現場"></figure>
+      <figure><img src="photos/g2.jpg" alt="家屋解体"></figure>
+      <figure><img src="photos/g3.jpg" alt="不用品の搬出"></figure>
+      <figure><img src="photos/g4.jpg" alt="金属スクラップ"></figure>
+      <figure><img src="photos/g5.jpg" alt="重機作業"></figure>
+      <figure class="big"><img src="photos/g6.jpg" alt="重機による解体作業"></figure>
+    </div>
+    <p class="gal-note">※ すべてS.K.Rが実際に対応した現場の写真です。</p>
+  </section>
+
+  <!-- FLOW -->
+  <section class="rv">
+    <span class="eyebrow">かんたん3ステップ</span>
+    <h2>LINEで写真を送るだけ</h2>
+    <div class="flow">
+      <div class="step"><div class="step-n">1</div><div><h4>友だち追加して写真を送る</h4><p>片付けたい場所・モノを撮って送るだけ。文章が苦手でもOK。</p></div></div>
+      <div class="step"><div class="step-n">2</div><div><h4>無料でお見積り</h4><p>概算金額と、買取でいくら相殺できるかをご返信。納得してから決められます。</p></div></div>
+      <div class="step"><div class="step-n">3</div><div><h4>作業日を決めて、おまかせ</h4><p>当日は見ているだけ。片付け・解体・搬出ぜんぶこちらで。</p></div></div>
+    </div>
+  </section>
+
+  <!-- AREA -->
+  <section class="area rv">
+    <span class="eyebrow">対応エリア</span>
+    <h2>1都4県、対応中🚙</h2>
+    <div class="area-tags">
+      <span>東京都</span><span>千葉県</span><span>埼玉県</span><span>茨城県</span><span>神奈川県</span>
+    </div>
+    <p class="area-note">※ 松戸・我孫子・柏など千葉北西部は特にスピード対応。エリア外でもまずはお気軽にご相談ください。</p>
+  </section>
+
+  <!-- TRUST / LICENSE -->
+  <section class="trust rv">
+    <span class="eyebrow">許可・登録</span>
+    <h2>許可をきちんと持つ、<br>地元の専門業者です</h2>
+    <p class="lead">解体から有価物の買取・適正処理まで、<br>必要な許認可を備えて対応しています。</p>
+    <div class="lic-list">
+      <div class="li"><span class="ck">◎</span><div><b>建設業許可</b><span>千葉県知事許可（般-30）第52753号／土木・解体・とび土工・鋼構造物・舗装 ほか</span></div></div>
+      <div class="li"><span class="ck">◎</span><div><b>古物商許可</b><span class="lic-no">第441090001964号</span></div></div>
+      <div class="li"><span class="ck">◎</span><div><b>金属屑商許可</b><span class="lic-no">第61号</span></div></div>
+      <div class="li"><span class="ck">◎</span><div><b>産業廃棄物 収集運搬許可</b><span>千葉県・東京都・埼玉県・茨城県</span></div></div>
+      <div class="li"><span class="ck">◎</span><div><b>廃棄物再生事業者登録</b><span class="lic-no">第G00149号</span></div></div>
+      <div class="li"><span class="ck">◎</span><div><b>計量証明事業登録</b><span class="lic-no">第303号</span></div></div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final rv" id="cta">
+    <span class="eyebrow">まずは無料で相談</span>
+    <h2>おうちの「どうしよう」、<br><span class="accent">気軽に送ってください😊</span></h2>
+    <p>相談・見積もりは何度でも無料。<br>しつこい営業は一切しません。</p>
+    <a class="cta-line" href="https://line.me/R/ti/p/@414fnird" target="_blank" rel="noopener">
+      <span class="ico">💬</span>
+      <span>LINEで友だち追加<small>写真を送るだけ・無料お見積り</small></span>
+    </a>
+    <div class="cta-sub">おうち丸ごと おたすけ本舗</div>
+  </section>
+
+  <footer>
+    <div class="fb"><b>おうち丸ごと おたすけ本舗</b><br>運営：株式会社 S.K.R｜1都4県対応</div>
+    <div class="copy">© 2026 S.K.R</div>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var noanim = location.search.indexOf('noanim') > -1;
+  if(noanim || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  document.body.classList.add('anim');
+  var io = new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.12});
+  document.querySelectorAll('.rv').forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
